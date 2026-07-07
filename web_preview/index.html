@@ -1,0 +1,870 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hazırlık Takibi Web Önizleme</title>
+  <style>
+    :root {
+      --pink: #e84a7a;
+      --teal: #0d9488;
+      --indigo: #5f6fd9;
+      --amber: #b7791f;
+      --ink: #251923;
+      --muted: #746875;
+      --line: #f0dde4;
+      --bg: #fff8fa;
+      --card: #ffffff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+    button, input, select, textarea { font: inherit; }
+    .app { max-width: 1120px; margin: 0 auto; padding: 18px; padding-bottom: 92px; }
+    .topbar { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 16px; animation: fadeUp .45s ease both; }
+    h1, h2, h3 { margin: 0; letter-spacing: 0; }
+    h1 { font-size: 26px; }
+    h2 { font-size: 20px; margin-bottom: 12px; }
+    h3 { font-size: 15px; }
+    .muted { color: var(--muted); }
+    .hero {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--pink), #c83f83 55%, var(--indigo));
+      color: white;
+      border-radius: 8px;
+      padding: 22px;
+      margin-bottom: 14px;
+      animation: fadeUp .5s ease both;
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(100deg, transparent, rgba(255,255,255,.18), transparent);
+      transform: translateX(-110%);
+      animation: shine 4.2s ease-in-out infinite;
+    }
+    .hero strong { display: block; font-size: 28px; margin-top: 6px; max-width: 780px; }
+    .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      min-width: 0;
+      animation: fadeUp .45s ease both;
+    }
+    .metric b { display: block; font-size: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .metric span { color: var(--muted); font-size: 13px; }
+    .progress { height: 8px; background: #f7eaf0; border-radius: 999px; overflow: hidden; margin-top: 10px; }
+    .progress i { display: block; height: 100%; background: var(--pink); border-radius: 999px; transition: width .5s ease; }
+    .module {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      min-height: 76px;
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+    .module:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(70,32,49,.1); }
+    .module small { color: var(--muted); }
+    .tabs {
+      position: fixed;
+      left: 50%;
+      bottom: 14px;
+      transform: translateX(-50%);
+      width: min(720px, calc(100vw - 24px));
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 6px;
+      box-shadow: 0 12px 32px rgba(70, 32, 49, .12);
+      z-index: 3;
+    }
+    .tabs button, .btn {
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: transparent;
+      cursor: pointer;
+      color: var(--ink);
+      min-width: 0;
+    }
+    .tabs button.active, .btn.primary { background: var(--pink); color: white; }
+    .btn.ghost { border: 1px solid var(--line); background: white; }
+    .filters { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 8px; }
+    .chip {
+      border: 1px solid var(--line);
+      background: white;
+      border-radius: 999px;
+      padding: 8px 10px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .chip.active { color: white; background: var(--ink); border-color: var(--ink); }
+    .item {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      align-items: start;
+      border-bottom: 1px solid var(--line);
+      padding: 12px 0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform .12s ease, background .18s ease, box-shadow .18s ease;
+    }
+    .item:active { transform: scale(.985); background: #fff1f6; }
+    .item.done {
+      background: linear-gradient(90deg, rgba(13,148,136,.1), transparent 70%);
+      animation: checkedPulse .28s ease both;
+    }
+    .item:last-child { border-bottom: 0; }
+    .item-check {
+      width: 26px;
+      height: 26px;
+      border: 2px solid var(--line);
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      color: white;
+      margin-top: 2px;
+      transition: transform .18s ease, background .18s ease, border-color .18s ease;
+      flex: 0 0 auto;
+    }
+    .item.done .item-check {
+      background: var(--teal);
+      border-color: var(--teal);
+      transform: scale(1.06);
+    }
+    .item.done .item-title { text-decoration: line-through; color: var(--muted); }
+    .item-title { font-weight: 750; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 12px;
+      font-weight: 750;
+      margin-top: 6px;
+      background: #f7eaf0;
+      color: var(--pink);
+    }
+    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .form { display: grid; gap: 10px; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 11px 12px;
+      background: white;
+    }
+    dialog {
+      width: min(560px, calc(100vw - 24px));
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0;
+      box-shadow: 0 24px 70px rgba(60, 18, 38, .22);
+    }
+    dialog[open] { animation: pop .24s ease both; }
+    dialog::backdrop { background: rgba(20, 10, 16, .24); animation: fade .2s ease both; }
+    .modal { padding: 18px; animation: fadeUp .28s ease both; }
+    .bar { height: 22px; background: #f7eaf0; border-radius: 4px; overflow: hidden; }
+    .bar i { display: block; height: 100%; background: var(--teal); }
+    .priority-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .priority-row:last-child { border-bottom: 0; }
+    .range {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      background: #f7eaf0;
+      color: var(--pink);
+      padding: 5px 9px;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .wrapped {
+      min-height: 360px;
+      display: grid;
+      place-items: center;
+      text-align: left;
+      background: linear-gradient(135deg, var(--pink), var(--indigo));
+      color: white;
+      border-radius: 8px;
+      padding: 28px;
+      margin-bottom: 12px;
+      animation: fadeUp .45s ease both;
+    }
+    .wrapped p { font-size: 28px; font-weight: 850; line-height: 1.2; }
+    .splash {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: grid;
+      place-items: center;
+      background: var(--bg);
+      animation: splashOut .55s ease 1.35s both;
+      pointer-events: none;
+    }
+    .splash-card {
+      width: min(360px, calc(100vw - 40px));
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 22px;
+      text-align: center;
+      animation: pop .45s ease both;
+    }
+    .splash-card b { display: block; font-size: 22px; margin-bottom: 8px; }
+    @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes pop { from { opacity: 0; transform: scale(.96) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes shine { 0%, 45% { transform: translateX(-110%); } 70%, 100% { transform: translateX(110%); } }
+    @keyframes splashOut { to { opacity: 0; visibility: hidden; } }
+    @keyframes checkedPulse { 0% { transform: scale(.99); } 55% { transform: scale(1.01); } 100% { transform: scale(1); } }
+    @media (max-width: 760px) {
+      .grid, .grid.two, .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      h1 { font-size: 22px; }
+      .hero strong, .wrapped p { font-size: 23px; }
+      .tabs button { font-size: 12px; padding: 9px 4px; }
+    }
+    @media (max-width: 520px) {
+      .grid, .grid.two, .form-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="splash">
+    <div class="splash-card">
+      <b>Nazar değmesin, başlıyoruz.</b>
+      <span class="muted">Telaşı büyütmeden, tek tek toparlayacağız.</span>
+    </div>
+  </div>
+
+  <div class="app">
+    <div class="topbar">
+      <div>
+        <h1>Gel canım, şu düğün telaşını beraber toparlayalım</h1>
+        <div class="muted" id="subtitle">Çeyiz ve düğün hazırlıkları</div>
+      </div>
+      <button class="btn ghost" onclick="openSettings()">Bilgiler</button>
+    </div>
+    <main id="view"></main>
+  </div>
+  <nav class="tabs">
+    <button data-tab="home" class="active">Ana Sayfa</button>
+    <button data-tab="lists">Listeler</button>
+    <button data-tab="budget">Bütçe</button>
+    <button data-tab="summary">Özet</button>
+    <button data-tab="priority">Öncelik</button>
+  </nav>
+
+  <dialog id="settingsDialog">
+    <div class="modal form">
+      <h2>Hele bir tanışalım, sonra liste kolay</h2>
+      <p class="muted" style="margin:0">Tarih tamam, bütçeyi de hangi para birimiyle takip edeceğimizi seçelim.</p>
+      <label>Düğün tarihi <input id="weddingDate" type="date"></label>
+      <div class="form-grid">
+        <label>Kadın adı <input id="womanName" placeholder="Ayşe"></label>
+        <label>Erkek adı <input id="manName" placeholder="Mehmet"></label>
+      </div>
+      <div class="form-grid">
+        <label>Hedef bütçe <input id="targetBudget" inputmode="decimal" placeholder="350000"></label>
+        <label>Para birimi
+          <select id="budgetCurrency">
+            <option value="TRY">TL</option>
+            <option value="USD">Dolar</option>
+            <option value="EUR">Euro</option>
+          </select>
+        </label>
+      </div>
+      <div class="card" style="padding:10px">
+        <b>Günlük kur</b>
+        <div class="muted" id="rateNote">Kur bilgisi yükleniyor...</div>
+      </div>
+      <div class="row">
+        <button class="btn primary" onclick="saveSettings()">Tamam teyzeciğim</button>
+        <button class="btn ghost" onclick="settingsDialog.close()">Kapat</button>
+        <button class="btn ghost" onclick="resetData()">Verileri sıfırla</button>
+      </div>
+      <small class="muted">Veriler bu tarayıcıda saklanır. Döviz kuru internetten günlük çekilir.</small>
+    </div>
+  </dialog>
+
+  <dialog id="itemDialog">
+    <div class="modal form">
+      <h2 id="itemTitle"></h2>
+      <label><input id="itemDone" type="checkbox"> Alındı mı?</label>
+      <label>Öncelik
+        <select id="itemPriority">
+          <option value="mustHave">Olmazsa Olmaz</option>
+          <option value="necessary">Gerekli</option>
+          <option value="later">Sonra Alınabilir</option>
+          <option value="luxury">Lüks</option>
+        </select>
+      </label>
+      <label>Tahmini fiyat <input id="itemEstimated" inputmode="numeric"></label>
+      <label>Gerçek fiyat <input id="itemActual" inputmode="numeric"></label>
+      <label>Nereden alındı? <input id="itemShop"></label>
+      <label>Not <textarea id="itemNote" rows="3"></textarea></label>
+      <div class="row">
+        <button class="btn primary" onclick="saveItem()">Kaydet</button>
+        <button class="btn ghost" onclick="itemDialog.close()">Kapat</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="priceDialog">
+    <div class="modal form">
+      <h2>Kaça aldın canım?</h2>
+      <p class="muted" id="priceItemTitle" style="margin:0"></p>
+      <label>Tutar <input id="quickActualPrice" inputmode="decimal" placeholder="Boş bırakabilirsin"></label>
+      <div class="row">
+        <button class="btn ghost" onclick="saveQuickPrice(true)">Boş bırak</button>
+        <button class="btn primary" onclick="saveQuickPrice(false)">Kaydet</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+    const weights = { mustHave: 5, necessary: 3, later: 1, luxury: .5 };
+    const priorityLabel = { mustHave: 'Olmazsa Olmaz', necessary: 'Gerekli', later: 'Sonra Alınabilir', luxury: 'Lüks' };
+    const categories = ['Çeyiz', 'Bohça', 'Söz', 'Nişan', 'Kına', 'Düğün', 'Balayı'];
+    const seed = [
+      ['Buzdolabı','Çeyiz','Beyaz Eşya / Elektronik','mustHave',35000],
+      ['Çamaşır makinesi','Çeyiz','Beyaz Eşya / Elektronik','mustHave',22000],
+      ['Bulaşık makinesi','Çeyiz','Beyaz Eşya / Elektronik','mustHave',20000],
+      ['Ocak','Çeyiz','Beyaz Eşya / Elektronik','mustHave',12000],
+      ['Fırın','Çeyiz','Beyaz Eşya / Elektronik','mustHave',16000],
+      ['Davlumbaz','Çeyiz','Beyaz Eşya / Elektronik','necessary',9000],
+      ['Elektrikli süpürge','Çeyiz','Beyaz Eşya / Elektronik','necessary',9000],
+      ['Ütü','Çeyiz','Beyaz Eşya / Elektronik','necessary',3500],
+      ['Ütü masası','Çeyiz','Beyaz Eşya / Elektronik','necessary',1800],
+      ['Televizyon','Çeyiz','Beyaz Eşya / Elektronik','later',25000],
+      ['Mikrodalga fırın','Çeyiz','Beyaz Eşya / Elektronik','later',6000],
+      ['Airfryer','Çeyiz','Beyaz Eşya / Elektronik','later',6000],
+      ['Kahve makinesi','Çeyiz','Beyaz Eşya / Elektronik','later',7000],
+      ['Tost makinesi','Çeyiz','Beyaz Eşya / Elektronik','necessary',3500],
+      ['Blender seti','Çeyiz','Beyaz Eşya / Elektronik','necessary',4500],
+      ['Robot süpürge','Çeyiz','Beyaz Eşya / Elektronik','luxury',18000],
+      ['Kurutma makinesi','Çeyiz','Beyaz Eşya / Elektronik','luxury',24000],
+      ['Su sebili','Çeyiz','Beyaz Eşya / Elektronik','later',7000],
+      ['Saç kurutma makinesi','Çeyiz','Beyaz Eşya / Elektronik','necessary',2500],
+      ['Tartı','Çeyiz','Beyaz Eşya / Elektronik','later',1200],
+      ['Tencere seti','Çeyiz','Mutfak','necessary',5500],
+      ['Tava seti','Çeyiz','Mutfak','necessary',3500],
+      ['Çaydanlık','Çeyiz','Mutfak','necessary',2500],
+      ['Kahve fincan takımı','Çeyiz','Mutfak','necessary',1800],
+      ['Günlük yemek takımı','Çeyiz','Mutfak','necessary',6500],
+      ['Misafir yemek takımı','Çeyiz','Mutfak','later',14000],
+      ['Kahvaltı takımı','Çeyiz','Mutfak','necessary',4000],
+      ['Çatal bıçak takımı','Çeyiz','Mutfak','necessary',3500],
+      ['Bardak seti','Çeyiz','Mutfak','necessary',2500],
+      ['Su bardağı','Çeyiz','Mutfak','necessary',1200],
+      ['Çay bardağı','Çeyiz','Mutfak','necessary',900],
+      ['Saklama kabı','Çeyiz','Mutfak','necessary',1000],
+      ['Baharatlık','Çeyiz','Mutfak','necessary',800],
+      ['Kesme tahtası','Çeyiz','Mutfak','necessary',600],
+      ['Bıçak seti','Çeyiz','Mutfak','necessary',1800],
+      ['Borcam','Çeyiz','Mutfak','necessary',900],
+      ['Fırın kabı','Çeyiz','Mutfak','necessary',900],
+      ['Servis tabağı','Çeyiz','Mutfak','later',1400],
+      ['Salata kasesi','Çeyiz','Mutfak','necessary',900],
+      ['Süzgeç','Çeyiz','Mutfak','necessary',500],
+      ['Kepçe seti','Çeyiz','Mutfak','necessary',800],
+      ['Rende','Çeyiz','Mutfak','necessary',400],
+      ['Mutfak havlusu','Çeyiz','Mutfak','necessary',700],
+      ['Masa örtüsü','Çeyiz','Mutfak','later',1400],
+      ['Amerikan servis','Çeyiz','Mutfak','later',900],
+      ['Bulaşıklık','Çeyiz','Mutfak','necessary',900],
+      ['Sabunluk ve süngerlik','Çeyiz','Mutfak','necessary',500],
+      ['Çöp kovası','Çeyiz','Mutfak','necessary',900],
+      ['Yatak','Çeyiz','Yatak Odası','mustHave',18000],
+      ['Baza','Çeyiz','Yatak Odası','mustHave',15000],
+      ['Başlık','Çeyiz','Yatak Odası','necessary',8000],
+      ['Gardırop','Çeyiz','Yatak Odası','mustHave',30000],
+      ['Komodin','Çeyiz','Yatak Odası','necessary',7000],
+      ['Şifonyer','Çeyiz','Yatak Odası','later',10000],
+      ['Nevresim takımı','Çeyiz','Yatak Odası','necessary',2500],
+      ['Yorgan','Çeyiz','Yatak Odası','necessary',2500],
+      ['Yastık','Çeyiz','Yatak Odası','necessary',1200],
+      ['Pike','Çeyiz','Yatak Odası','necessary',1400],
+      ['Battaniye','Çeyiz','Yatak Odası','necessary',1800],
+      ['Alez','Çeyiz','Yatak Odası','necessary',900],
+      ['Yatak odası perdesi','Çeyiz','Yatak Odası','necessary',4500],
+      ['Yatak odası halısı','Çeyiz','Yatak Odası','later',6500],
+      ['Yatak odası avizesi','Çeyiz','Yatak Odası','later',3000],
+      ['Makyaj masası','Çeyiz','Yatak Odası','luxury',12000],
+      ['Askı','Çeyiz','Yatak Odası','necessary',500],
+      ['Hurç','Çeyiz','Yatak Odası','necessary',900],
+      ['Yatak örtüsü','Çeyiz','Yatak Odası','later',2400],
+      ['Havlu seti','Çeyiz','Banyo','necessary',2200],
+      ['Bornoz takımı','Çeyiz','Banyo','necessary',3500],
+      ['Banyo paspası','Çeyiz','Banyo','necessary',900],
+      ['Çamaşır sepeti','Çeyiz','Banyo','necessary',1100],
+      ['Diş fırçalık','Çeyiz','Banyo','necessary',350],
+      ['Sabunluk','Çeyiz','Banyo','necessary',400],
+      ['Duş perdesi','Çeyiz','Banyo','later',800],
+      ['Banyo dolabı','Çeyiz','Banyo','later',6000],
+      ['Temizlik kovası','Çeyiz','Banyo','necessary',600],
+      ['Banyo rafı','Çeyiz','Banyo','later',1400],
+      ['Tuvalet fırçası','Çeyiz','Banyo','necessary',350],
+      ['Sıvı sabunluk','Çeyiz','Banyo','necessary',350],
+      ['Kirli sepeti','Çeyiz','Banyo','necessary',1000],
+      ['Koltuk takımı','Çeyiz','Salon / Oturma Odası','mustHave',45000],
+      ['TV ünitesi','Çeyiz','Salon / Oturma Odası','necessary',18000],
+      ['Orta sehpa','Çeyiz','Salon / Oturma Odası','necessary',6500],
+      ['Yan sehpa','Çeyiz','Salon / Oturma Odası','later',4500],
+      ['Salon halısı','Çeyiz','Salon / Oturma Odası','necessary',12000],
+      ['Salon perdesi','Çeyiz','Salon / Oturma Odası','necessary',9000],
+      ['Salon avizesi','Çeyiz','Salon / Oturma Odası','later',6000],
+      ['Yemek masası','Çeyiz','Salon / Oturma Odası','necessary',25000],
+      ['Sandalye','Çeyiz','Salon / Oturma Odası','necessary',12000],
+      ['Konsol','Çeyiz','Salon / Oturma Odası','later',18000],
+      ['Vitrin','Çeyiz','Salon / Oturma Odası','luxury',16000],
+      ['Ayna','Çeyiz','Salon / Oturma Odası','later',3500],
+      ['Dekoratif ürünler','Çeyiz','Salon / Oturma Odası','luxury',5000],
+      ['Kırlent','Çeyiz','Salon / Oturma Odası','later',1600],
+      ['Abajur','Çeyiz','Salon / Oturma Odası','later',2500],
+      ['Kitaplık','Çeyiz','Salon / Oturma Odası','luxury',9000],
+      ['Kurutmalık','Çeyiz','Diğer Ev İhtiyaçları','necessary',1200],
+      ['Mandal','Çeyiz','Diğer Ev İhtiyaçları','necessary',200],
+      ['Çamaşır mandalı','Çeyiz','Diğer Ev İhtiyaçları','necessary',200],
+      ['Askılık','Çeyiz','Diğer Ev İhtiyaçları','necessary',800],
+      ['Ayakkabılık','Çeyiz','Diğer Ev İhtiyaçları','necessary',5000],
+      ['Üçlü priz','Çeyiz','Diğer Ev İhtiyaçları','necessary',300],
+      ['Uzatma kablosu','Çeyiz','Diğer Ev İhtiyaçları','necessary',350],
+      ['Merdiven','Çeyiz','Diğer Ev İhtiyaçları','later',1600],
+      ['Vileda','Çeyiz','Diğer Ev İhtiyaçları','necessary',800],
+      ['Leğen','Çeyiz','Diğer Ev İhtiyaçları','necessary',300],
+      ['Paspas','Çeyiz','Diğer Ev İhtiyaçları','necessary',350],
+      ['İlk yardım seti','Çeyiz','Diğer Ev İhtiyaçları','necessary',600],
+      ['Mini yangın tüpü','Çeyiz','Diğer Ev İhtiyaçları','later',1200],
+      ['Dış kapı paspası','Çeyiz','Diğer Ev İhtiyaçları','necessary',500],
+      ['Dikiş seti','Çeyiz','Diğer Ev İhtiyaçları','later',350],
+      ['Alet çantası','Çeyiz','Diğer Ev İhtiyaçları','later',2500],
+      ['Gelin bohçası','Bohça','Bohça','necessary',5000],
+      ['Damat bohçası','Bohça','Bohça','necessary',5000],
+      ['Söz yüzükleri','Söz','Söz','mustHave',15000],
+      ['Söz tepsisi','Söz','Söz','necessary',1200],
+      ['Nişan mekanı','Nişan','Nişan','mustHave',60000],
+      ['Nişan elbisesi','Nişan','Nişan','necessary',12000],
+      ['Kına mekanı','Kına','Kına','mustHave',50000],
+      ['Bindallı','Kına','Kına','necessary',10000],
+      ['Düğün salonu','Düğün','Düğün','mustHave',180000],
+      ['Gelinlik','Düğün','Düğün','mustHave',45000],
+      ['Damatlık','Düğün','Düğün','mustHave',18000],
+      ['Davetiye','Düğün','Düğün','necessary',6000],
+      ['Otel rezervasyonu','Balayı','Balayı','mustHave',50000],
+      ['Uçak bileti','Balayı','Balayı','necessary',25000],
+      ['Pasaport','Balayı','Balayı','necessary',3000]
+    ];
+    const previewVersion = 2;
+    let state = JSON.parse(localStorage.getItem('prep-web') || 'null') || {
+      version: previewVersion,
+      settings: {
+        weddingDate: '',
+        targetBudget: 300000,
+        budgetCurrency: 'TRY',
+        womanName: '',
+        manName: '',
+        rates: { TRY: 1, USD: 32, EUR: 35 },
+        goldGram: 0,
+        rateDate: ''
+      },
+      items: seed.map((s, i) => ({ id: i + 1, title: s[0], category: s[1], sub: s[2], priority: s[3], estimated: s[4], actual: 0, done: false, shop: '', note: '' }))
+    };
+    if (state.version !== previewVersion) {
+      const previousSettings = state.settings || {};
+      state = {
+        version: previewVersion,
+        settings: previousSettings,
+        items: seed.map((s, i) => ({ id: i + 1, title: s[0], category: s[1], sub: s[2], priority: s[3], estimated: s[4], actual: 0, done: false, shop: '', note: '' }))
+      };
+      localStorage.setItem('prep-web', JSON.stringify(state));
+    }
+    state.settings.budgetCurrency ||= 'TRY';
+    state.settings.rates ||= { TRY: 1, USD: 32, EUR: 35 };
+    state.settings.goldGram ||= 0;
+    if (state.settings.coupleNames && !state.settings.womanName && !state.settings.manName) {
+      const parts = state.settings.coupleNames.split('&').map(x => x.trim());
+      state.settings.womanName = parts[0] || '';
+      state.settings.manName = parts[1] || '';
+    }
+
+    let activeTab = 'home';
+    let currentCategory = null;
+    let currentSubCategory = null;
+    let currentFilter = 'all';
+    let editingId = null;
+    let priceItemId = null;
+
+    const view = document.querySelector('#view');
+    const moneyTry = n => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(Number(n || 0));
+    const moneyCurrency = (n, currency) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency, maximumFractionDigits: 0 }).format(Number(n || 0));
+    const parseTrNumber = value => Number(String(value || '').replaceAll('.', '').replace(',', '.').replace(/[^\d.]/g, '')) || 0;
+    const todayValue = () => new Date().toISOString().slice(0, 10);
+    const save = () => localStorage.setItem('prep-web', JSON.stringify(state));
+    const totalSpent = () => state.items.reduce((a, i) => a + Number(i.actual || 0), 0);
+    const budgetRate = () => state.settings.rates[state.settings.budgetCurrency] || 1;
+    const targetBudgetTry = () => Number(state.settings.targetBudget || 0) * budgetRate();
+    const coupleName = () => [state.settings.womanName, state.settings.manName].filter(Boolean).join(' & ');
+    const completed = items => items.filter(i => i.done).length;
+    const score = items => {
+      const total = items.reduce((a, i) => a + weights[i.priority], 0);
+      const done = items.filter(i => i.done).reduce((a, i) => a + weights[i.priority], 0);
+      return total ? Math.round(done / total * 100) : 0;
+    };
+    const scoreText = s => s < 25 ? 'Daha yolun başındasın' : s < 50 ? 'Hazırlık başladı' : s < 75 ? 'İyi gidiyorsun' : s < 90 ? 'Neredeyse hazırsın' : 'Hazırlık tamam gibi';
+    const daysLeft = () => {
+      if (!state.settings.weddingDate) return null;
+      const today = new Date(); today.setHours(0,0,0,0);
+      const date = new Date(state.settings.weddingDate); date.setHours(0,0,0,0);
+      return Math.round((date - today) / 86400000);
+    };
+
+    async function refreshRates() {
+      try {
+        const market = await fetch('https://finans.truncgil.com/today.json').then(r => r.json());
+        state.settings.rates = {
+          TRY: 1,
+          USD: parseTrNumber(market.USD?.Satış || market.USD?.['Satış']),
+          EUR: parseTrNumber(market.EUR?.Satış || market.EUR?.['Satış'])
+        };
+        state.settings.goldGram = parseTrNumber(market['gram-altin']?.Satış || market['gram-altin']?.['Satış']);
+        state.settings.rateDate = market.Update_Date || new Date().toISOString().slice(0, 10);
+        save();
+        updateRateNote();
+        render();
+      } catch (error) {
+        updateRateNote('Kur bilgisi alınamadı; son kayıtlı kurla devam ediyoruz.');
+      }
+    }
+
+    function updateRateNote(fallbackText) {
+      const note = document.querySelector('#rateNote');
+      if (!note) return;
+      const rates = state.settings.rates;
+      note.textContent = fallbackText || `1 USD ≈ ${moneyTry(rates.USD)} · 1 EUR ≈ ${moneyTry(rates.EUR)} · Gram altın ≈ ${moneyTry(state.settings.goldGram)} · ${state.settings.rateDate || 'güncel'}`;
+    }
+
+    function render() {
+      document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === activeTab));
+      document.querySelector('#subtitle').textContent = coupleName() || 'Çeyiz ve düğün hazırlıkları';
+      if (activeTab === 'home') renderHome();
+      if (activeTab === 'lists') renderLists();
+      if (activeTab === 'budget') renderBudget();
+      if (activeTab === 'summary') renderSummary();
+      if (activeTab === 'priority') renderPriority();
+    }
+
+    function renderHome() {
+      const d = daysLeft();
+      const s = score(state.items);
+      view.innerHTML = `
+        <section class="hero"><span>${coupleName() || 'İki güzel insanın telaşı'}</span><strong>${d === null ? 'Tarihi söyle de yolumuzu ona göre çizelim' : d < 0 ? 'Düğün tarihi geçti, Allah tamamına erdirsin' : `Düğüne ${d} gün kaldı, panik yok canım`}</strong></section>
+        <section class="card"><h2>Genel hazırlık</h2><div class="muted">${scoreText(s)}</div><div class="progress"><i style="width:${s}%"></i></div><p><b>%${s}</b> hazırlık skoru</p></section>
+        <div class="grid" style="margin-top:10px">
+          ${metric('Toplam harcama', moneyTry(totalSpent()))}
+          ${metric('Kalan bütçe', moneyTry(targetBudgetTry() - totalSpent()))}
+          ${metric('Hedef bütçe', `${moneyCurrency(state.settings.targetBudget, state.settings.budgetCurrency)}`)}
+          ${metric('Olmazsa olmaz eksik', state.items.filter(i => !i.done && i.priority === 'mustHave').length)}
+        </div>
+        <h2 style="margin-top:18px">Kategori ilerlemeleri</h2>
+        <div class="grid two">${categories.map(categoryCard).join('')}</div>
+      `;
+    }
+
+    function metric(title, value) {
+      return `<div class="card metric"><b>${value}</b><span>${title}</span></div>`;
+    }
+
+    function categoryCard(category) {
+      const items = state.items.filter(i => i.category === category);
+      const pct = items.length ? Math.round(completed(items) / items.length * 100) : 0;
+      return `<div class="card module" onclick="openCategory('${category}')"><div><h3>${category}</h3><small>${completed(items)}/${items.length} tamamlandı</small><div class="progress"><i style="width:${pct}%"></i></div></div><b>%${pct}</b></div>`;
+    }
+
+    function renderLists() {
+      if (!currentCategory) {
+        view.innerHTML = `<h2>Listeler</h2><div class="grid two">${categories.map(c => `<div class="card module" onclick="openCategory('${c}')"><h3>${c}</h3><span>›</span></div>`).join('')}</div>`;
+        return;
+      }
+      const filters = [['all','Tümü'],['missing','Alınmadı'],['done','Alındı'],['mustHave','Olmazsa Olmaz'],['necessary','Gerekli'],['later','Sonra Alınabilir'],['luxury','Lüks']];
+      const ceyizGroups = [...new Set(state.items.filter(i => i.category === 'Çeyiz').map(i => i.sub))];
+      let items = state.items.filter(i => i.category === currentCategory);
+      if (currentSubCategory) items = items.filter(i => i.sub === currentSubCategory);
+      if (currentFilter === 'missing') items = items.filter(i => !i.done);
+      if (currentFilter === 'done') items = items.filter(i => i.done);
+      if (weights[currentFilter]) items = items.filter(i => i.priority === currentFilter);
+      items.sort((a,b) => Object.keys(weights).indexOf(a.priority) - Object.keys(weights).indexOf(b.priority));
+      view.innerHTML = `
+        <div class="topbar"><h2>${currentSubCategory ? subCategoryLabel(currentSubCategory) : currentCategory}</h2><button class="btn ghost" onclick="currentCategory=null;currentSubCategory=null;render()">Modüller</button></div>
+        ${currentCategory === 'Çeyiz' ? `<div class="filters">${['Tüm Çeyiz', ...ceyizGroups].map(group => {
+          const value = group === 'Tüm Çeyiz' ? '' : group;
+          return `<button class="chip ${currentSubCategory === value ? 'active' : ''}" onclick="openSubCategory('${value}')">${group === 'Tüm Çeyiz' ? group : subCategoryLabel(group)}</button>`;
+        }).join('')}</div>` : ''}
+        <div class="filters">${filters.map(f => `<button class="chip ${currentFilter === f[0] ? 'active' : ''}" onclick="currentFilter='${f[0]}';render()">${f[1]}</button>`).join('')}</div>
+        ${currentCategory === 'Çeyiz' && !currentSubCategory ? groupedCeyizList(items, ceyizGroups) : `<div class="card">${items.map(itemRow).join('') || '<p>Bu filtrede ürün yok.</p>'}</div>`}
+      `;
+    }
+
+    function groupedCeyizList(items, groups) {
+      return groups.map(group => {
+        const groupItems = items.filter(item => item.sub === group);
+        if (!groupItems.length) return '';
+        return `<section class="card" style="margin-bottom:12px"><h3>${subCategoryLabel(group)}</h3>${groupItems.map(itemRow).join('')}</section>`;
+      }).join('') || '<div class="card"><p>Bu filtrede ürün yok.</p></div>';
+    }
+
+    function subCategoryLabel(subCategory) {
+      return subCategory === 'Mutfak' ? 'Mutfak Eşyaları'
+        : subCategory === 'Beyaz Eşya / Elektronik' ? 'Beyaz Eşyalar'
+        : subCategory === 'Diğer Ev İhtiyaçları' ? 'Ev İhtiyaçları'
+        : subCategory;
+    }
+
+    function subCategoryCard(subCategory) {
+      const items = state.items.filter(i => i.category === 'Çeyiz' && i.sub === subCategory);
+      const pct = items.length ? Math.round(completed(items) / items.length * 100) : 0;
+      const label = subCategoryLabel(subCategory);
+      return `<div class="card module" onclick="openSubCategory('${subCategory}')"><div><h3>${label}</h3><small>${items.length} kalem · ${completed(items)} tamam</small><div class="progress"><i style="width:${pct}%"></i></div></div><b>%${pct}</b></div>`;
+    }
+
+    function itemRow(item) {
+      return `<div class="item ${item.done ? 'done' : ''}" onclick="toggleItem(${item.id})">
+        <div class="item-check">${item.done ? '✓' : ''}</div>
+        <div><div class="item-title">${item.title}</div><span class="badge">${priorityLabel[item.priority]}</span><div class="muted">${item.sub} · Tahmini ${moneyTry(item.estimated)} · Harcama ${moneyTry(item.actual)}</div></div>
+        <button class="btn ghost" onclick="event.stopPropagation(); editItem(${item.id})">Düzenle</button>
+      </div>`;
+    }
+
+    function renderBudget() {
+      const byCat = categories.map(c => [c, state.items.filter(i => i.category === c).reduce((a,i) => a + Number(i.actual || 0), 0)]).filter(x => x[1] > 0);
+      const max = Math.max(1, ...byCat.map(x => x[1]));
+      const topItems = [...state.items].filter(i => i.actual > 0).sort((a,b) => b.actual - a.actual).slice(0,5);
+      view.innerHTML = `
+        <h2>Bütçe</h2>
+        <div class="grid">${metric('Hedef bütçe', moneyCurrency(state.settings.targetBudget, state.settings.budgetCurrency))}${metric('TL karşılığı', moneyTry(targetBudgetTry()))}${metric('Toplam harcama', moneyTry(totalSpent()))}${metric('Kalan bütçe', moneyTry(targetBudgetTry() - totalSpent()))}</div>
+        <section class="card" style="margin-top:12px"><h3>Günlük kur</h3><p class="muted">1 USD ≈ ${moneyTry(state.settings.rates.USD)} · 1 EUR ≈ ${moneyTry(state.settings.rates.EUR)} · Gram altın ≈ ${moneyTry(state.settings.goldGram)} · ${state.settings.rateDate || 'son kayıtlı kur'}</p></section>
+        <section class="card" style="margin-top:12px"><h3>Kategori bazlı harcama</h3>${byCat.length ? byCat.map(x => `<p>${x[0]} · ${moneyTry(x[1])}</p><div class="bar"><i style="width:${Math.round(x[1]/max*100)}%"></i></div>`).join('') : '<p>Henüz harcama eklenmedi.</p>'}</section>
+        <section class="card" style="margin-top:12px"><h3>En pahalı 5 ürün</h3>${topItems.map(i => `<p>${i.title} · ${moneyTry(i.actual)}</p>`).join('') || '<p>Henüz harcama eklenmedi.</p>'}</section>
+      `;
+    }
+
+    function renderSummary() {
+      const s = score(state.items);
+      const top = [...state.items].filter(i => i.actual > 0).sort((a,b) => b.actual - a.actual)[0];
+      const d = daysLeft();
+      const cards = [
+        `Bu süreçte toplam ${moneyTry(totalSpent())} harcadın.`,
+        top ? `En pahalı alışverişin: ${top.title} - ${moneyTry(top.actual)}.` : 'En pahalı alışverişin henüz kaydedilmedi.',
+        `Hedef bütçen ${moneyCurrency(state.settings.targetBudget, state.settings.budgetCurrency)}, bugünkü kurla ${moneyTry(targetBudgetTry())}.`,
+        `Çeyiz hazırlığının %${score(state.items.filter(i => i.category === 'Çeyiz'))} bölümü tamamlandı.`,
+        `Olmazsa olmaz ürünlerin %${score(state.items.filter(i => i.priority === 'mustHave'))} hazır.`,
+        d === null ? 'Düğün tarihi eklediğinde kalan gün burada görünür.' : `Düğüne ${d} gün kala hazırlık seviyen: ${scoreText(s)}.`,
+        `Toplam ${state.items.length} üründen ${completed(state.items)} tanesini tamamladın.`
+      ];
+      view.innerHTML = `<h2>Hazırlık Özeti</h2>${cards.map((c,i) => `<div class="wrapped"><div><small>${i+1}/${cards.length}</small><p>${c}</p></div></div>`).join('')}<button class="btn primary" onclick="shareSummary()">Özet metnini paylaş</button>`;
+    }
+
+    function renderPriority() {
+      const suggestions = prioritySuggestions();
+      const lockNow = suggestions.filter(item => item.bucket === 'lock');
+      const research = suggestions.filter(item => item.bucket === 'research');
+      const later = suggestions.filter(item => item.bucket === 'later');
+      view.innerHTML = `
+        <h2>Önce Ne Almalıyım?</h2>
+        <section class="card" style="margin-bottom:12px">
+          <h3>Bütçeye göre okuma</h3>
+          <p class="muted">Hedef bütçe: ${moneyCurrency(state.settings.targetBudget, state.settings.budgetCurrency)} · TL karşılığı: ${moneyTry(targetBudgetTry())}. Altın ve döviz günlük kurdan okunur; fiyatı daha sabit kalan kalemler başa, çok oynayan ağır kalemler ise “erken araştır” bölümüne düşer.</p>
+        </section>
+        ${prioritySection('Önce kilitle', 'Alyans, takı, beyaz eşya gibi fiyatı görece daha net olan kalemler.', lockNow)}
+        ${prioritySection('Erken araştır, pazarlık payı büyük', 'Salon, organizasyon, fotoğraf, müzik ve mobilya gibi fiyat aralığı geniş kalemler.', research)}
+        ${prioritySection('Bütçe kalırsa sıraya al', 'Daha esnek veya ertelenebilir kalemler.', later)}
+      `;
+    }
+
+    function prioritySection(title, subtitle, items) {
+      return `<section class="card" style="margin-bottom:12px"><h3>${title}</h3><p class="muted">${subtitle}</p>${items.length ? items.map(priorityRow).join('') : '<p>Bu bölümde eksik yok.</p>'}</section>`;
+    }
+
+    function priorityRow(entry) {
+      return `<div class="priority-row">
+        <div>
+          <b>${entry.item.title}</b>
+          <div class="muted">${entry.item.category} · ${entry.item.sub} · ${entry.reason}</div>
+          <span class="badge">${priorityLabel[entry.item.priority]}</span>
+        </div>
+        <div class="range">${moneyTry(entry.min)} - ${moneyTry(entry.max)}</div>
+      </div>`;
+    }
+
+    function prioritySuggestions() {
+      const budget = Math.max(targetBudgetTry(), 1);
+      return state.items
+        .filter(item => !item.done)
+        .map(item => {
+          const band = priceBand(item, budget);
+          const meta = itemMeta(item);
+          const budgetShare = band.max / budget;
+          const scoreValue =
+            weights[item.priority] * 18 +
+            meta.urgency +
+            meta.stability * 10 +
+            (budgetShare > .18 ? 12 : budgetShare > .08 ? 8 : 3);
+          return { item, ...band, ...meta, scoreValue };
+        })
+        .sort((a, b) => b.scoreValue - a.scoreValue)
+        .slice(0, 18);
+    }
+
+    function itemMeta(item) {
+      const text = `${item.title} ${item.sub} ${item.category}`.toLowerCase();
+      if (/(yüzük|alyans|altın)/.test(text)) return { bucket: 'lock', stability: 3, urgency: 26, reason: 'Altın kuruyla izlenir; model seçilince fiyat aralığı daha nettir.' };
+      if (/(buzdolabı|çamaşır|bulaşık|fırın|ocak|davlumbaz|süpürge|televizyon|airfryer|kahve makinesi)/.test(text)) return { bucket: 'lock', stability: 3, urgency: 24, reason: 'Kampanya yakalanınca fiyatı daha öngörülebilir ağır kalem.' };
+      if (/(salon|mekan|organizasyon|fotoğraf|video|müzik|dj|orkestra|gelinlik|damatlık|kuaför|makyaj)/.test(text)) return { bucket: 'research', stability: 1, urgency: 28, reason: 'Fiyat aralığı çok geniş; erken teklif almak bütçeyi korur.' };
+      if (/(koltuk|mobilya|yatak|gardırop|masa|sandalye|konsol|vitrin)/.test(text)) return { bucket: 'research', stability: 2, urgency: 22, reason: 'Ev ve mobilya kalemleri ağırdır; ölçü ve teslim süresi erken netleşmeli.' };
+      if (item.priority === 'luxury' || item.priority === 'later') return { bucket: 'later', stability: 1, urgency: 4, reason: 'Bütçe kalırsa rahatça sıraya alınır.' };
+      return { bucket: 'lock', stability: 2, urgency: 12, reason: 'Fiyatı çok oynamadan tamamlanabilecek ihtiyaç.' };
+    }
+
+    function priceBand(item, budget) {
+      const text = `${item.title} ${item.sub} ${item.category}`.toLowerCase();
+      if (/(yüzük|alyans|altın)/.test(text) && state.settings.goldGram) {
+        const averageGram = /yüzük|alyans/.test(text) ? 14 : 20;
+        const base = state.settings.goldGram * averageGram;
+        return { min: base * 1.1, max: base * 1.45 };
+      }
+      if (/düğün salonu|salon|mekan/.test(text)) return { min: budget * .05, max: budget * .30 };
+      if (/organizasyon/.test(text)) return { min: budget * .03, max: budget * .12 };
+      if (/fotoğraf|video/.test(text)) return { min: budget * .015, max: budget * .06 };
+      if (/müzik|dj|orkestra/.test(text)) return { min: budget * .015, max: budget * .07 };
+      if (/beyaz eşya|buzdolabı|çamaşır|bulaşık|fırın|ocak|davlumbaz/.test(text)) return { min: budget * .06, max: budget * .16 };
+      if (/koltuk|mobilya|yatak|gardırop|masa|sandalye|konsol|vitrin/.test(text)) return { min: budget * .07, max: budget * .22 };
+      const base = Number(item.estimated || 0) || budget * .01;
+      return { min: base * .8, max: base * 1.25 };
+    }
+
+    function openCategory(category) { currentCategory = category; currentSubCategory = null; activeTab = 'lists'; render(); }
+    function openSubCategory(subCategory) { currentSubCategory = subCategory; currentFilter = 'all'; render(); }
+    function toggleItem(id, forcedValue) {
+      const item = state.items.find(i => i.id === id);
+      if (!item) return;
+      const done = typeof forcedValue === 'boolean' ? forcedValue : !item.done;
+      item.done = done;
+      if (done && !item.actual) {
+        priceItemId = id;
+        priceItemTitle.textContent = item.title;
+        quickActualPrice.value = '';
+        priceDialog.showModal();
+      }
+      save(); render();
+    }
+    function saveQuickPrice(skip) {
+      const item = state.items.find(i => i.id === priceItemId);
+      if (item && !skip) {
+        item.actual = Number(String(quickActualPrice.value).replaceAll('.', '').replace(',', '.')) || 0;
+      }
+      save();
+      priceDialog.close();
+      render();
+    }
+    function editItem(id) {
+      const item = state.items.find(i => i.id === id);
+      editingId = id;
+      itemTitle.textContent = item.title;
+      itemDone.checked = item.done;
+      itemPriority.value = item.priority;
+      itemEstimated.value = item.estimated;
+      itemActual.value = item.actual;
+      itemShop.value = item.shop || '';
+      itemNote.value = item.note || '';
+      itemDialog.showModal();
+    }
+    function saveItem() {
+      const item = state.items.find(i => i.id === editingId);
+      item.done = itemDone.checked;
+      item.priority = itemPriority.value;
+      item.estimated = Number(itemEstimated.value) || 0;
+      item.actual = Number(itemActual.value) || 0;
+      item.shop = itemShop.value;
+      item.note = itemNote.value;
+      save(); itemDialog.close(); render();
+    }
+    function openSettings() {
+      const today = todayValue();
+      weddingDate.min = today;
+      if (!state.settings.weddingDate || state.settings.weddingDate < today) {
+        state.settings.weddingDate = today;
+        save();
+      }
+      weddingDate.value = state.settings.weddingDate;
+      targetBudget.value = state.settings.targetBudget || '';
+      budgetCurrency.value = state.settings.budgetCurrency || 'TRY';
+      womanName.value = state.settings.womanName || '';
+      manName.value = state.settings.manName || '';
+      updateRateNote();
+      settingsDialog.showModal();
+    }
+    function saveSettings() {
+      const today = todayValue();
+      state.settings.weddingDate = !weddingDate.value || weddingDate.value < today ? today : weddingDate.value;
+      state.settings.targetBudget = Number(String(targetBudget.value).replaceAll('.', '').replace(',', '.')) || 0;
+      state.settings.budgetCurrency = budgetCurrency.value;
+      state.settings.womanName = womanName.value.trim();
+      state.settings.manName = manName.value.trim();
+      save(); settingsDialog.close(); render();
+    }
+    function resetData() {
+      if (!confirm('Tüm veriler sıfırlansın mı?')) return;
+      localStorage.removeItem('prep-web');
+      location.reload();
+    }
+    async function shareSummary() {
+      const text = `Hazırlık skorum: %${score(state.items)}\nHedef bütçe: ${moneyCurrency(state.settings.targetBudget, state.settings.budgetCurrency)}\nToplam harcama: ${moneyTry(totalSpent())}\nTamamlanan ürün: ${completed(state.items)}/${state.items.length}`;
+      if (navigator.share) await navigator.share({ text });
+      else await navigator.clipboard.writeText(text);
+      alert('Özet metni hazır.');
+    }
+    Object.assign(window, {
+      openSettings,
+      saveSettings,
+      resetData,
+      openCategory,
+      openSubCategory,
+      toggleItem,
+      saveQuickPrice,
+      editItem,
+      saveItem,
+      shareSummary
+    });
+    document.querySelectorAll('.tabs button').forEach(button => button.addEventListener('click', () => { activeTab = button.dataset.tab; currentCategory = null; currentSubCategory = null; render(); }));
+    const today = todayValue();
+    if (!state.settings.weddingDate || state.settings.weddingDate < today) {
+      state.settings.weddingDate = today;
+      save();
+    }
+    document.querySelector('#weddingDate').min = today;
+    refreshRates();
+    if (!state.settings.womanName && !state.settings.manName) setTimeout(openSettings, 1550);
+    render();
+  </script>
+</body>
+</html>
