@@ -12,15 +12,21 @@ class OnboardingPage extends StatefulWidget {
 }
 
 class _OnboardingPageState extends State<OnboardingPage> {
-  DateTime? weddingDate;
+  final dayController = TextEditingController();
+  final monthController = TextEditingController();
+  final yearController = TextEditingController();
   final budgetController = TextEditingController();
-  final namesController = TextEditingController();
-  PreparationType type = PreparationType.full;
+  final brideNameController = TextEditingController();
+  final groomNameController = TextEditingController();
 
   @override
   void dispose() {
+    dayController.dispose();
+    monthController.dispose();
+    yearController.dispose();
     budgetController.dispose();
-    namesController.dispose();
+    brideNameController.dispose();
+    groomNameController.dispose();
     super.dispose();
   }
 
@@ -40,18 +46,49 @@ class _OnboardingPageState extends State<OnboardingPage> {
             ),
             const SizedBox(height: 10),
             const Text(
-              'Düğün tarihi, bütçe ve hazırlık kapsamını seçerek başlayalım.',
+              'Düğün tarihi, bütçe ve çift isimlerini yazarak başlayalım.',
               style: TextStyle(color: Color(0xFF6F6470)),
             ),
             const SizedBox(height: 28),
-            OutlinedButton.icon(
-              onPressed: _pickDate,
-              icon: const Icon(Icons.event_outlined),
-              label: Text(
-                weddingDate == null
-                    ? 'Düğün tarihi seç'
-                    : '${weddingDate!.day}.${weddingDate!.month}.${weddingDate!.year}',
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: dayController,
+                    keyboardType: TextInputType.number,
+                    maxLength: 2,
+                    decoration: const InputDecoration(
+                      labelText: 'Gün',
+                      counterText: '',
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TextField(
+                    controller: monthController,
+                    keyboardType: TextInputType.number,
+                    maxLength: 2,
+                    decoration: const InputDecoration(
+                      labelText: 'Ay',
+                      counterText: '',
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  flex: 2,
+                  child: TextField(
+                    controller: yearController,
+                    keyboardType: TextInputType.number,
+                    maxLength: 4,
+                    decoration: const InputDecoration(
+                      labelText: 'Yıl',
+                      counterText: '',
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 14),
             TextField(
@@ -64,30 +101,19 @@ class _OnboardingPageState extends State<OnboardingPage> {
             ),
             const SizedBox(height: 14),
             TextField(
-              controller: namesController,
+              controller: brideNameController,
               decoration: const InputDecoration(
-                labelText: 'Çift isimleri (isteğe bağlı)',
+                labelText: 'Gelin adı',
                 prefixIcon: Icon(Icons.favorite_border),
               ),
             ),
-            const SizedBox(height: 18),
-            Text(
-              'Hazırlık tipi',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            SegmentedButton<PreparationType>(
-              segments: [
-                for (final option in PreparationType.values)
-                  ButtonSegment(value: option, label: Text(option.label)),
-              ],
-              selected: {type},
-              onSelectionChanged: (selected) {
-                setState(() => type = selected.first);
-              },
-              showSelectedIcon: false,
+            const SizedBox(height: 14),
+            TextField(
+              controller: groomNameController,
+              decoration: const InputDecoration(
+                labelText: 'Damat adı',
+                prefixIcon: Icon(Icons.person_outline),
+              ),
             ),
             const SizedBox(height: 28),
             FilledButton.icon(
@@ -101,25 +127,36 @@ class _OnboardingPageState extends State<OnboardingPage> {
     );
   }
 
-  Future<void> _pickDate() async {
-    final now = DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      firstDate: DateTime(now.year - 1),
-      lastDate: DateTime(now.year + 5),
-      initialDate: weddingDate ?? now.add(const Duration(days: 180)),
-    );
-    if (picked != null) setState(() => weddingDate = picked);
-  }
-
   Future<void> _save() async {
+    final weddingDate = _readDate();
+    if (weddingDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Düğün tarihini gün, ay, yıl olarak yaz.')),
+      );
+      return;
+    }
+
     final controller = AppScope.of(context);
     await controller.saveSettings(AppSettings(
       weddingDate: weddingDate,
       targetBudget: parseMoney(budgetController.text),
-      coupleNames: namesController.text.trim(),
-      preparationType: type,
+      brideName: brideNameController.text.trim(),
+      groomName: groomNameController.text.trim(),
       hasCompletedOnboarding: true,
     ));
+  }
+
+  DateTime? _readDate() {
+    final day = int.tryParse(dayController.text.trim());
+    final month = int.tryParse(monthController.text.trim());
+    final year = int.tryParse(yearController.text.trim());
+    if (day == null || month == null || year == null) return null;
+
+    final date = DateTime(year, month, day);
+    if (date.day != day || date.month != month || date.year != year) {
+      return null;
+    }
+    return date;
   }
 }

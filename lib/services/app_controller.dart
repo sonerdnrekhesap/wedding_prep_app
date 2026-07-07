@@ -63,7 +63,10 @@ class AppController extends ChangeNotifier {
   Future<void> addOrUpdateGuest(Guest guest) async {
     final exists = guests.any((current) => current.id == guest.id);
     guests = exists
-        ? [for (final current in guests) current.id == guest.id ? guest : current]
+        ? [
+            for (final current in guests)
+              current.id == guest.id ? guest : current
+          ]
         : [...guests, guest];
     await storage.saveGuests(guests);
     notifyListeners();
@@ -95,10 +98,10 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> resetAll() async {
-    await storage.resetAll();
-    settings = const AppSettings();
+    await storage.resetToDemo();
+    settings = await storage.loadSettings();
     items = await storage.loadItems();
-    guests = [];
+    guests = await storage.loadGuests();
     notifyListeners();
   }
 }

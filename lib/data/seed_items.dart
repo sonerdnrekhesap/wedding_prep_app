@@ -1,4 +1,63 @@
+import '../models/app_settings_model.dart';
+import '../models/guest_model.dart';
 import '../models/item_model.dart';
+
+AppSettings buildDemoSettings() {
+  return AppSettings(
+    weddingDate: DateTime(2026, 9, 12),
+    targetBudget: 650000,
+    brideName: 'Elif',
+    groomName: 'Mert',
+    hasCompletedOnboarding: true,
+  );
+}
+
+List<Guest> buildDemoGuests() {
+  return const [
+    Guest(
+      id: 'demo-guest-1',
+      name: 'Ayşe Yılmaz',
+      phone: '05xx xxx xx xx',
+      side: GuestSide.bride,
+      personCount: 2,
+      status: GuestStatus.coming,
+      note: 'Gelin tarafı yakın aile.',
+    ),
+    Guest(
+      id: 'demo-guest-2',
+      name: 'Mehmet Demir',
+      phone: '05xx xxx xx xx',
+      side: GuestSide.groom,
+      personCount: 3,
+      status: GuestStatus.coming,
+      note: 'Damat tarafı aile.',
+    ),
+    Guest(
+      id: 'demo-guest-3',
+      name: 'Zeynep Kaya',
+      side: GuestSide.common,
+      personCount: 2,
+      status: GuestStatus.unsure,
+      note: 'Şehir dışından gelecek.',
+    ),
+    Guest(
+      id: 'demo-guest-4',
+      name: 'Can ve Deniz',
+      side: GuestSide.common,
+      personCount: 2,
+      status: GuestStatus.coming,
+      note: 'Arkadaş grubu.',
+    ),
+    Guest(
+      id: 'demo-guest-5',
+      name: 'Fatma Teyze',
+      side: GuestSide.bride,
+      personCount: 1,
+      status: GuestStatus.notComing,
+      note: 'Sağlık sebebiyle gelemeyebilir.',
+    ),
+  ];
+}
 
 List<PrepItem> buildSeedItems() {
   final now = DateTime.now();
@@ -35,7 +94,7 @@ List<PrepItem> buildSeedItems() {
         .toList();
   }
 
-  return [
+  final items = [
     ...itemsFor(MainCategory.ceyiz, 'Mutfak', [
       'Tencere seti',
       'Tava seti',
@@ -66,28 +125,32 @@ List<PrepItem> buildSeedItems() {
       'Sabunluk ve süngerlik',
       'Çöp kovası',
     ]),
-    ...itemsFor(MainCategory.ceyiz, 'Beyaz Eşya / Elektronik', [
-      'Buzdolabı',
-      'Çamaşır makinesi',
-      'Bulaşık makinesi',
-      'Ocak',
-      'Fırın',
-      'Davlumbaz',
-      'Elektrikli süpürge',
-      'Ütü',
-      'Ütü masası',
-      'Televizyon',
-      'Mikrodalga fırın',
-      'Airfryer',
-      'Kahve makinesi',
-      'Tost makinesi',
-      'Blender seti',
-      'Robot süpürge',
-      'Kurutma makinesi',
-      'Su sebili',
-      'Saç kurutma makinesi',
-      'Tartı',
-    ], priority: ItemPriority.mustHave),
+    ...itemsFor(
+        MainCategory.ceyiz,
+        'Beyaz Eşya / Elektronik',
+        [
+          'Buzdolabı',
+          'Çamaşır makinesi',
+          'Bulaşık makinesi',
+          'Ocak',
+          'Fırın',
+          'Davlumbaz',
+          'Elektrikli süpürge',
+          'Ütü',
+          'Ütü masası',
+          'Televizyon',
+          'Mikrodalga fırın',
+          'Airfryer',
+          'Kahve makinesi',
+          'Tost makinesi',
+          'Blender seti',
+          'Robot süpürge',
+          'Kurutma makinesi',
+          'Su sebili',
+          'Saç kurutma makinesi',
+          'Tartı',
+        ],
+        priority: ItemPriority.mustHave),
     ...itemsFor(MainCategory.ceyiz, 'Yatak Odası', [
       'Yatak',
       'Baza',
@@ -214,28 +277,32 @@ List<PrepItem> buildSeedItems() {
       'Kuaför',
       'Makyaj',
     ]),
-    ...itemsFor(MainCategory.dugun, 'Düğün', [
-      'Düğün salonu',
-      'Nikah tarihi',
-      'Gelinlik',
-      'Damatlık',
-      'Gelin ayakkabısı',
-      'Damat ayakkabısı',
-      'Fotoğrafçı',
-      'Video çekimi',
-      'Davetiye',
-      'Kuaför',
-      'Makyaj',
-      'Gelin arabası',
-      'Çiçek',
-      'Pasta',
-      'Müzik / DJ',
-      'Organizasyon',
-      'Takı kurdelesi',
-      'Nikah şekeri',
-      'Düğün dansı',
-      'Oturma planı',
-    ], priority: ItemPriority.mustHave),
+    ...itemsFor(
+        MainCategory.dugun,
+        'Düğün',
+        [
+          'Düğün salonu',
+          'Nikah tarihi',
+          'Gelinlik',
+          'Damatlık',
+          'Gelin ayakkabısı',
+          'Damat ayakkabısı',
+          'Fotoğrafçı',
+          'Video çekimi',
+          'Davetiye',
+          'Kuaför',
+          'Makyaj',
+          'Gelin arabası',
+          'Çiçek',
+          'Pasta',
+          'Müzik / DJ',
+          'Organizasyon',
+          'Takı kurdelesi',
+          'Nikah şekeri',
+          'Düğün dansı',
+          'Oturma planı',
+        ],
+        priority: ItemPriority.mustHave),
     ...itemsFor(MainCategory.balayi, 'Balayı', [
       'Pasaport',
       'Vize',
@@ -253,5 +320,59 @@ List<PrepItem> buildSeedItems() {
       'Nakit para',
       'Kredi kartı',
     ]),
+  ];
+
+  return _withDemoProgress(items);
+}
+
+List<PrepItem> _withDemoProgress(List<PrepItem> items) {
+  final completedItems = <String, ({double actualPrice, String shopName})>{
+    'Tencere seti': (actualPrice: 6200, shopName: 'Karaca'),
+    'Tava seti': (actualPrice: 3400, shopName: 'Emsan'),
+    'Kahvaltı takımı': (actualPrice: 5200, shopName: 'English Home'),
+    'Bardak seti': (actualPrice: 1800, shopName: 'Paşabahçe'),
+    'Nevresim takımı': (actualPrice: 2600, shopName: 'Madame Coco'),
+    'Havlu seti': (actualPrice: 2400, shopName: 'Özdilek'),
+    'Bornoz takımı': (actualPrice: 4200, shopName: 'Özdilek'),
+    'Söz yüzükleri': (actualPrice: 18500, shopName: 'Kuyumcu'),
+    'Söz tepsisi': (actualPrice: 1450, shopName: 'Butik tasarım'),
+    'Çiçek': (actualPrice: 1800, shopName: 'Mahalle çiçekçisi'),
+    'Nişan elbisesi': (actualPrice: 12500, shopName: 'Moda evi'),
+    'Davetiye': (actualPrice: 3900, shopName: 'Matbaa'),
+    'Düğün salonu': (actualPrice: 95000, shopName: 'Salon kapora'),
+    'Fotoğrafçı': (actualPrice: 18000, shopName: 'Foto stüdyo kapora'),
+    'Gelinlik': (actualPrice: 38000, shopName: 'Moda evi kapora'),
+  };
+
+  final estimates = <String, double>{
+    'Buzdolabı': 42000,
+    'Çamaşır makinesi': 26000,
+    'Bulaşık makinesi': 24000,
+    'Koltuk takımı': 68000,
+    'Yatak': 22000,
+    'Gardırop': 36000,
+    'Düğün salonu': 190000,
+    'Gelinlik': 55000,
+    'Damatlık': 22000,
+    'Fotoğrafçı': 32000,
+    'Video çekimi': 18000,
+    'Müzik / DJ': 28000,
+    'Organizasyon': 45000,
+    'Otel rezervasyonu': 50000,
+    'Uçak bileti': 24000,
+  };
+
+  return [
+    for (final item in items)
+      item.copyWith(
+        estimatedPrice: estimates[item.title] ?? item.estimatedPrice,
+        actualPrice:
+            completedItems[item.title]?.actualPrice ?? item.actualPrice,
+        shopName: completedItems[item.title]?.shopName ?? item.shopName,
+        isCompleted: completedItems.containsKey(item.title),
+        completedDate: completedItems.containsKey(item.title)
+            ? DateTime(2026, 7, 1)
+            : item.completedDate,
+      ),
   ];
 }

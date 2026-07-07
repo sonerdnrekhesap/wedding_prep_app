@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../main.dart';
-import '../models/app_settings_model.dart';
 import '../services/formatters.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -12,10 +11,12 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+  late final TextEditingController dayController;
+  late final TextEditingController monthController;
+  late final TextEditingController yearController;
   late final TextEditingController budgetController;
-  late final TextEditingController namesController;
-  DateTime? weddingDate;
-  PreparationType type = PreparationType.full;
+  late final TextEditingController brideNameController;
+  late final TextEditingController groomNameController;
   bool _initialized = false;
 
   @override
@@ -23,19 +24,32 @@ class _SettingsPageState extends State<SettingsPage> {
     super.didChangeDependencies();
     if (_initialized) return;
     final settings = AppScope.of(context).settings;
-    weddingDate = settings.weddingDate;
-    type = settings.preparationType;
+    final weddingDate = settings.weddingDate;
+    dayController = TextEditingController(
+      text: weddingDate == null ? '' : weddingDate.day.toString(),
+    );
+    monthController = TextEditingController(
+      text: weddingDate == null ? '' : weddingDate.month.toString(),
+    );
+    yearController = TextEditingController(
+      text: weddingDate == null ? '' : weddingDate.year.toString(),
+    );
     budgetController = TextEditingController(
       text: settings.targetBudget.toStringAsFixed(0),
     );
-    namesController = TextEditingController(text: settings.coupleNames);
+    brideNameController = TextEditingController(text: settings.brideName);
+    groomNameController = TextEditingController(text: settings.groomName);
     _initialized = true;
   }
 
   @override
   void dispose() {
+    dayController.dispose();
+    monthController.dispose();
+    yearController.dispose();
     budgetController.dispose();
-    namesController.dispose();
+    brideNameController.dispose();
+    groomNameController.dispose();
     super.dispose();
   }
 
@@ -53,14 +67,45 @@ class _SettingsPageState extends State<SettingsPage> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  OutlinedButton.icon(
-                    onPressed: _pickDate,
-                    icon: const Icon(Icons.event_outlined),
-                    label: Text(
-                      weddingDate == null
-                          ? 'Düğün tarihi seç'
-                          : '${weddingDate!.day}.${weddingDate!.month}.${weddingDate!.year}',
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: dayController,
+                          keyboardType: TextInputType.number,
+                          maxLength: 2,
+                          decoration: const InputDecoration(
+                            labelText: 'Gün',
+                            counterText: '',
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: TextField(
+                          controller: monthController,
+                          keyboardType: TextInputType.number,
+                          maxLength: 2,
+                          decoration: const InputDecoration(
+                            labelText: 'Ay',
+                            counterText: '',
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        flex: 2,
+                        child: TextField(
+                          controller: yearController,
+                          keyboardType: TextInputType.number,
+                          maxLength: 4,
+                          decoration: const InputDecoration(
+                            labelText: 'Yıl',
+                            counterText: '',
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 12),
                   TextField(
@@ -70,37 +115,37 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   const SizedBox(height: 12),
                   TextField(
-                    controller: namesController,
-                    decoration:
-                        const InputDecoration(labelText: 'Çift isimleri'),
+                    controller: brideNameController,
+                    decoration: const InputDecoration(labelText: 'Gelin adı'),
                   ),
                   const SizedBox(height: 12),
-                  DropdownButtonFormField<PreparationType>(
-                    value: type,
-                    decoration:
-                        const InputDecoration(labelText: 'Hazırlık tipi'),
-                    items: [
-                      for (final option in PreparationType.values)
-                        DropdownMenuItem(
-                          value: option,
-                          child: Text(option.label),
-                        ),
-                    ],
-                    onChanged: (value) {
-                      if (value != null) setState(() => type = value);
-                    },
+                  TextField(
+                    controller: groomNameController,
+                    decoration: const InputDecoration(labelText: 'Damat adı'),
                   ),
                   const SizedBox(height: 14),
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
                       onPressed: () async {
+                        final weddingDate = _readDate();
+                        if (weddingDate == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Düğün tarihini gün, ay, yıl olarak yaz.',
+                              ),
+                            ),
+                          );
+                          return;
+                        }
+
                         await controller.saveSettings(
                           controller.settings.copyWith(
                             weddingDate: weddingDate,
                             targetBudget: parseMoney(budgetController.text),
-                            coupleNames: namesController.text.trim(),
-                            preparationType: type,
+                            brideName: brideNameController.text.trim(),
+                            groomName: groomNameController.text.trim(),
                             hasCompletedOnboarding: true,
                           ),
                         );
@@ -117,19 +162,19 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
           ),
-          Card(
+          const Card(
             child: ListTile(
-              leading: const Icon(Icons.privacy_tip_outlined),
-              title: const Text('Gizlilik'),
-              subtitle: const Text('Veriler cihazda saklanır.'),
+              leading: Icon(Icons.privacy_tip_outlined),
+              title: Text('Gizlilik'),
+              subtitle: Text('Veriler cihazda saklanır.'),
               isThreeLine: false,
             ),
           ),
-          Card(
+          const Card(
             child: ListTile(
-              leading: const Icon(Icons.info_outline),
-              title: const Text('Uygulama hakkında'),
-              subtitle: const Text(
+              leading: Icon(Icons.info_outline),
+              title: Text('Uygulama hakkında'),
+              subtitle: Text(
                 'Çeyiz, düğün, bütçe ve davetli hazırlıklarını offline takip eder.',
               ),
             ),
@@ -138,7 +183,8 @@ class _SettingsPageState extends State<SettingsPage> {
             child: ListTile(
               leading: const Icon(Icons.delete_forever_outlined),
               title: const Text('Verileri sıfırla'),
-              subtitle: const Text('Tüm liste, davetli ve ayar verileri silinir.'),
+              subtitle:
+                  const Text('Tüm liste, davetli ve ayar verileri silinir.'),
               onTap: () async {
                 final ok = await showDialog<bool>(
                   context: context,
@@ -166,14 +212,16 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Future<void> _pickDate() async {
-    final now = DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      firstDate: DateTime(now.year - 1),
-      lastDate: DateTime(now.year + 5),
-      initialDate: weddingDate ?? now.add(const Duration(days: 180)),
-    );
-    if (picked != null) setState(() => weddingDate = picked);
+  DateTime? _readDate() {
+    final day = int.tryParse(dayController.text.trim());
+    final month = int.tryParse(monthController.text.trim());
+    final year = int.tryParse(yearController.text.trim());
+    if (day == null || month == null || year == null) return null;
+
+    final date = DateTime(year, month, day);
+    if (date.day != day || date.month != month || date.year != year) {
+      return null;
+    }
+    return date;
   }
 }

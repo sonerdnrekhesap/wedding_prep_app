@@ -239,8 +239,8 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
     super.initState();
     completed = widget.item.isCompleted;
     priority = widget.item.priority;
-    estimatedController =
-        TextEditingController(text: widget.item.estimatedPrice.toStringAsFixed(0));
+    estimatedController = TextEditingController(
+        text: widget.item.estimatedPrice.toStringAsFixed(0));
     actualController =
         TextEditingController(text: widget.item.actualPrice.toStringAsFixed(0));
     shopController = TextEditingController(text: widget.item.shopName);
@@ -287,7 +287,7 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
               contentPadding: EdgeInsets.zero,
             ),
             DropdownButtonFormField<ItemPriority>(
-              value: priority,
+              initialValue: priority,
               decoration: const InputDecoration(labelText: 'Öncelik'),
               items: [
                 for (final option in ItemPriority.values)
@@ -343,7 +343,8 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
       actualPrice: parseMoney(actualController.text),
       shopName: shopController.text.trim(),
       note: noteController.text.trim(),
-      completedDate: completed ? widget.item.completedDate ?? DateTime.now() : null,
+      completedDate:
+          completed ? widget.item.completedDate ?? DateTime.now() : null,
       clearCompletedDate: !completed,
     ));
     if (mounted) Navigator.pop(context);

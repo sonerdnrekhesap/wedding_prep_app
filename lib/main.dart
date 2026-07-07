@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'pages/home_page.dart';
 import 'pages/list_modules_page.dart';
@@ -40,6 +41,15 @@ class _WeddingPrepAppState extends State<WeddingPrepApp> {
       controller: controller,
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
+        locale: const Locale('tr', 'TR'),
+        supportedLocales: const [
+          Locale('tr', 'TR'),
+        ],
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
         title: 'Hazırlık Takibi',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
@@ -48,7 +58,7 @@ class _WeddingPrepAppState extends State<WeddingPrepApp> {
           ),
           scaffoldBackgroundColor: const Color(0xFFFFF8FA),
           useMaterial3: true,
-          cardTheme: const CardTheme(
+          cardTheme: const CardThemeData(
             color: Colors.white,
             elevation: 0,
             shape: RoundedRectangleBorder(
@@ -108,7 +118,7 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
-    final pages = const [
+    const pages = [
       HomePage(),
       ListModulesPage(),
       BudgetPage(),

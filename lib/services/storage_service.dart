@@ -37,7 +37,11 @@ class StorageService {
   Future<List<Guest>> loadGuests() async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_guestsKey);
-    if (raw == null) return [];
+    if (raw == null) {
+      final seed = buildDemoGuests();
+      await saveGuests(seed);
+      return seed;
+    }
     final data = jsonDecode(raw) as List<dynamic>;
     return data
         .map((guest) => Guest.fromJson(guest as Map<String, dynamic>))
@@ -55,7 +59,11 @@ class StorageService {
   Future<AppSettings> loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_settingsKey);
-    if (raw == null) return const AppSettings();
+    if (raw == null) {
+      final seed = buildDemoSettings();
+      await saveSettings(seed);
+      return seed;
+    }
     return AppSettings.fromJson(jsonDecode(raw) as Map<String, dynamic>);
   }
 
@@ -69,5 +77,11 @@ class StorageService {
     await prefs.remove(_itemsKey);
     await prefs.remove(_guestsKey);
     await prefs.remove(_settingsKey);
+  }
+
+  Future<void> resetToDemo() async {
+    await saveItems(buildSeedItems());
+    await saveGuests(buildDemoGuests());
+    await saveSettings(buildDemoSettings());
   }
 }

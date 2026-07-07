@@ -22,3 +22,5 @@ Thumbs.db
 
 # Local preview/runtime
 web_preview/node_modules/
+*.log
+*.err

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../main.dart';
+import '../models/item_model.dart';
 import '../services/calculation_service.dart';
 import '../services/formatters.dart';
 import '../widgets/ad_banner_widget.dart';
