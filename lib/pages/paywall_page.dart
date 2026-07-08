@@ -26,7 +26,7 @@ class PaywallPage extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const Text(
-            'Temel checklist ücretsiz kalır. Premium; detaylı analiz, PDF/Excel, reklamsız kullanım, premium özet kartları, partner senkronizasyonu ve akıllı plan için hazırlanır. Satın alma şu an mock modda çalışır.',
+            'Temel checklist, öncelik listesi, davetli takibi ve hazırlık kartı paylaşımı ücretsiz kalır. Premium; PDF/Excel, detaylı harcama analizi, fatura/garanti fotoğraf arşivi, sınırsız fotoğraf, partnerle ortak liste, reklamsız kullanım, premium temalar ve watermark kaldırma için hazırlanır.',
             style: TextStyle(color: Color(0xFF6F6470)),
           ),
           const SizedBox(height: 18),
@@ -44,10 +44,16 @@ class PaywallPage extends StatelessWidget {
             icon: Icons.sync_alt,
             text: 'Partner senkronizasyonu altyapısı',
           ),
-          const _Benefit(icon: Icons.route_outlined, text: 'Akıllı plan'),
+          const _Benefit(
+              icon: Icons.receipt_long_outlined,
+              text: 'Fatura / garanti arşivi'),
           const _Benefit(
             icon: Icons.palette_outlined,
-            text: 'Premium temalar için hazırlık',
+            text: 'Premium temalar ve watermark kaldırma',
+          ),
+          const _Benefit(
+            icon: Icons.photo_library_outlined,
+            text: 'Sınırsız fotoğraf arşivi hazırlığı',
           ),
           const SizedBox(height: 18),
           for (final product in PremiumProduct.values) ...[

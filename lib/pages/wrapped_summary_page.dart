@@ -4,11 +4,11 @@ import 'package:share_plus/share_plus.dart';
 
 import '../main.dart';
 import '../models/item_model.dart';
+import '../services/app_controller.dart';
 import '../services/calculation_service.dart';
 import '../services/formatters.dart';
 import '../theme/app_spacing.dart';
 import '../widgets/visual_cards.dart';
-import 'paywall_page.dart';
 
 class WrappedSummaryPage extends StatelessWidget {
   const WrappedSummaryPage({super.key});
@@ -40,11 +40,13 @@ class WrappedSummaryPage extends StatelessWidget {
         title: 'Toplam harcama',
         value: money(calc.totalSpent(controller.items)),
         icon: Icons.payments_outlined,
+        shareable: true,
       ),
       _StoryData(
         title: 'En çok harcanan kategori',
         value: topCategory?.label ?? 'Henüz yok',
         icon: Icons.pie_chart_outline,
+        shareable: true,
       ),
       _StoryData(
         title: 'En pahalı ürün',
@@ -57,12 +59,13 @@ class WrappedSummaryPage extends StatelessWidget {
         title: 'Çeyiz tamamlanma',
         value: '%${(ceyizProgress * 100).round()}',
         icon: Icons.kitchen_outlined,
+        shareable: true,
       ),
       _StoryData(
         title: 'Olmazsa olmaz tamamlanma',
         value: '%${(mustHaveProgress * 100).round()}',
         icon: Icons.priority_high,
-        premium: true,
+        shareable: true,
       ),
       _StoryData(
         title: 'En eksik kategori',
@@ -74,11 +77,13 @@ class WrappedSummaryPage extends StatelessWidget {
         title: 'Düğüne kalan gün',
         value: days == null ? 'Tarih yok' : '$days gün',
         icon: Icons.event_outlined,
+        shareable: true,
       ),
       _StoryData(
         title: 'Hazırlık skoru',
         value: '%${score.round()}',
         icon: Icons.auto_graph,
+        shareable: true,
       ),
     ];
 
@@ -88,7 +93,7 @@ class WrappedSummaryPage extends StatelessWidget {
         actions: [
           IconButton(
             tooltip: 'Özet metnini paylaş',
-            onPressed: () => Share.share(_shareText(stories)),
+            onPressed: () => Share.share(_shareText(stories, controller)),
             icon: const Icon(Icons.ios_share),
           ),
         ],
@@ -108,24 +113,29 @@ class WrappedSummaryPage extends StatelessWidget {
                     horizontal: 8,
                     vertical: 20,
                   ),
-                  child: GestureDetector(
-                    onTap: locked
-                        ? () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const PaywallPage(
-                                  source: 'wrapped-card',
-                                ),
-                              ),
-                            )
-                        : null,
-                    child: WrappedStoryCard(
-                      index: index,
-                      total: stories.length,
-                      title: locked ? 'Premium ile aç' : story.title,
-                      value: locked ? 'Kilitli kart' : story.value,
-                      icon: story.icon,
-                      locked: locked,
-                    ),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: WrappedStoryCard(
+                          index: index,
+                          total: stories.length,
+                          title: locked ? 'Premium ile aç' : story.title,
+                          value: locked ? 'Kilitli kart' : story.value,
+                          icon: story.icon,
+                          locked: locked,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      _ShareActions(
+                        enabled: !locked && story.shareable,
+                        onShare: () => Share.share(
+                          _shareCardText(story, controller),
+                        ),
+                        onTextShare: () => Share.share(
+                          _shareCardText(story, controller),
+                        ),
+                      ),
+                    ],
                   ).animate().fadeIn(duration: 360.ms).slideX(begin: 0.06),
                 );
               },
@@ -138,7 +148,7 @@ class WrappedSummaryPage extends StatelessWidget {
               child: FilledButton.icon(
                 onPressed: () => _shareDetailedSummary(context, stories),
                 icon: const Icon(Icons.auto_awesome),
-                label: const Text('Paylaş'),
+                label: const Text('Özeti paylaş'),
               ),
             ),
           ),
@@ -147,11 +157,33 @@ class WrappedSummaryPage extends StatelessWidget {
     );
   }
 
-  String _shareText(List<_StoryData> stories) {
+  String _shareText(List<_StoryData> stories, AppController controller) {
+    final calc = CalculationService();
+    final days = calc.daysUntilWedding(controller.settings);
+    final score = calc.weightedPreparationScore(controller.items).round();
+    final topCategory = calc.topSpentCategory(controller.items);
     return [
-      'Hazırlık Özeti',
+      days == null
+          ? 'Düğün tarihim yaklaşıyor 🎉'
+          : 'Düğünüme $days gün kaldı 🎉',
+      'Hazırlığım %$score tamamlandı.',
+      'En çok harcama: ${topCategory?.label ?? 'Henüz yok'}',
+      'Ben çeyiz hazırlığımı uygulama ile takip ediyorum.',
+      '',
+      'Hazırlık kartım — Hazırlık Takibi',
       '----------------',
-      for (final story in stories) '${story.title}: ${story.value}',
+      for (final story in stories.where((story) => !story.premium))
+        '${story.title}: ${story.value}',
+    ].join('\n');
+  }
+
+  String _shareCardText(_StoryData story, AppController controller) {
+    final days = CalculationService().daysUntilWedding(controller.settings);
+    return [
+      if (days != null) 'Düğünüme $days gün kaldı 🎉',
+      '${story.title}: ${story.value}',
+      'Ben çeyiz hazırlığımı uygulama ile takip ediyorum.',
+      'Hazırlık kartım — Hazırlık Takibi',
     ].join('\n');
   }
 
@@ -160,19 +192,7 @@ class WrappedSummaryPage extends StatelessWidget {
     List<_StoryData> stories,
   ) async {
     final controller = AppScope.of(context);
-    if (!controller.settings.isPremium) {
-      final rewarded = await controller.ads.showRewardedForFeature();
-      if (!context.mounted) return;
-      if (!rewarded) {
-        await Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => const PaywallPage(source: 'wrapped-summary'),
-          ),
-        );
-        return;
-      }
-    }
-    await Share.share(_shareText(stories));
+    await Share.share(_shareText(stories, controller));
   }
 }
 
@@ -182,10 +202,56 @@ class _StoryData {
     required this.value,
     required this.icon,
     this.premium = false,
+    this.shareable = false,
   });
 
   final String title;
   final String value;
   final IconData icon;
   final bool premium;
+  final bool shareable;
+}
+
+class _ShareActions extends StatelessWidget {
+  const _ShareActions({
+    required this.enabled,
+    required this.onShare,
+    required this.onTextShare,
+  });
+
+  final bool enabled;
+  final VoidCallback onShare;
+  final VoidCallback onTextShare;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!enabled) {
+      return const SizedBox(
+        height: 44,
+        child: Center(child: Text('Premium kart')),
+      );
+    }
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        FilledButton.icon(
+          onPressed: onShare,
+          icon: const Icon(Icons.ios_share),
+          label: const Text('Paylaş'),
+        ),
+        OutlinedButton.icon(
+          onPressed: onShare,
+          icon: const Icon(Icons.download_outlined),
+          label: const Text('Kartı kaydet/paylaş'),
+        ),
+        TextButton.icon(
+          onPressed: onTextShare,
+          icon: const Icon(Icons.text_snippet_outlined),
+          label: const Text('Metin'),
+        ),
+      ],
+    );
+  }
 }

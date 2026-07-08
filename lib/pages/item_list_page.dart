@@ -4,12 +4,56 @@ import 'package:image_picker/image_picker.dart';
 import '../main.dart';
 import '../models/item_model.dart';
 import '../services/formatters.dart';
+import '../services/photo_storage_models.dart';
 import '../theme/app_colors.dart';
 import '../widgets/ad_banner_widget.dart';
+import '../widgets/item_photo_preview.dart';
 import '../widgets/item_tile.dart';
 import '../widgets/visual_cards.dart';
+import 'paywall_page.dart';
 
 enum ItemFilter { all, missing, completed, mustHave, necessary, later, luxury }
+
+Iterable<String?> _pathsFor(PrepItem item, ItemPhotoType type) =>
+    switch (type) {
+      ItemPhotoType.inspiration => [
+          item.inspirationImagePath,
+          item.inspirationThumbPath,
+        ],
+      ItemPhotoType.product => [
+          item.productImagePath,
+          item.productThumbPath,
+        ],
+      ItemPhotoType.receipt => [
+          item.receiptImagePath,
+          item.receiptThumbPath,
+        ],
+    };
+
+PrepItem _withPhoto(
+  PrepItem item,
+  ItemPhotoType type,
+  String? imagePath,
+  String? thumbPath,
+) {
+  return switch (type) {
+    ItemPhotoType.inspiration => item.copyWith(
+        inspirationImagePath: imagePath,
+        inspirationThumbPath: thumbPath,
+        clearInspirationImage: imagePath == null,
+      ),
+    ItemPhotoType.product => item.copyWith(
+        productImagePath: imagePath,
+        productThumbPath: thumbPath,
+        clearProductImage: imagePath == null,
+      ),
+    ItemPhotoType.receipt => item.copyWith(
+        receiptImagePath: imagePath,
+        receiptThumbPath: thumbPath,
+        clearReceiptImage: imagePath == null,
+      ),
+  };
+}
 
 extension ItemFilterText on ItemFilter {
   String get label => switch (this) {
@@ -144,6 +188,10 @@ class _ItemListPageState extends State<ItemListPage> {
                         item: item,
                         onTap: () => _showDetail(item),
                         onCheckboxChanged: (_) => _toggleItem(item),
+                        onQuickAction: (action) => _handleQuickAction(
+                          item,
+                          action,
+                        ),
                       );
                     },
                   ),
@@ -217,6 +265,91 @@ class _ItemListPageState extends State<ItemListPage> {
     );
     if (!mounted || price == null) return;
     await controller.updateItem(current.copyWith(actualPrice: price));
+  }
+
+  Future<void> _handleQuickAction(
+    PrepItem item,
+    ItemQuickAction action,
+  ) async {
+    switch (action) {
+      case ItemQuickAction.price:
+        await _showQuickPriceSheet(item);
+      case ItemQuickAction.inspirationPhoto:
+        await _pickAndSaveQuickPhoto(item, ItemPhotoType.inspiration);
+      case ItemQuickAction.productPhoto:
+        await _pickAndSaveQuickPhoto(item, ItemPhotoType.product);
+      case ItemQuickAction.receiptPhoto:
+        await _pickAndSaveQuickPhoto(item, ItemPhotoType.receipt);
+      case ItemQuickAction.note:
+        await _showDetail(item);
+      case ItemQuickAction.delete:
+        await _confirmDelete(item);
+    }
+  }
+
+  Future<void> _pickAndSaveQuickPhoto(
+    PrepItem item,
+    ItemPhotoType type,
+  ) async {
+    final controller = AppScope.of(context);
+    if (!controller.premium
+        .canAddPhoto(controller.settings, controller.items)) {
+      if (!mounted) return;
+      await _openPhotoPaywall();
+      return;
+    }
+
+    final image = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 82,
+    );
+    if (image == null) return;
+
+    final current = controller.items.firstWhere(
+      (current) => current.id == item.id,
+      orElse: () => item,
+    );
+    final oldPaths = _pathsFor(current, type);
+    final stored = await controller.photoStorage.saveItemPhoto(
+      itemId: item.id,
+      type: type,
+      source: image,
+    );
+    await controller.photoStorage.deletePhotoPaths(oldPaths);
+    await controller.updateItem(
+      _withPhoto(current, type, stored.imagePath, stored.thumbPath),
+    );
+  }
+
+  Future<void> _confirmDelete(PrepItem item) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Ürün silinsin mi?'),
+        content: Text('${item.title} ve bağlı fotoğrafları silinir.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Vazgeç'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Sil'),
+          ),
+        ],
+      ),
+    );
+    if (ok == true && mounted) {
+      await AppScope.of(context).deleteItem(item);
+    }
+  }
+
+  Future<void> _openPhotoPaywall() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const PaywallPage(source: 'photo_archive'),
+      ),
+    );
   }
 
   Future<void> _showDetail(PrepItem item) async {
@@ -332,8 +465,11 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
   late bool completed;
   late ItemPriority priority;
   late String? inspirationImagePath;
+  late String? inspirationThumbPath;
   late String? productImagePath;
+  late String? productThumbPath;
   late String? receiptImagePath;
+  late String? receiptThumbPath;
   late final TextEditingController estimatedController;
   late final TextEditingController actualController;
   late final TextEditingController quantityController;
@@ -347,8 +483,11 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
     completed = widget.item.isCompleted;
     priority = widget.item.priority;
     inspirationImagePath = widget.item.inspirationImagePath;
+    inspirationThumbPath = widget.item.inspirationThumbPath;
     productImagePath = widget.item.productImagePath;
+    productThumbPath = widget.item.productThumbPath;
     receiptImagePath = widget.item.receiptImagePath;
+    receiptThumbPath = widget.item.receiptThumbPath;
     estimatedController = TextEditingController(
       text: _moneyText(widget.item.estimatedPrice),
     );
@@ -358,7 +497,9 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
     quantityController = TextEditingController(
       text: widget.item.quantity.toString(),
     );
-    brandModelController = TextEditingController(text: widget.item.brandModel);
+    brandModelController = TextEditingController(
+      text: widget.item.brandModel ?? '',
+    );
     shopController = TextEditingController(text: widget.item.shopName);
     noteController = TextEditingController(text: widget.item.note);
   }
@@ -502,37 +643,49 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
                 icon: Icons.photo_library_outlined,
                 children: [
                   _ImagePathTile(
-                    title: 'İlham görseli',
-                    subtitle: inspirationImagePath,
+                    title: 'İlham Fotoğrafı',
+                    description: 'Almak istediğin ürünün görselini sakla.',
+                    path: inspirationImagePath,
+                    thumbPath: inspirationThumbPath,
                     icon: Icons.lightbulb_outline,
-                    onPick: () => _pickImage((path) {
-                      setState(() => inspirationImagePath = path);
-                    }),
+                    onPick: () => _pickImage(ItemPhotoType.inspiration),
+                    onView: inspirationImagePath == null
+                        ? null
+                        : () => _viewPhoto(
+                              'İlham Fotoğrafı',
+                              inspirationImagePath!,
+                            ),
                     onRemove: inspirationImagePath == null
                         ? null
-                        : () => setState(() => inspirationImagePath = null),
+                        : () => _removePhoto(ItemPhotoType.inspiration),
                   ),
                   _ImagePathTile(
-                    title: 'Ürün fotoğrafı',
-                    subtitle: productImagePath,
+                    title: 'Ürün Fotoğrafı',
+                    description: 'Aldığın ürünü kaydet.',
+                    path: productImagePath,
+                    thumbPath: productThumbPath,
                     icon: Icons.photo_outlined,
-                    onPick: () => _pickImage((path) {
-                      setState(() => productImagePath = path);
-                    }),
+                    onPick: () => _pickImage(ItemPhotoType.product),
+                    onView: productImagePath == null
+                        ? null
+                        : () => _viewPhoto('Ürün Fotoğrafı', productImagePath!),
                     onRemove: productImagePath == null
                         ? null
-                        : () => setState(() => productImagePath = null),
+                        : () => _removePhoto(ItemPhotoType.product),
                   ),
                   _ImagePathTile(
                     title: 'Fiş / garanti',
-                    subtitle: receiptImagePath,
+                    description: 'Faturanı veya garanti belgeni sakla.',
+                    path: receiptImagePath,
+                    thumbPath: receiptThumbPath,
                     icon: Icons.receipt_long_outlined,
-                    onPick: () => _pickImage((path) {
-                      setState(() => receiptImagePath = path);
-                    }),
+                    onPick: () => _pickImage(ItemPhotoType.receipt),
+                    onView: receiptImagePath == null
+                        ? null
+                        : () => _viewPhoto('Fiş / Garanti', receiptImagePath!),
                     onRemove: receiptImagePath == null
                         ? null
-                        : () => setState(() => receiptImagePath = null),
+                        : () => _removePhoto(ItemPhotoType.receipt),
                   ),
                 ],
               ),
@@ -565,18 +718,88 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
 
   String _moneyText(double value) => value == 0 ? '' : value.toStringAsFixed(0);
 
-  Future<void> _pickImage(ValueChanged<String> onPicked) async {
+  Future<void> _pickImage(ItemPhotoType type) async {
+    final controller = AppScope.of(context);
+    final replacingExisting = _pathsFor(widget.item, type)
+        .whereType<String>()
+        .any((path) => path.isNotEmpty);
+    if (!replacingExisting &&
+        !controller.premium
+            .canAddPhoto(controller.settings, controller.items)) {
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => const PaywallPage(source: 'photo_archive'),
+        ),
+      );
+      return;
+    }
+
     try {
       final image = await picker.pickImage(
         source: ImageSource.gallery,
-        imageQuality: 85,
+        imageQuality: 82,
       );
-      if (image != null) onPicked(image.path);
+      if (image == null) return;
+
+      final stored = await controller.photoStorage.saveItemPhoto(
+        itemId: widget.item.id,
+        type: type,
+        source: image,
+      );
+      await controller.photoStorage
+          .deletePhotoPaths(_pathsFor(widget.item, type));
+      setState(() {
+        _setLocalPhoto(type, stored.imagePath, stored.thumbPath);
+      });
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Fotoğraf seçilemedi')),
       );
+    }
+  }
+
+  Future<void> _removePhoto(ItemPhotoType type) async {
+    final paths = _localPathsFor(type);
+    await AppScope.of(context).photoStorage.deletePhotoPaths(paths);
+    setState(() => _setLocalPhoto(type, null, null));
+  }
+
+  void _viewPhoto(String title, String path) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => FullScreenPhotoPage(title: title, path: path),
+      ),
+    );
+  }
+
+  Iterable<String?> _localPathsFor(ItemPhotoType type) => switch (type) {
+        ItemPhotoType.inspiration => [
+            inspirationImagePath,
+            inspirationThumbPath,
+          ],
+        ItemPhotoType.product => [
+            productImagePath,
+            productThumbPath,
+          ],
+        ItemPhotoType.receipt => [
+            receiptImagePath,
+            receiptThumbPath,
+          ],
+      };
+
+  void _setLocalPhoto(
+      ItemPhotoType type, String? imagePath, String? thumbPath) {
+    switch (type) {
+      case ItemPhotoType.inspiration:
+        inspirationImagePath = imagePath;
+        inspirationThumbPath = thumbPath;
+      case ItemPhotoType.product:
+        productImagePath = imagePath;
+        productThumbPath = thumbPath;
+      case ItemPhotoType.receipt:
+        receiptImagePath = imagePath;
+        receiptThumbPath = thumbPath;
     }
   }
 
@@ -593,8 +816,11 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
       shopName: shopController.text.trim(),
       note: noteController.text.trim(),
       inspirationImagePath: inspirationImagePath,
+      inspirationThumbPath: inspirationThumbPath,
       productImagePath: productImagePath,
+      productThumbPath: productThumbPath,
       receiptImagePath: receiptImagePath,
+      receiptThumbPath: receiptThumbPath,
       clearInspirationImage: inspirationImagePath == null,
       clearProductImage: productImagePath == null,
       clearReceiptImage: receiptImagePath == null,
@@ -644,21 +870,27 @@ class _SectionTile extends StatelessWidget {
 class _ImagePathTile extends StatelessWidget {
   const _ImagePathTile({
     required this.title,
-    required this.subtitle,
+    required this.description,
+    required this.path,
+    required this.thumbPath,
     required this.icon,
     required this.onPick,
+    required this.onView,
     required this.onRemove,
   });
 
   final String title;
-  final String? subtitle;
+  final String description;
+  final String? path;
+  final String? thumbPath;
   final IconData icon;
   final VoidCallback onPick;
+  final VoidCallback? onView;
   final VoidCallback? onRemove;
 
   @override
   Widget build(BuildContext context) {
-    final hasImage = subtitle != null && subtitle!.isNotEmpty;
+    final hasImage = path != null && path!.isNotEmpty;
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
@@ -668,14 +900,13 @@ class _ImagePathTile extends StatelessWidget {
         border: Border.all(color: AppColors.rose.withValues(alpha: 0.14)),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            backgroundColor:
-                (hasImage ? AppColors.mint : AppColors.gold).withValues(
-              alpha: 0.16,
-            ),
-            foregroundColor: hasImage ? AppColors.mint : AppColors.gold,
-            child: Icon(icon),
+          ItemPhotoPreview(
+            path: thumbPath ?? path,
+            icon: icon,
+            size: 68,
+            onTap: onView,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -689,25 +920,41 @@ class _ImagePathTile extends StatelessWidget {
                   style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
                 Text(
-                  hasImage ? 'Görsel seçildi' : 'Henüz görsel yok',
-                  maxLines: 1,
+                  description,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(color: AppColors.muted),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: onPick,
+                      icon: Icon(
+                        hasImage
+                            ? Icons.change_circle_outlined
+                            : Icons.add_photo_alternate_outlined,
+                        size: 18,
+                      ),
+                      label: Text(hasImage ? 'Değiştir' : 'Ekle'),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: hasImage ? onView : null,
+                      icon: const Icon(Icons.visibility_outlined, size: 18),
+                      label: const Text('Gör'),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: hasImage ? onRemove : null,
+                      icon: const Icon(Icons.delete_outline, size: 18),
+                      label: const Text('Sil'),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-          IconButton(
-            tooltip: hasImage ? 'Değiştir' : 'Seç',
-            onPressed: onPick,
-            icon: const Icon(Icons.add_photo_alternate_outlined),
-          ),
-          if (hasImage)
-            IconButton(
-              tooltip: 'Kaldır',
-              onPressed: onRemove,
-              icon: const Icon(Icons.close),
-            ),
         ],
       ),
     );

@@ -83,11 +83,11 @@ class CalculationService {
   }
 
   String scoreMessage(double score) {
-    if (score < 25) return 'Daha yolun başındasın';
-    if (score < 50) return 'Hazırlık başladı';
-    if (score < 75) return 'İyi gidiyorsun';
-    if (score < 90) return 'Neredeyse hazırsın';
-    return 'Hazırlık tamam gibi';
+    if (score < 25) return 'Panik yok, birlikte toparlıyoruz';
+    if (score < 50) return 'Plan netleşiyor, sırayla gidelim';
+    if (score < 75) return 'İyi gidiyorsun, kritiklere odaklanalım';
+    if (score < 90) return 'Neredeyse hazır, eksikleri kapatıyoruz';
+    return 'Harika, hazırlık büyük ölçüde tamam';
   }
 
   Map<MainCategory, CategoryStats> categoryStats(List<PrepItem> items) {
@@ -132,6 +132,15 @@ class CalculationService {
           (item) => !item.isCompleted && item.priority == ItemPriority.mustHave)
       .toList();
 
+  List<PrepItem> nextActionItems(List<PrepItem> items, {int limit = 4}) {
+    final sorted = [...items.where((item) => !item.isCompleted)]..sort((a, b) {
+        final priority = a.priority.sortOrder.compareTo(b.priority.sortOrder);
+        if (priority != 0) return priority;
+        return b.estimatedPrice.compareTo(a.estimatedPrice);
+      });
+    return sorted.take(limit).toList();
+  }
+
   MainCategory? topSpentCategory(List<PrepItem> items) {
     final stats = categoryStats(items);
     final entries = stats.entries.toList()
@@ -160,7 +169,7 @@ class CalculationService {
       notComingPeople:
           sum(guests.where((guest) => guest.status == GuestStatus.notComing)),
       unsurePeople:
-          sum(guests.where((guest) => guest.status == GuestStatus.unsure)),
+          sum(guests.where((guest) => guest.status == GuestStatus.uncertain)),
       bridePeople: sum(guests.where((guest) => guest.side == GuestSide.bride)),
       groomPeople: sum(guests.where((guest) => guest.side == GuestSide.groom)),
     );

@@ -6,17 +6,48 @@ import '../services/formatters.dart';
 import '../theme/app_colors.dart';
 import 'priority_badge.dart';
 
+enum ItemQuickAction {
+  price,
+  inspirationPhoto,
+  productPhoto,
+  receiptPhoto,
+  note,
+  delete,
+}
+
+extension ItemQuickActionText on ItemQuickAction {
+  String get label => switch (this) {
+        ItemQuickAction.price => 'Tutar ekle',
+        ItemQuickAction.inspirationPhoto => 'İlham fotoğrafı ekle',
+        ItemQuickAction.productPhoto => 'Ürün fotoğrafı ekle',
+        ItemQuickAction.receiptPhoto => 'Fatura fotoğrafı ekle',
+        ItemQuickAction.note => 'Not ekle',
+        ItemQuickAction.delete => 'Sil',
+      };
+
+  IconData get icon => switch (this) {
+        ItemQuickAction.price => Icons.payments_outlined,
+        ItemQuickAction.inspirationPhoto => Icons.lightbulb_outline,
+        ItemQuickAction.productPhoto => Icons.photo_outlined,
+        ItemQuickAction.receiptPhoto => Icons.receipt_long_outlined,
+        ItemQuickAction.note => Icons.sticky_note_2_outlined,
+        ItemQuickAction.delete => Icons.delete_outline,
+      };
+}
+
 class ItemTile extends StatelessWidget {
   const ItemTile({
     super.key,
     required this.item,
     required this.onTap,
     required this.onCheckboxChanged,
+    required this.onQuickAction,
   });
 
   final PrepItem item;
   final VoidCallback onTap;
   final ValueChanged<bool?> onCheckboxChanged;
+  final ValueChanged<ItemQuickAction> onQuickAction;
 
   @override
   Widget build(BuildContext context) {
@@ -102,6 +133,23 @@ class ItemTile extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+              PopupMenuButton<ItemQuickAction>(
+                tooltip: 'Hızlı aksiyonlar',
+                onSelected: onQuickAction,
+                itemBuilder: (context) => [
+                  for (final action in ItemQuickAction.values)
+                    PopupMenuItem(
+                      value: action,
+                      child: Row(
+                        children: [
+                          Icon(action.icon, size: 18),
+                          const SizedBox(width: 10),
+                          Expanded(child: Text(action.label)),
+                        ],
+                      ),
+                    ),
+                ],
               ),
             ],
           ),

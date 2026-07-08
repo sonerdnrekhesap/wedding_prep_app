@@ -252,8 +252,10 @@ class _SettingsPageState extends State<SettingsPage> {
             child: ListTile(
               leading: Icon(Icons.privacy_tip_outlined),
               title: Text('Gizlilik'),
-              subtitle: Text('Veriler cihazda saklanır.'),
-              isThreeLine: false,
+              subtitle: Text(
+                'Veriler ve seçtiğin fotoğraflar cihazda saklanır. Bulut yedekleme yoktur. Fotoğraf silersen uygulama içindeki dosya da silinir.',
+              ),
+              isThreeLine: true,
             ),
           ),
           const Card(

@@ -63,9 +63,12 @@ class PrepItem {
     this.note = '',
     this.shopName = '',
     this.inspirationImagePath,
+    this.inspirationThumbPath,
     this.productImagePath,
+    this.productThumbPath,
     this.receiptImagePath,
-    this.brandModel = '',
+    this.receiptThumbPath,
+    this.brandModel,
     this.quantity = 1,
     this.purchaseDate,
     this.warrantyEndDate,
@@ -85,9 +88,12 @@ class PrepItem {
   final String note;
   final String shopName;
   final String? inspirationImagePath;
+  final String? inspirationThumbPath;
   final String? productImagePath;
+  final String? productThumbPath;
   final String? receiptImagePath;
-  final String brandModel;
+  final String? receiptThumbPath;
+  final String? brandModel;
   final int quantity;
   final DateTime? purchaseDate;
   final DateTime? warrantyEndDate;
@@ -106,8 +112,11 @@ class PrepItem {
     String? note,
     String? shopName,
     String? inspirationImagePath,
+    String? inspirationThumbPath,
     String? productImagePath,
+    String? productThumbPath,
     String? receiptImagePath,
+    String? receiptThumbPath,
     String? brandModel,
     int? quantity,
     DateTime? purchaseDate,
@@ -134,12 +143,21 @@ class PrepItem {
       inspirationImagePath: clearInspirationImage
           ? null
           : (inspirationImagePath ?? this.inspirationImagePath),
+      inspirationThumbPath: clearInspirationImage
+          ? null
+          : (inspirationThumbPath ?? this.inspirationThumbPath),
       productImagePath: clearProductImage
           ? null
           : (productImagePath ?? this.productImagePath),
+      productThumbPath: clearProductImage
+          ? null
+          : (productThumbPath ?? this.productThumbPath),
       receiptImagePath: clearReceiptImage
           ? null
           : (receiptImagePath ?? this.receiptImagePath),
+      receiptThumbPath: clearReceiptImage
+          ? null
+          : (receiptThumbPath ?? this.receiptThumbPath),
       brandModel: brandModel ?? this.brandModel,
       quantity: quantity ?? this.quantity,
       purchaseDate:
@@ -166,8 +184,11 @@ class PrepItem {
         'note': note,
         'shopName': shopName,
         'inspirationImagePath': inspirationImagePath,
+        'inspirationThumbPath': inspirationThumbPath,
         'productImagePath': productImagePath,
+        'productThumbPath': productThumbPath,
         'receiptImagePath': receiptImagePath,
+        'receiptThumbPath': receiptThumbPath,
         'brandModel': brandModel,
         'quantity': quantity,
         'purchaseDate': purchaseDate?.toIso8601String(),
@@ -190,9 +211,12 @@ class PrepItem {
       note: json['note'] as String? ?? '',
       shopName: json['shopName'] as String? ?? '',
       inspirationImagePath: json['inspirationImagePath'] as String?,
+      inspirationThumbPath: json['inspirationThumbPath'] as String?,
       productImagePath: json['productImagePath'] as String?,
+      productThumbPath: json['productThumbPath'] as String?,
       receiptImagePath: json['receiptImagePath'] as String?,
-      brandModel: json['brandModel'] as String? ?? '',
+      receiptThumbPath: json['receiptThumbPath'] as String?,
+      brandModel: json['brandModel'] as String?,
       quantity: (json['quantity'] as num?)?.toInt() ?? 1,
       purchaseDate: json['purchaseDate'] == null
           ? null

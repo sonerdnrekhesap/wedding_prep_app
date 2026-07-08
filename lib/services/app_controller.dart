@@ -5,6 +5,7 @@ import '../models/app_settings_model.dart';
 import '../models/guest_model.dart';
 import '../models/item_model.dart';
 import 'ad_service.dart';
+import 'photo_storage_service.dart';
 import 'premium_service.dart';
 import 'storage_service.dart';
 
@@ -16,6 +17,7 @@ class AppController extends ChangeNotifier {
 
   final StorageService storage;
   final AdService ads;
+  final PhotoStorageService photoStorage = const PhotoStorageService();
   final _uuid = const Uuid();
   late final PremiumService premium = PremiumService(storage: storage);
 
@@ -102,6 +104,7 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> deleteItem(PrepItem item) async {
+    await photoStorage.deleteItemPhotos(item.id);
     items = items.where((current) => current.id != item.id).toList();
     await storage.saveItems(items);
     notifyListeners();
@@ -112,17 +115,20 @@ class AppController extends ChangeNotifier {
     String phone = '',
     GuestSide side = GuestSide.common,
     int personCount = 1,
-    GuestStatus status = GuestStatus.unsure,
+    GuestStatus status = GuestStatus.uncertain,
     String note = '',
   }) {
+    final now = DateTime.now();
     return Guest(
       id: _uuid.v4(),
       name: name,
       phone: phone,
       side: side,
-      personCount: personCount,
+      guestCount: personCount,
       status: status,
       note: note,
+      createdAt: now,
+      updatedAt: now,
     );
   }
 
@@ -133,6 +139,7 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> resetAll() async {
+    await photoStorage.deleteAllItemPhotos();
     await storage.resetAll();
     settings = await storage.loadSettings();
     items = await storage.loadItems();

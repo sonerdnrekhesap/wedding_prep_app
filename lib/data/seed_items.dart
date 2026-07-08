@@ -13,32 +13,39 @@ AppSettings buildDemoSettings() {
 }
 
 List<Guest> buildDemoGuests() {
-  return const [
+  final now = DateTime.now();
+  return [
     Guest(
       id: 'demo-guest-1',
       name: 'Ayşe Yılmaz',
       phone: '05xx xxx xx xx',
       side: GuestSide.bride,
-      personCount: 2,
+      guestCount: 2,
       status: GuestStatus.coming,
       note: 'Gelin tarafı yakın aile.',
+      createdAt: now,
+      updatedAt: now,
     ),
     Guest(
       id: 'demo-guest-2',
       name: 'Mehmet Demir',
       phone: '05xx xxx xx xx',
       side: GuestSide.groom,
-      personCount: 3,
+      guestCount: 3,
       status: GuestStatus.coming,
       note: 'Damat tarafı aile.',
+      createdAt: now,
+      updatedAt: now,
     ),
     Guest(
       id: 'demo-guest-3',
       name: 'Zeynep Kaya',
       side: GuestSide.common,
-      personCount: 2,
-      status: GuestStatus.unsure,
+      guestCount: 2,
+      status: GuestStatus.uncertain,
       note: 'Şehir dışından gelecek.',
+      createdAt: now,
+      updatedAt: now,
     ),
   ];
 }

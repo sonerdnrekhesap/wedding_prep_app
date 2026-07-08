@@ -1,4 +1,5 @@
 import '../models/app_settings_model.dart';
+import '../models/item_model.dart';
 import 'storage_service.dart';
 
 enum PremiumProduct {
@@ -35,5 +36,19 @@ class PremiumService {
     final next = settings.copyWith(isPremium: false);
     await storage.saveSettings(next);
     return next;
+  }
+
+  bool canAddPhoto(AppSettings settings, List<PrepItem> items) {
+    return settings.isPremium || usedPhotoSlots(items) < 10;
+  }
+
+  int usedPhotoSlots(List<PrepItem> items) {
+    var count = 0;
+    for (final item in items) {
+      if (item.inspirationImagePath?.isNotEmpty == true) count += 1;
+      if (item.productImagePath?.isNotEmpty == true) count += 1;
+      if (item.receiptImagePath?.isNotEmpty == true) count += 1;
+    }
+    return count;
   }
 }
