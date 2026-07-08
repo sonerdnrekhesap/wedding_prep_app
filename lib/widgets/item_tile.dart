@@ -66,19 +66,32 @@ class ItemTile extends StatelessWidget {
                       children: [
                         PriorityBadge(priority: item.priority),
                         Text(
-                          'Tahmini: ${money(item.estimatedPrice)}',
+                          item.actualPrice > 0
+                              ? 'Harcama: ${money(item.actualPrice)}'
+                              : 'Tahmini: ${money(item.estimatedPrice)}',
                           style: const TextStyle(
                             fontSize: 12,
                             color: AppColors.muted,
                           ),
                         ),
-                        Text(
-                          'Harcama: ${money(item.actualPrice)}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.muted,
+                        if (item.inspirationImagePath != null)
+                          const Icon(
+                            Icons.lightbulb_outline,
+                            size: 16,
+                            color: AppColors.gold,
                           ),
-                        ),
+                        if (item.productImagePath != null)
+                          const Icon(
+                            Icons.photo_outlined,
+                            size: 16,
+                            color: AppColors.mint,
+                          ),
+                        if (item.receiptImagePath != null)
+                          const Icon(
+                            Icons.receipt_long_outlined,
+                            size: 16,
+                            color: AppColors.coral,
+                          ),
                         if (item.note.trim().isNotEmpty)
                           const Icon(
                             Icons.sticky_note_2_outlined,

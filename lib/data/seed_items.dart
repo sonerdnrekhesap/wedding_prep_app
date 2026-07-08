@@ -40,22 +40,6 @@ List<Guest> buildDemoGuests() {
       status: GuestStatus.unsure,
       note: 'Şehir dışından gelecek.',
     ),
-    Guest(
-      id: 'demo-guest-4',
-      name: 'Can ve Deniz',
-      side: GuestSide.common,
-      personCount: 2,
-      status: GuestStatus.coming,
-      note: 'Arkadaş grubu.',
-    ),
-    Guest(
-      id: 'demo-guest-5',
-      name: 'Fatma Teyze',
-      side: GuestSide.bride,
-      personCount: 1,
-      status: GuestStatus.notComing,
-      note: 'Sağlık sebebiyle gelemeyebilir.',
-    ),
   ];
 }
 
@@ -63,21 +47,15 @@ List<PrepItem> buildSeedItems() {
   final now = DateTime.now();
   var index = 0;
 
-  PrepItem item(
-    String title,
-    MainCategory category,
-    String subCategory, {
-    ItemPriority priority = ItemPriority.necessary,
-    double estimatedPrice = 0,
-  }) {
+  PrepItem item(String title, MainCategory category, String subCategory) {
     index += 1;
     return PrepItem(
       id: 'seed-$index',
       title: title,
       mainCategory: category,
       subCategory: subCategory,
-      priority: priority,
-      estimatedPrice: estimatedPrice,
+      priority: _priorityFor(title),
+      estimatedPrice: _estimateFor(title),
       createdAt: now,
       updatedAt: now,
     );
@@ -86,71 +64,120 @@ List<PrepItem> buildSeedItems() {
   List<PrepItem> itemsFor(
     MainCategory category,
     String subCategory,
-    List<String> titles, {
-    ItemPriority priority = ItemPriority.necessary,
-  }) {
-    return titles
-        .map((title) => item(title, category, subCategory, priority: priority))
-        .toList();
+    List<String> titles,
+  ) {
+    return titles.map((title) => item(title, category, subCategory)).toList();
   }
 
   final items = [
-    ...itemsFor(MainCategory.ceyiz, 'Mutfak', [
-      'Tencere seti',
-      'Tava seti',
-      'Çaydanlık',
-      'Kahve fincan takımı',
+    ...itemsFor(MainCategory.ceyiz, 'Bardaklar', [
+      'Günlük su bardağı',
+      'Misafir su bardağı',
+      'Günlük çay bardağı',
+      'Misafir çay bardağı',
+      'Türk kahvesi fincan takımı',
+      'Günlük kupa',
+      'Meşrubat bardağı',
+      'Limonata bardağı',
+      'Sürahi',
+      'Misafir sürahi',
+      'Bardak altlığı',
+      'Kadeh seti',
+    ]),
+    ...itemsFor(MainCategory.ceyiz, 'Yemek Takımları', [
       'Günlük yemek takımı',
       'Misafir yemek takımı',
       'Kahvaltı takımı',
-      'Çatal bıçak takımı',
-      'Bardak seti',
-      'Su bardağı',
-      'Çay bardağı',
-      'Saklama kabı',
-      'Baharatlık',
-      'Kesme tahtası',
-      'Bıçak seti',
-      'Borcam',
-      'Fırın kabı',
-      'Servis tabağı',
+      'Günlük servis tabağı',
+      'Misafir servis tabağı',
+      'Pasta takımı',
+      'Çorba kasesi',
       'Salata kasesi',
-      'Süzgeç',
+      'Kayık tabak',
+      'Sunum tabağı',
+    ]),
+    ...itemsFor(MainCategory.ceyiz, 'Çatal Kaşık Bıçak', [
+      'Günlük çatal kaşık bıçak seti',
+      'Misafir çatal kaşık bıçak seti',
+      'Bıçak seti',
+      'Tatlı kaşığı',
+      'Çay kaşığı',
+      'Servis kaşığı',
       'Kepçe seti',
+    ]),
+    ...itemsFor(MainCategory.ceyiz, 'Pişirme Ürünleri', [
+      'Tencere seti',
+      'Tava seti',
+      'Düdüklü tencere',
+      'Çaydanlık',
+      'Cezve',
+      'Kek kalıbı',
+      'Borcam seti',
+      'Fırın kabı',
+      'Kesme tahtası',
       'Rende',
+      'Süzgeç',
+    ]),
+    ...itemsFor(MainCategory.ceyiz, 'Saklama ve Düzen', [
+      'Saklama kabı seti',
+      'Baharatlık',
+      'Kavanoz seti',
+      'Ekmek kutusu',
+      'Buzdolabı düzenleyici',
+      'Çekmece düzenleyici',
+      'Erzak kabı',
+      'Yağdanlık',
+      'Sirkelik',
+    ]),
+    ...itemsFor(MainCategory.ceyiz, 'Sunum Ürünleri', [
+      'Servis tabağı',
+      'Tepsi',
+      'Çerezlik',
+      'Sosluk',
+      'Şekerlik',
+      'Lokumluk',
+      'Sunum kasesi',
+      'Salata servis seti',
+    ]),
+    ...itemsFor(MainCategory.ceyiz, 'Mutfak Tekstili', [
       'Mutfak havlusu',
       'Masa örtüsü',
       'Amerikan servis',
-      'Bulaşıklık',
-      'Sabunluk ve süngerlik',
-      'Çöp kovası',
+      'Runner',
+      'Önlük',
+      'Fırın eldiveni',
     ]),
-    ...itemsFor(
-        MainCategory.ceyiz,
-        'Beyaz Eşya / Elektronik',
-        [
-          'Buzdolabı',
-          'Çamaşır makinesi',
-          'Bulaşık makinesi',
-          'Ocak',
-          'Fırın',
-          'Davlumbaz',
-          'Elektrikli süpürge',
-          'Ütü',
-          'Ütü masası',
-          'Televizyon',
-          'Mikrodalga fırın',
-          'Airfryer',
-          'Kahve makinesi',
-          'Tost makinesi',
-          'Blender seti',
-          'Robot süpürge',
-          'Kurutma makinesi',
-          'Su sebili',
-          'Saç kurutma makinesi',
-          'Tartı',
-        ],
-        priority: ItemPriority.mustHave),
+    ...itemsFor(MainCategory.ceyiz, 'Temizlik ve Tezgah', [
+      'Bulaşıklık',
+      'Sabunluk',
+      'Süngerlik',
+      'Çöp kovası',
+      'Lavabo süzgeci',
+      'Kesme tahtası standı',
+      'Tezgah düzenleyici',
+    ]),
+    ...itemsFor(MainCategory.ceyiz, 'Beyaz Eşya / Elektronik', [
+      'Buzdolabı',
+      'Çamaşır makinesi',
+      'Bulaşık makinesi',
+      'Ocak',
+      'Fırın',
+      'Davlumbaz',
+      'Elektrikli süpürge',
+      'Ütü',
+      'Ütü masası',
+      'Televizyon',
+      'Mikrodalga fırın',
+      'Airfryer',
+      'Kahve makinesi',
+      'Tost makinesi',
+      'Blender seti',
+      'Robot süpürge',
+      'Kurutma makinesi',
+      'Su sebili',
+      'Saç kurutma makinesi',
+      'Tartı',
+    ]),
     ...itemsFor(MainCategory.ceyiz, 'Yatak Odası', [
       'Yatak',
       'Baza',
@@ -204,24 +231,6 @@ List<PrepItem> buildSeedItems() {
       'Kırlent',
       'Abajur',
       'Kitaplık',
-    ]),
-    ...itemsFor(MainCategory.ceyiz, 'Diğer Ev İhtiyaçları', [
-      'Kurutmalık',
-      'Mandal',
-      'Çamaşır mandalı',
-      'Askılık',
-      'Ayakkabılık',
-      'Üçlü priz',
-      'Uzatma kablosu',
-      'Merdiven',
-      'Vileda',
-      'Leğen',
-      'Paspas',
-      'İlk yardım seti',
-      'Mini yangın tüpü',
-      'Dış kapı paspası',
-      'Dikiş seti',
-      'Alet çantası',
     ]),
     ...itemsFor(MainCategory.bohca, 'Bohça', [
       'Gelin bohçası',
@@ -277,32 +286,28 @@ List<PrepItem> buildSeedItems() {
       'Kuaför',
       'Makyaj',
     ]),
-    ...itemsFor(
-        MainCategory.dugun,
-        'Düğün',
-        [
-          'Düğün salonu',
-          'Nikah tarihi',
-          'Gelinlik',
-          'Damatlık',
-          'Gelin ayakkabısı',
-          'Damat ayakkabısı',
-          'Fotoğrafçı',
-          'Video çekimi',
-          'Davetiye',
-          'Kuaför',
-          'Makyaj',
-          'Gelin arabası',
-          'Çiçek',
-          'Pasta',
-          'Müzik / DJ',
-          'Organizasyon',
-          'Takı kurdelesi',
-          'Nikah şekeri',
-          'Düğün dansı',
-          'Oturma planı',
-        ],
-        priority: ItemPriority.mustHave),
+    ...itemsFor(MainCategory.dugun, 'Düğün', [
+      'Düğün salonu',
+      'Nikah tarihi',
+      'Gelinlik',
+      'Damatlık',
+      'Gelin ayakkabısı',
+      'Damat ayakkabısı',
+      'Fotoğrafçı',
+      'Video çekimi',
+      'Davetiye',
+      'Kuaför',
+      'Makyaj',
+      'Gelin arabası',
+      'Çiçek',
+      'Pasta',
+      'Müzik / DJ',
+      'Organizasyon',
+      'Takı kurdelesi',
+      'Nikah şekeri',
+      'Düğün dansı',
+      'Oturma planı',
+    ]),
     ...itemsFor(MainCategory.balayi, 'Balayı', [
       'Pasaport',
       'Vize',
@@ -325,29 +330,84 @@ List<PrepItem> buildSeedItems() {
   return _withDemoProgress(items);
 }
 
-List<PrepItem> _withDemoProgress(List<PrepItem> items) {
-  final completedItems = <String, ({double actualPrice, String shopName})>{
-    'Tencere seti': (actualPrice: 6200, shopName: 'Karaca'),
-    'Tava seti': (actualPrice: 3400, shopName: 'Emsan'),
-    'Kahvaltı takımı': (actualPrice: 5200, shopName: 'English Home'),
-    'Bardak seti': (actualPrice: 1800, shopName: 'Paşabahçe'),
-    'Nevresim takımı': (actualPrice: 2600, shopName: 'Madame Coco'),
-    'Havlu seti': (actualPrice: 2400, shopName: 'Özdilek'),
-    'Bornoz takımı': (actualPrice: 4200, shopName: 'Özdilek'),
-    'Söz yüzükleri': (actualPrice: 18500, shopName: 'Kuyumcu'),
-    'Söz tepsisi': (actualPrice: 1450, shopName: 'Butik tasarım'),
-    'Çiçek': (actualPrice: 1800, shopName: 'Mahalle çiçekçisi'),
-    'Nişan elbisesi': (actualPrice: 12500, shopName: 'Moda evi'),
-    'Davetiye': (actualPrice: 3900, shopName: 'Matbaa'),
-    'Düğün salonu': (actualPrice: 95000, shopName: 'Salon kapora'),
-    'Fotoğrafçı': (actualPrice: 18000, shopName: 'Foto stüdyo kapora'),
-    'Gelinlik': (actualPrice: 38000, shopName: 'Moda evi kapora'),
-  };
+ItemPriority _priorityFor(String title) {
+  final text = title.toLowerCase();
+  if (_containsAny(text, [
+    'buzdolabı',
+    'çamaşır makinesi',
+    'yatak',
+    'yorgan',
+    'yastık',
+    'nevresim',
+    'günlük yemek',
+    'günlük çatal',
+    'günlük su bardağı',
+    'günlük çay bardağı',
+    'tencere seti',
+    'tava seti',
+    'havlu seti',
+    'temizlik kovası',
+    'ocak',
+  ])) {
+    return ItemPriority.mustHave;
+  }
+  if (_containsAny(text, [
+    'televizyon',
+    'büyük tv',
+    'bulaşık makinesi',
+    'elektrikli süpürge',
+    'ütü',
+    'ütü masası',
+    'perde',
+    'halı',
+    'banyo paspası',
+    'gardırop',
+    'koltuk takımı',
+    'yemek masası',
+    'sandalye',
+    'avize',
+    'komodin',
+    'banyo dolabı',
+  ])) {
+    return ItemPriority.necessary;
+  }
+  if (_containsAny(text, [
+    'robot süpürge',
+    'kurutma makinesi',
+    'su sebili',
+    'vitrin',
+    'ikinci televizyon',
+    'dekoratif koleksiyon',
+  ])) {
+    return ItemPriority.luxury;
+  }
+  if (_containsAny(text, [
+    'airfryer',
+    'kahve makinesi',
+    'tost makinesi',
+    'mikrodalga',
+    'misafir',
+    'pasta takımı',
+    'dekoratif',
+    'kırlent',
+    'abajur',
+    'sunum',
+  ])) {
+    return ItemPriority.later;
+  }
+  return ItemPriority.necessary;
+}
 
-  final estimates = <String, double>{
+bool _containsAny(String text, List<String> needles) {
+  return needles.any(text.contains);
+}
+
+double _estimateFor(String title) {
+  const estimates = <String, double>{
     'Buzdolabı': 42000,
     'Çamaşır makinesi': 26000,
     'Bulaşık makinesi': 24000,
+    'Televizyon': 25000,
     'Koltuk takımı': 68000,
     'Yatak': 22000,
     'Gardırop': 36000,
@@ -361,11 +421,31 @@ List<PrepItem> _withDemoProgress(List<PrepItem> items) {
     'Otel rezervasyonu': 50000,
     'Uçak bileti': 24000,
   };
+  return estimates[title] ?? 0;
+}
+
+List<PrepItem> _withDemoProgress(List<PrepItem> items) {
+  final completedItems = <String, ({double actualPrice, String shopName})>{
+    'Tencere seti': (actualPrice: 6200, shopName: 'Karaca'),
+    'Tava seti': (actualPrice: 3400, shopName: 'Emsan'),
+    'Kahvaltı takımı': (actualPrice: 5200, shopName: 'English Home'),
+    'Günlük su bardağı': (actualPrice: 1800, shopName: 'Paşabahçe'),
+    'Nevresim takımı': (actualPrice: 2600, shopName: 'Madame Coco'),
+    'Havlu seti': (actualPrice: 2400, shopName: 'Özdilek'),
+    'Bornoz takımı': (actualPrice: 4200, shopName: 'Özdilek'),
+    'Söz yüzükleri': (actualPrice: 18500, shopName: 'Kuyumcu'),
+    'Söz tepsisi': (actualPrice: 1450, shopName: 'Butik tasarım'),
+    'Çiçek': (actualPrice: 1800, shopName: 'Mahalle çiçekçisi'),
+    'Nişan elbisesi': (actualPrice: 12500, shopName: 'Moda evi'),
+    'Davetiye': (actualPrice: 3900, shopName: 'Matbaa'),
+    'Düğün salonu': (actualPrice: 95000, shopName: 'Salon kapora'),
+    'Fotoğrafçı': (actualPrice: 18000, shopName: 'Foto stüdyo kapora'),
+    'Gelinlik': (actualPrice: 38000, shopName: 'Moda evi kapora'),
+  };
 
   return [
     for (final item in items)
       item.copyWith(
-        estimatedPrice: estimates[item.title] ?? item.estimatedPrice,
         actualPrice:
             completedItems[item.title]?.actualPrice ?? item.actualPrice,
         shopName: completedItems[item.title]?.shopName ?? item.shopName,

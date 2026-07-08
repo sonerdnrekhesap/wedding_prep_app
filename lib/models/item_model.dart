@@ -62,6 +62,13 @@ class PrepItem {
     this.isCompleted = false,
     this.note = '',
     this.shopName = '',
+    this.inspirationImagePath,
+    this.productImagePath,
+    this.receiptImagePath,
+    this.brandModel = '',
+    this.quantity = 1,
+    this.purchaseDate,
+    this.warrantyEndDate,
     this.completedDate,
     required this.createdAt,
     required this.updatedAt,
@@ -77,6 +84,13 @@ class PrepItem {
   final bool isCompleted;
   final String note;
   final String shopName;
+  final String? inspirationImagePath;
+  final String? productImagePath;
+  final String? receiptImagePath;
+  final String brandModel;
+  final int quantity;
+  final DateTime? purchaseDate;
+  final DateTime? warrantyEndDate;
   final DateTime? completedDate;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -91,8 +105,20 @@ class PrepItem {
     bool? isCompleted,
     String? note,
     String? shopName,
+    String? inspirationImagePath,
+    String? productImagePath,
+    String? receiptImagePath,
+    String? brandModel,
+    int? quantity,
+    DateTime? purchaseDate,
+    DateTime? warrantyEndDate,
     DateTime? completedDate,
     bool clearCompletedDate = false,
+    bool clearInspirationImage = false,
+    bool clearProductImage = false,
+    bool clearReceiptImage = false,
+    bool clearPurchaseDate = false,
+    bool clearWarrantyEndDate = false,
   }) {
     return PrepItem(
       id: id,
@@ -105,6 +131,22 @@ class PrepItem {
       isCompleted: isCompleted ?? this.isCompleted,
       note: note ?? this.note,
       shopName: shopName ?? this.shopName,
+      inspirationImagePath: clearInspirationImage
+          ? null
+          : (inspirationImagePath ?? this.inspirationImagePath),
+      productImagePath: clearProductImage
+          ? null
+          : (productImagePath ?? this.productImagePath),
+      receiptImagePath: clearReceiptImage
+          ? null
+          : (receiptImagePath ?? this.receiptImagePath),
+      brandModel: brandModel ?? this.brandModel,
+      quantity: quantity ?? this.quantity,
+      purchaseDate:
+          clearPurchaseDate ? null : (purchaseDate ?? this.purchaseDate),
+      warrantyEndDate: clearWarrantyEndDate
+          ? null
+          : (warrantyEndDate ?? this.warrantyEndDate),
       completedDate:
           clearCompletedDate ? null : (completedDate ?? this.completedDate),
       createdAt: createdAt,
@@ -123,6 +165,13 @@ class PrepItem {
         'isCompleted': isCompleted,
         'note': note,
         'shopName': shopName,
+        'inspirationImagePath': inspirationImagePath,
+        'productImagePath': productImagePath,
+        'receiptImagePath': receiptImagePath,
+        'brandModel': brandModel,
+        'quantity': quantity,
+        'purchaseDate': purchaseDate?.toIso8601String(),
+        'warrantyEndDate': warrantyEndDate?.toIso8601String(),
         'completedDate': completedDate?.toIso8601String(),
         'createdAt': createdAt.toIso8601String(),
         'updatedAt': updatedAt.toIso8601String(),
@@ -140,6 +189,17 @@ class PrepItem {
       isCompleted: json['isCompleted'] as bool? ?? false,
       note: json['note'] as String? ?? '',
       shopName: json['shopName'] as String? ?? '',
+      inspirationImagePath: json['inspirationImagePath'] as String?,
+      productImagePath: json['productImagePath'] as String?,
+      receiptImagePath: json['receiptImagePath'] as String?,
+      brandModel: json['brandModel'] as String? ?? '',
+      quantity: (json['quantity'] as num?)?.toInt() ?? 1,
+      purchaseDate: json['purchaseDate'] == null
+          ? null
+          : DateTime.parse(json['purchaseDate'] as String),
+      warrantyEndDate: json['warrantyEndDate'] == null
+          ? null
+          : DateTime.parse(json['warrantyEndDate'] as String),
       completedDate: json['completedDate'] == null
           ? null
           : DateTime.parse(json['completedDate'] as String),
