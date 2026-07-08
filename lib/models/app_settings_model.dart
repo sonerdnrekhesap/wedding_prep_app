@@ -4,6 +4,8 @@ class AppSettings {
     this.targetBudget = 0,
     this.brideName = '',
     this.groomName = '',
+    this.isPremium = false,
+    this.notificationsEnabled = false,
     this.hasCompletedOnboarding = false,
   });
 
@@ -11,6 +13,8 @@ class AppSettings {
   final double targetBudget;
   final String brideName;
   final String groomName;
+  final bool isPremium;
+  final bool notificationsEnabled;
   final bool hasCompletedOnboarding;
 
   String get coupleNames {
@@ -23,6 +27,8 @@ class AppSettings {
     double? targetBudget,
     String? brideName,
     String? groomName,
+    bool? isPremium,
+    bool? notificationsEnabled,
     bool? hasCompletedOnboarding,
     bool clearWeddingDate = false,
   }) {
@@ -31,6 +37,8 @@ class AppSettings {
       targetBudget: targetBudget ?? this.targetBudget,
       brideName: brideName ?? this.brideName,
       groomName: groomName ?? this.groomName,
+      isPremium: isPremium ?? this.isPremium,
+      notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       hasCompletedOnboarding:
           hasCompletedOnboarding ?? this.hasCompletedOnboarding,
     );
@@ -41,6 +49,8 @@ class AppSettings {
         'targetBudget': targetBudget,
         'brideName': brideName,
         'groomName': groomName,
+        'isPremium': isPremium,
+        'notificationsEnabled': notificationsEnabled,
         'hasCompletedOnboarding': hasCompletedOnboarding,
       };
 
@@ -62,6 +72,8 @@ class AppSettings {
           (legacyParts.length > 1
               ? legacyParts.sublist(1).join(' ').trim()
               : ''),
+      isPremium: json['isPremium'] as bool? ?? false,
+      notificationsEnabled: json['notificationsEnabled'] as bool? ?? false,
       hasCompletedOnboarding: json['hasCompletedOnboarding'] as bool? ?? false,
     );
   }

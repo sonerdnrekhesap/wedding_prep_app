@@ -2,7 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-import '../services/ad_service.dart';
+import '../main.dart';
+import '../services/ad_config.dart';
 
 class AdBannerWidget extends StatefulWidget {
   const AdBannerWidget({super.key});
@@ -20,7 +21,7 @@ class _AdBannerWidgetState extends State<AdBannerWidget> {
     super.initState();
     if (kIsWeb) return;
     _ad = BannerAd(
-      adUnitId: AdService.bannerTestUnitId,
+      adUnitId: AdConfig.active.bannerUnitId,
       request: const AdRequest(),
       size: AdSize.banner,
       listener: BannerAdListener(
@@ -38,6 +39,7 @@ class _AdBannerWidgetState extends State<AdBannerWidget> {
 
   @override
   Widget build(BuildContext context) {
+    if (AppScope.of(context).settings.isPremium) return const SizedBox.shrink();
     if (kIsWeb || !_loaded || _ad == null) return const SizedBox.shrink();
     return SafeArea(
       top: false,

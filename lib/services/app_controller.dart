@@ -5,6 +5,7 @@ import '../models/app_settings_model.dart';
 import '../models/guest_model.dart';
 import '../models/item_model.dart';
 import 'ad_service.dart';
+import 'premium_service.dart';
 import 'storage_service.dart';
 
 class AppController extends ChangeNotifier {
@@ -16,6 +17,7 @@ class AppController extends ChangeNotifier {
   final StorageService storage;
   final AdService ads;
   final _uuid = const Uuid();
+  late final PremiumService premium = PremiumService(storage: storage);
 
   bool isLoading = true;
   AppSettings settings = const AppSettings();
@@ -27,6 +29,7 @@ class AppController extends ChangeNotifier {
     settings = await storage.loadSettings();
     items = await storage.loadItems();
     guests = await storage.loadGuests();
+    ads.setPremium(settings.isPremium);
     isLoading = false;
     notifyListeners();
   }
@@ -34,6 +37,7 @@ class AppController extends ChangeNotifier {
   Future<void> saveSettings(AppSettings next) async {
     settings = next;
     await storage.saveSettings(settings);
+    ads.setPremium(settings.isPremium);
     notifyListeners();
   }
 
@@ -72,6 +76,37 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> addCustomItem({
+    required String title,
+    required MainCategory category,
+    required String subCategory,
+    required ItemPriority priority,
+    double estimatedPrice = 0,
+  }) async {
+    final now = DateTime.now();
+    items = [
+      ...items,
+      PrepItem(
+        id: _uuid.v4(),
+        title: title,
+        mainCategory: category,
+        subCategory: subCategory,
+        priority: priority,
+        estimatedPrice: estimatedPrice,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    ];
+    await storage.saveItems(items);
+    notifyListeners();
+  }
+
+  Future<void> deleteItem(PrepItem item) async {
+    items = items.where((current) => current.id != item.id).toList();
+    await storage.saveItems(items);
+    notifyListeners();
+  }
+
   Guest newGuest({
     required String name,
     String phone = '',
@@ -98,10 +133,32 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> resetAll() async {
-    await storage.resetToDemo();
+    await storage.resetAll();
     settings = await storage.loadSettings();
     items = await storage.loadItems();
     guests = await storage.loadGuests();
+    ads.setPremium(settings.isPremium);
+    notifyListeners();
+  }
+
+  Future<void> loadDemoData() async {
+    await storage.loadDemoData();
+    settings = await storage.loadSettings();
+    items = await storage.loadItems();
+    guests = await storage.loadGuests();
+    ads.setPremium(settings.isPremium);
+    notifyListeners();
+  }
+
+  Future<void> purchaseMockPremium(PremiumProduct product) async {
+    settings = await premium.purchaseMock(settings, product);
+    ads.setPremium(settings.isPremium);
+    notifyListeners();
+  }
+
+  Future<void> restorePurchases() async {
+    settings = await premium.restorePurchases(settings);
+    ads.setPremium(settings.isPremium);
     notifyListeners();
   }
 }

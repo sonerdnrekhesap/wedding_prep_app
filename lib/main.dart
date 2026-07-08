@@ -10,6 +10,7 @@ import 'pages/budget_page.dart';
 import 'services/ad_service.dart';
 import 'services/app_controller.dart';
 import 'services/storage_service.dart';
+import 'theme/app_theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,28 +52,7 @@ class _WeddingPrepAppState extends State<WeddingPrepApp> {
           GlobalWidgetsLocalizations.delegate,
         ],
         title: 'Hazırlık Takibi',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFFE84A7A),
-            surface: const Color(0xFFFFF8FA),
-          ),
-          scaffoldBackgroundColor: const Color(0xFFFFF8FA),
-          useMaterial3: true,
-          cardTheme: const CardThemeData(
-            color: Colors.white,
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(8)),
-            ),
-          ),
-          inputDecorationTheme: InputDecorationTheme(
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        ),
+        theme: AppTheme.light(),
         home: AnimatedBuilder(
           animation: controller,
           builder: (context, _) {

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../models/item_model.dart';
 import '../services/formatters.dart';
+import '../theme/app_colors.dart';
 import 'priority_badge.dart';
 
 class ItemTile extends StatelessWidget {
@@ -19,7 +21,7 @@ class ItemTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white,
+      color: AppColors.surface,
       child: InkWell(
         onTap: onTap,
         child: Padding(
@@ -27,11 +29,17 @@ class ItemTile extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Checkbox(
-                value: item.isCompleted,
-                onChanged: onCheckboxChanged,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
+              AnimatedScale(
+                duration: 220.ms,
+                scale: item.isCompleted ? 1.08 : 1,
+                curve: Curves.easeOutBack,
+                child: Checkbox(
+                  value: item.isCompleted,
+                  onChanged: onCheckboxChanged,
+                  activeColor: AppColors.mint,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
                 ),
               ),
               const SizedBox(width: 6),
@@ -61,21 +69,21 @@ class ItemTile extends StatelessWidget {
                           'Tahmini: ${money(item.estimatedPrice)}',
                           style: const TextStyle(
                             fontSize: 12,
-                            color: Color(0xFF6F6470),
+                            color: AppColors.muted,
                           ),
                         ),
                         Text(
                           'Harcama: ${money(item.actualPrice)}',
                           style: const TextStyle(
                             fontSize: 12,
-                            color: Color(0xFF6F6470),
+                            color: AppColors.muted,
                           ),
                         ),
                         if (item.note.trim().isNotEmpty)
                           const Icon(
                             Icons.sticky_note_2_outlined,
                             size: 16,
-                            color: Color(0xFFE84A7A),
+                            color: AppColors.rose,
                           ),
                       ],
                     ),
@@ -86,6 +94,6 @@ class ItemTile extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ).animate().fadeIn(duration: 260.ms).slideX(begin: 0.03, end: 0);
   }
 }

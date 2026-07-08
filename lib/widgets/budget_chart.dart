@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 
 import '../models/item_model.dart';
 import '../services/calculation_service.dart';
+import '../theme/app_colors.dart';
+import 'visual_cards.dart';
 
 class BudgetChart extends StatelessWidget {
   const BudgetChart({super.key, required this.stats});
@@ -15,14 +17,16 @@ class BudgetChart extends StatelessWidget {
         .where((entry) => entry.value.spent > 0)
         .toList(growable: false);
     if (entries.isEmpty) {
-      return const SizedBox(
-        height: 180,
-        child: Center(child: Text('Henüz harcama eklenmedi')),
+      return const EmptyStateCard(
+        icon: Icons.receipt_long_outlined,
+        title: 'Henüz harcama yok',
+        message: 'Ürünlere gerçek fiyat ekledikçe grafik burada canlanır.',
       );
     }
 
-    final maxSpent =
-        entries.map((entry) => entry.value.spent).reduce((a, b) => a > b ? a : b);
+    final maxSpent = entries
+        .map((entry) => entry.value.spent)
+        .reduce((a, b) => a > b ? a : b);
 
     return SizedBox(
       height: 220,
@@ -71,14 +75,16 @@ class BudgetChart extends StatelessWidget {
                 barRods: [
                   BarChartRodData(
                     toY: entries[index].value.spent,
-                    color: const Color(0xFFE84A7A),
+                    color: AppColors.rose,
                     width: 18,
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                 ],
               ),
           ],
         ),
+        duration: const Duration(milliseconds: 550),
+        curve: Curves.easeOutCubic,
       ),
     );
   }

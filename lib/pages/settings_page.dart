@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../main.dart';
+import '../services/export_service.dart';
 import '../services/formatters.dart';
+import '../services/notification_service.dart';
+import 'paywall_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -160,6 +164,88 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ],
               ),
+            ),
+          ),
+          Card(
+            child: SwitchListTile(
+              secondary: const Icon(Icons.workspace_premium_outlined),
+              title: const Text('Premium mock modu'),
+              subtitle: Text(
+                controller.settings.isPremium
+                    ? 'Premium açık: reklam ve paywall kısıtları kapalı.'
+                    : 'Premium kapalı: gelişmiş özelliklerde paywall gösterilir.',
+              ),
+              value: controller.settings.isPremium,
+              onChanged: (value) async {
+                if (value) {
+                  await Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const PaywallPage(source: 'settings'),
+                    ),
+                  );
+                } else {
+                  await controller.saveSettings(
+                    controller.settings.copyWith(isPremium: false),
+                  );
+                }
+              },
+            ),
+          ),
+          Card(
+            child: SwitchListTile(
+              secondary: const Icon(Icons.notifications_active_outlined),
+              title: const Text('Bildirimler'),
+              subtitle: Text(
+                const NotificationService()
+                    .previewMessages(controller.settings, controller.items)
+                    .join(' '),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              value: controller.settings.notificationsEnabled,
+              onChanged: (value) async {
+                await const NotificationService().configure(enabled: value);
+                await controller.saveSettings(
+                  controller.settings.copyWith(notificationsEnabled: value),
+                );
+              },
+            ),
+          ),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.ios_share_outlined),
+              title: const Text('Davetli listesini CSV olarak paylaş'),
+              subtitle:
+                  const Text('Premium dışa aktarma altyapısının ilk adımı.'),
+              onTap: () async {
+                if (!controller.settings.isPremium) {
+                  await Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const PaywallPage(source: 'export'),
+                    ),
+                  );
+                  return;
+                }
+                final csv = ExportService().buildGuestCsv(controller.guests);
+                await Share.share(csv, subject: 'Davetli listesi');
+              },
+            ),
+          ),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.auto_awesome_outlined),
+              title: const Text('Demo verileri yükle'),
+              subtitle: const Text(
+                'Mağaza öncesi sunum ve test için örnek çift, bütçe ve davetli verisi yükler.',
+              ),
+              onTap: () async {
+                await controller.loadDemoData();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Demo verileri yüklendi.')),
+                  );
+                }
+              },
             ),
           ),
           const Card(

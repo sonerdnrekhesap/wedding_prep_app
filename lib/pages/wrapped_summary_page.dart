@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../main.dart';
 import '../models/item_model.dart';
 import '../services/calculation_service.dart';
 import '../services/formatters.dart';
+import '../theme/app_spacing.dart';
+import '../widgets/visual_cards.dart';
+import 'paywall_page.dart';
 
 class WrappedSummaryPage extends StatelessWidget {
   const WrappedSummaryPage({super.key});
@@ -20,8 +24,9 @@ class WrappedSummaryPage extends StatelessWidget {
     final ceyizItems = controller.items
         .where((item) => item.mainCategory == MainCategory.ceyiz)
         .toList();
-    final ceyizProgress =
-        ceyizItems.isEmpty ? 0 : calc.completedItems(ceyizItems) / ceyizItems.length;
+    final ceyizProgress = ceyizItems.isEmpty
+        ? 0
+        : calc.completedItems(ceyizItems) / ceyizItems.length;
     final mustHave = controller.items
         .where((item) => item.priority == ItemPriority.mustHave)
         .toList();
@@ -29,24 +34,52 @@ class WrappedSummaryPage extends StatelessWidget {
         mustHave.isEmpty ? 0 : calc.completedItems(mustHave) / mustHave.length;
     final missingCategory = calc.mostMissingCategory(controller.items);
     final days = calc.daysUntilWedding(controller.settings);
-    final cards = [
-      'Bu süreçte toplam ${money(calc.totalSpent(controller.items))} harcadın.',
-      topCategory == null
-          ? 'Henüz en çok harcama yapılan kategori oluşmadı.'
-          : 'En çok harcamayı ${topCategory.label} kategorisine yaptın.',
-      topItem == null
-          ? 'En pahalı alışverişin henüz kaydedilmedi.'
-          : 'En pahalı alışverişin: ${topItem.title} - ${money(topItem.actualPrice)}.',
-      'Çeyiz hazırlığının %${(ceyizProgress * 100).round()} bölümü tamamlandı.',
-      'Olmazsa olmaz ürünlerin %${(mustHaveProgress * 100).round()} hazır.',
-      missingCategory == null
-          ? 'Eksik kategori hesaplanamadı.'
-          : 'En eksik kalan kategori: ${missingCategory.label}.',
-      days == null
-          ? 'Düğün tarihi eklendiğinde kalan gün kartın burada görünecek.'
-          : 'Düğüne $days gün kala hazırlık seviyen: ${calc.scoreMessage(score)}.',
-      'Toplam ${controller.items.length} üründen ${calc.completedItems(controller.items)} tanesini tamamladın.',
-      'Bu tempoyla ana ihtiyaçlar büyük ölçüde tamamlanabilir.',
+
+    final stories = [
+      _StoryData(
+        title: 'Toplam harcama',
+        value: money(calc.totalSpent(controller.items)),
+        icon: Icons.payments_outlined,
+      ),
+      _StoryData(
+        title: 'En çok harcanan kategori',
+        value: topCategory?.label ?? 'Henüz yok',
+        icon: Icons.pie_chart_outline,
+      ),
+      _StoryData(
+        title: 'En pahalı ürün',
+        value: topItem == null
+            ? 'Henüz yok'
+            : '${topItem.title}\n${money(topItem.actualPrice)}',
+        icon: Icons.local_offer_outlined,
+      ),
+      _StoryData(
+        title: 'Çeyiz tamamlanma',
+        value: '%${(ceyizProgress * 100).round()}',
+        icon: Icons.kitchen_outlined,
+      ),
+      _StoryData(
+        title: 'Olmazsa olmaz tamamlanma',
+        value: '%${(mustHaveProgress * 100).round()}',
+        icon: Icons.priority_high,
+        premium: true,
+      ),
+      _StoryData(
+        title: 'En eksik kategori',
+        value: missingCategory?.label ?? 'Hesaplanamadı',
+        icon: Icons.pending_actions_outlined,
+        premium: true,
+      ),
+      _StoryData(
+        title: 'Düğüne kalan gün',
+        value: days == null ? 'Tarih yok' : '$days gün',
+        icon: Icons.event_outlined,
+      ),
+      _StoryData(
+        title: 'Hazırlık skoru',
+        value: '%${score.round()}',
+        icon: Icons.auto_graph,
+      ),
     ];
 
     return Scaffold(
@@ -55,62 +88,104 @@ class WrappedSummaryPage extends StatelessWidget {
         actions: [
           IconButton(
             tooltip: 'Özet metnini paylaş',
-            onPressed: () => Share.share(cards.join('\n')),
+            onPressed: () => Share.share(_shareText(stories)),
             icon: const Icon(Icons.ios_share),
           ),
         ],
       ),
-      body: PageView.builder(
-        controller: PageController(viewportFraction: 0.88),
-        itemCount: cards.length,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 24),
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: index.isEven
-                      ? const [Color(0xFFE84A7A), Color(0xFF5F6FD9)]
-                      : const [Color(0xFF0D9488), Color(0xFFE84A7A)],
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${index + 1}/${cards.length}',
-                    style: const TextStyle(color: Colors.white70),
+      body: Column(
+        children: [
+          const SizedBox(height: AppSpacing.md),
+          Expanded(
+            child: PageView.builder(
+              controller: PageController(viewportFraction: 0.88),
+              itemCount: stories.length,
+              itemBuilder: (context, index) {
+                final story = stories[index];
+                final locked = story.premium && !controller.settings.isPremium;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 20,
                   ),
-                  const Spacer(),
-                  Text(
-                    cards[index],
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                        ),
-                  ),
-                  const Spacer(),
-                  FilledButton.tonalIcon(
-                    onPressed: index == cards.length - 1
-                        ? () => Share.share(cards.join('\n'))
+                  child: GestureDetector(
+                    onTap: locked
+                        ? () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const PaywallPage(
+                                  source: 'wrapped-card',
+                                ),
+                              ),
+                            )
                         : null,
-                    icon: const Icon(Icons.auto_awesome),
-                    label: Text(
-                      index == cards.length - 1
-                          ? 'Özet metnini paylaş'
-                          : 'Detaylı özet yakında',
+                    child: WrappedStoryCard(
+                      index: index,
+                      total: stories.length,
+                      title: locked ? 'Premium ile aç' : story.title,
+                      value: locked ? 'Kilitli kart' : story.value,
+                      icon: story.icon,
+                      locked: locked,
                     ),
-                  ),
-                ],
+                  ).animate().fadeIn(duration: 360.ms).slideX(begin: 0.06),
+                );
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () => _shareDetailedSummary(context, stories),
+                icon: const Icon(Icons.auto_awesome),
+                label: const Text('Paylaş'),
               ),
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
+
+  String _shareText(List<_StoryData> stories) {
+    return [
+      'Hazırlık Özeti',
+      '----------------',
+      for (final story in stories) '${story.title}: ${story.value}',
+    ].join('\n');
+  }
+
+  Future<void> _shareDetailedSummary(
+    BuildContext context,
+    List<_StoryData> stories,
+  ) async {
+    final controller = AppScope.of(context);
+    if (!controller.settings.isPremium) {
+      final rewarded = await controller.ads.showRewardedForFeature();
+      if (!context.mounted) return;
+      if (!rewarded) {
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => const PaywallPage(source: 'wrapped-summary'),
+          ),
+        );
+        return;
+      }
+    }
+    await Share.share(_shareText(stories));
+  }
+}
+
+class _StoryData {
+  const _StoryData({
+    required this.title,
+    required this.value,
+    required this.icon,
+    this.premium = false,
+  });
+
+  final String title;
+  final String value;
+  final IconData icon;
+  final bool premium;
 }

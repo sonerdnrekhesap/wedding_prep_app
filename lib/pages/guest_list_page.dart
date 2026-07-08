@@ -4,6 +4,7 @@ import '../main.dart';
 import '../models/guest_model.dart';
 import '../services/calculation_service.dart';
 import '../widgets/summary_card.dart';
+import '../widgets/visual_cards.dart';
 
 class GuestListPage extends StatelessWidget {
   const GuestListPage({super.key});
@@ -70,7 +71,12 @@ class GuestListPage extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           if (controller.guests.isEmpty)
-            const Center(child: Text('İlk davetliyi ekle'))
+            const EmptyStateCard(
+              icon: Icons.groups_outlined,
+              title: 'Henüz davetli yok',
+              message:
+                  'İlk davetliyi ekleyince kişi sayıları burada toparlanır.',
+            )
           else
             for (final guest in controller.guests)
               Card(

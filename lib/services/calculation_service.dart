@@ -52,7 +52,8 @@ class CalculationService {
   int completedItems(List<PrepItem> items) =>
       items.where((item) => item.isCompleted).length;
 
-  int missingItems(List<PrepItem> items) => items.length - completedItems(items);
+  int missingItems(List<PrepItem> items) =>
+      items.length - completedItems(items);
 
   double totalSpent(List<PrepItem> items) =>
       items.fold(0, (sum, item) => sum + item.actualPrice);
@@ -119,15 +120,16 @@ class CalculationService {
     return sorted.take(limit).toList();
   }
 
-  List<PrepItem> missingHighEstimateItems(List<PrepItem> items, {int limit = 5}) {
+  List<PrepItem> missingHighEstimateItems(List<PrepItem> items,
+      {int limit = 5}) {
     final sorted = [...items.where((item) => !item.isCompleted)]
       ..sort((a, b) => b.estimatedPrice.compareTo(a.estimatedPrice));
     return sorted.take(limit).toList();
   }
 
   List<PrepItem> missingMustHaveItems(List<PrepItem> items) => items
-      .where((item) =>
-          !item.isCompleted && item.priority == ItemPriority.mustHave)
+      .where(
+          (item) => !item.isCompleted && item.priority == ItemPriority.mustHave)
       .toList();
 
   MainCategory? topSpentCategory(List<PrepItem> items) {
@@ -141,7 +143,9 @@ class CalculationService {
 
   MainCategory? mostMissingCategory(List<PrepItem> items) {
     final stats = categoryStats(items);
-    final entries = stats.entries.where((entry) => entry.value.total > 0).toList()
+    final entries = stats.entries
+        .where((entry) => entry.value.total > 0)
+        .toList()
       ..sort((a, b) => b.value.missing.compareTo(a.value.missing));
     return entries.isEmpty ? null : entries.first.key;
   }

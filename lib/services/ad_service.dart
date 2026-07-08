@@ -1,25 +1,38 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-class AdService {
-  static const bannerTestUnitId = 'ca-app-pub-3940256099942544/6300978111';
-  static const interstitialTestUnitId =
-      'ca-app-pub-3940256099942544/1033173712';
-  static const rewardedTestUnitId = 'ca-app-pub-3940256099942544/5224354917';
+import 'ad_config.dart';
 
+class AdService {
   int _categoryOpenCount = 0;
+  DateTime? _lastInterstitialAt;
+  bool _isPremium = false;
   InterstitialAd? _interstitialAd;
+  RewardedAd? _rewardedAd;
+
+  bool get canShowAds => !_isPremium;
+
+  void setPremium(bool isPremium) {
+    _isPremium = isPremium;
+    if (isPremium) {
+      _interstitialAd?.dispose();
+      _rewardedAd?.dispose();
+      _interstitialAd = null;
+      _rewardedAd = null;
+    }
+  }
 
   Future<void> initialize() async {
     if (kIsWeb) return;
     await MobileAds.instance.initialize();
     _loadInterstitial();
+    _loadRewarded();
   }
 
   void _loadInterstitial() {
-    if (kIsWeb) return;
+    if (kIsWeb || _isPremium) return;
     InterstitialAd.load(
-      adUnitId: interstitialTestUnitId,
+      adUnitId: AdConfig.active.interstitialUnitId,
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) => _interstitialAd = ad,
@@ -29,9 +42,12 @@ class AdService {
   }
 
   void maybeShowCategoryInterstitial() {
-    if (kIsWeb) return;
+    if (kIsWeb || _isPremium) return;
     _categoryOpenCount += 1;
     if (_categoryOpenCount % 3 != 0) return;
+    final now = DateTime.now();
+    final lastShown = _lastInterstitialAt;
+    if (lastShown != null && now.difference(lastShown).inMinutes < 3) return;
     final ad = _interstitialAd;
     if (ad == null) {
       _loadInterstitial();
@@ -48,6 +64,42 @@ class AdService {
       },
     );
     ad.show();
+    _lastInterstitialAt = now;
     _interstitialAd = null;
+  }
+
+  void _loadRewarded() {
+    if (kIsWeb || _isPremium) return;
+    RewardedAd.load(
+      adUnitId: AdConfig.active.rewardedUnitId,
+      request: const AdRequest(),
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdLoaded: (ad) => _rewardedAd = ad,
+        onAdFailedToLoad: (_) => _rewardedAd = null,
+      ),
+    );
+  }
+
+  Future<bool> showRewardedForFeature() async {
+    if (kIsWeb || _isPremium) return false;
+    final ad = _rewardedAd;
+    if (ad == null) {
+      _loadRewarded();
+      return false;
+    }
+    var rewarded = false;
+    ad.fullScreenContentCallback = FullScreenContentCallback(
+      onAdDismissedFullScreenContent: (ad) {
+        ad.dispose();
+        _loadRewarded();
+      },
+      onAdFailedToShowFullScreenContent: (ad, _) {
+        ad.dispose();
+        _loadRewarded();
+      },
+    );
+    await ad.show(onUserEarnedReward: (_, __) => rewarded = true);
+    _rewardedAd = null;
+    return rewarded;
   }
 }
