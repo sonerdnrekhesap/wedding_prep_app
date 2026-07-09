@@ -37,51 +37,51 @@ class WrappedSummaryPage extends StatelessWidget {
 
     final stories = [
       _StoryData(
-        title: 'Toplam harcama',
+        title: 'Harcama şampiyonu',
         value: money(calc.totalSpent(controller.items)),
         icon: Icons.payments_outlined,
         shareable: true,
       ),
       _StoryData(
-        title: 'En çok harcanan kategori',
+        title: 'Paranın favori adresi',
         value: topCategory?.label ?? 'Henüz yok',
         icon: Icons.pie_chart_outline,
         shareable: true,
       ),
       _StoryData(
-        title: 'En pahalı ürün',
+        title: 'En pahalı karar',
         value: topItem == null
             ? 'Henüz yok'
             : '${topItem.title}\n${money(topItem.actualPrice)}',
         icon: Icons.local_offer_outlined,
       ),
       _StoryData(
-        title: 'Çeyiz tamamlanma',
+        title: 'Çeyiz nabzı',
         value: '%${(ceyizProgress * 100).round()}',
         icon: Icons.kitchen_outlined,
         shareable: true,
       ),
       _StoryData(
-        title: 'Olmazsa olmaz tamamlanma',
+        title: 'Olmazsa olmaz durumu',
         value: '%${(mustHaveProgress * 100).round()}',
         icon: Icons.priority_high,
         shareable: true,
       ),
       _StoryData(
-        title: 'En eksik kategori',
+        title: 'En çok eksik kalan alan',
         value: missingCategory?.label ?? 'Hesaplanamadı',
         icon: Icons.pending_actions_outlined,
         premium: true,
       ),
       _StoryData(
-        title: 'Düğüne kalan gün',
+        title: 'Düğüne geri sayım',
         value: days == null ? 'Tarih yok' : '$days gün',
         icon: Icons.event_outlined,
         shareable: true,
       ),
       _StoryData(
-        title: 'Hazırlık skoru',
-        value: '%${score.round()}',
+        title: 'Hazırlık seviyen',
+        value: 'Benim hazırlık skorum: %${score.round()}',
         icon: Icons.auto_graph,
         shareable: true,
       ),
@@ -116,21 +116,34 @@ class WrappedSummaryPage extends StatelessWidget {
                   child: Column(
                     children: [
                       Expanded(
-                        child: WrappedStoryCard(
-                          index: index,
-                          total: stories.length,
-                          title: locked ? 'Premium ile aç' : story.title,
-                          value: locked ? 'Kilitli kart' : story.value,
-                          icon: story.icon,
-                          locked: locked,
+                        child: RepaintBoundary(
+                          child: WrappedStoryCard(
+                            index: index,
+                            total: stories.length,
+                            title: locked ? 'Premium ile aç' : story.title,
+                            value: locked ? 'Kilitli kart' : story.value,
+                            icon: story.icon,
+                            locked: locked,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 10),
                       _ShareActions(
                         enabled: !locked && story.shareable,
-                        onShare: () => Share.share(
-                          _shareCardText(story, controller),
-                        ),
+                        onShare: () async {
+                          controller.analytics.rewardedAdStarted(
+                            placement: 'wrapped_visual_share',
+                          );
+                          final completed =
+                              await controller.ads.showRewardedForFeature();
+                          if (completed) {
+                            controller.analytics.rewardedAdCompleted(
+                              placement: 'wrapped_visual_share',
+                            );
+                          }
+                          controller.analytics.wrappedShared(visual: true);
+                          await Share.share(_shareCardText(story, controller));
+                        },
                         onTextShare: () => Share.share(
                           _shareCardText(story, controller),
                         ),
@@ -164,13 +177,13 @@ class WrappedSummaryPage extends StatelessWidget {
     final topCategory = calc.topSpentCategory(controller.items);
     return [
       days == null
-          ? 'Düğün tarihim yaklaşıyor 🎉'
-          : 'Düğünüme $days gün kaldı 🎉',
-      'Hazırlığım %$score tamamlandı.',
-      'En çok harcama: ${topCategory?.label ?? 'Henüz yok'}',
-      'Ben çeyiz hazırlığımı uygulama ile takip ediyorum.',
+          ? 'Düğün hazırlığımı sakin sakin topluyorum.'
+          : 'Düğünüme $days gün kaldı, liste bende.',
+      'Benim hazırlık skorum: %$score',
+      'En çok harcama giden yer: ${topCategory?.label ?? 'henüz belli değil'}',
+      'Çeyiz, bütçe ve davetlileri tek yerden takip ediyorum.',
       '',
-      'Hazırlık kartım — Hazırlık Takibi',
+      'Hazırlık özetim — Hazırlık Takibi',
       '----------------',
       for (final story in stories.where((story) => !story.premium))
         '${story.title}: ${story.value}',
@@ -180,10 +193,10 @@ class WrappedSummaryPage extends StatelessWidget {
   String _shareCardText(_StoryData story, AppController controller) {
     final days = CalculationService().daysUntilWedding(controller.settings);
     return [
-      if (days != null) 'Düğünüme $days gün kaldı 🎉',
+      if (days != null) 'Düğünüme $days gün kaldı, liste bende.',
       '${story.title}: ${story.value}',
-      'Ben çeyiz hazırlığımı uygulama ile takip ediyorum.',
-      'Hazırlık kartım — Hazırlık Takibi',
+      'Hazırlık sürecimi düzenli şekilde takip ediyorum.',
+      'Hazırlık özetim — Hazırlık Takibi',
     ].join('\n');
   }
 
@@ -192,6 +205,7 @@ class WrappedSummaryPage extends StatelessWidget {
     List<_StoryData> stories,
   ) async {
     final controller = AppScope.of(context);
+    controller.analytics.wrappedShared(visual: false);
     await Share.share(_shareText(stories, controller));
   }
 }

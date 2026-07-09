@@ -4,6 +4,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../main.dart';
 import '../models/item_model.dart';
+import '../services/app_controller.dart';
 import '../services/calculation_service.dart';
 import '../services/formatters.dart';
 import '../theme/app_colors.dart';
@@ -12,8 +13,13 @@ import '../widgets/progress_card.dart';
 import '../widgets/summary_card.dart';
 import '../widgets/visual_cards.dart';
 import 'budget_page.dart';
+import 'budget_package_page.dart';
+import 'gift_list_page.dart';
 import 'guest_list_page.dart';
 import 'item_list_page.dart';
+import 'lead_request_page.dart';
+import 'paywall_page.dart';
+import 'product_recommendations_page.dart';
 import 'priority_page.dart';
 import 'wrapped_summary_page.dart';
 
@@ -30,6 +36,7 @@ class HomePage extends StatelessWidget {
     final missingMustHave = calc.missingMustHaveItems(controller.items);
     final todayItems = calc.nextActionItems(controller.items);
     final totalSpent = calc.totalSpent(controller.items);
+    final smartAlerts = _smartAlerts(context, controller, calc, days);
 
     final children = <Widget>[
       HomeHeroCard(
@@ -96,12 +103,83 @@ class HomePage extends StatelessWidget {
           MaterialPageRoute(builder: (_) => const PriorityPage()),
         ),
       ),
+      if (smartAlerts.isNotEmpty) ...[
+        const SizedBox(height: 18),
+        const _SectionTitle(title: 'Akıllı Eksik Uyarıları'),
+        const SizedBox(height: 10),
+        for (final alert in smartAlerts) ...[
+          PriorityActionCard(
+            title: alert.title,
+            subtitle: alert.subtitle,
+            icon: alert.icon,
+            onTap: alert.onTap,
+          ),
+          const SizedBox(height: 10),
+        ],
+      ],
       const SizedBox(height: 10),
       PriorityActionCard(
         title: 'Listeyi paylaş',
         subtitle: 'Ailene veya nişanlına özet kartı ücretsiz gönder.',
         icon: Icons.ios_share,
         onTap: () => Share.share(_shareHomeText(days, score, totalSpent)),
+      ),
+      const SizedBox(height: 18),
+      const _SectionTitle(title: 'Fırsat ve gelir alanları'),
+      const SizedBox(height: 10),
+      PriorityActionCard(
+        title: 'Fiyatlara Bak / Ürün Önerileri',
+        subtitle: 'Kategori bazlı ürün ve affiliate link alanları.',
+        icon: Icons.shopping_bag_outlined,
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => const ProductRecommendationsPage(),
+          ),
+        ),
+      ),
+      const SizedBox(height: 10),
+      PriorityActionCard(
+        title: 'Hediye Listem',
+        subtitle: 'Eksikleri paylaşılabilir hediye listesine dönüştür.',
+        icon: Icons.card_giftcard_outlined,
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const GiftListPage()),
+        ),
+      ),
+      const SizedBox(height: 10),
+      PriorityActionCard(
+        title: 'Bütçeme Göre Paket',
+        subtitle: 'Ekonomik, orta veya premium bütçeye göre eksikleri sırala.',
+        icon: Icons.inventory_2_outlined,
+        onTap: () {
+          controller.analytics.budgetPackageOpened(packageType: 'home');
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const BudgetPackagePage()),
+          );
+        },
+      ),
+      const SizedBox(height: 10),
+      PriorityActionCard(
+        title: 'Teklif Al',
+        subtitle: 'Salon, fotoğrafçı, balayı ve paket taleplerini kaydet.',
+        icon: Icons.request_quote_outlined,
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const LeadRequestPage()),
+        ),
+      ),
+      const SizedBox(height: 10),
+      PriorityActionCard(
+        title: 'Detaylı Rapor / Pro',
+        subtitle: 'Premium ve ödüllü reklam gelir alanlarını gör.',
+        icon: Icons.workspace_premium_outlined,
+        onTap: () {
+          controller.analytics.proClicked(source: 'home');
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const PaywallPage(source: 'home'),
+            ),
+          );
+        },
       ),
       const SizedBox(height: 18),
       _SectionTitle(
@@ -204,6 +282,98 @@ class HomePage extends StatelessWidget {
         MainCategory.dugun => Icons.favorite_border,
         MainCategory.balayi => Icons.flight_takeoff_outlined,
       };
+
+  List<_SmartAlert> _smartAlerts(
+    BuildContext context,
+    AppController controller,
+    CalculationService calc,
+    int? days,
+  ) {
+    final alerts = <_SmartAlert>[];
+    final items = controller.items;
+    final missingMustHave = calc.missingMustHaveItems(items);
+    final budgetUsage = calc.budgetUsagePercent(controller.settings, items);
+    final luxuryCompleted = items.any(
+      (item) => item.priority == ItemPriority.luxury && item.isCompleted,
+    );
+    final missingCategory = calc.mostMissingCategory(items);
+    final balayiCriticalMissing = items.any((item) {
+      final title = item.title.toLowerCase();
+      return item.mainCategory == MainCategory.balayi &&
+          !item.isCompleted &&
+          (title.contains('pasaport') || title.contains('vize'));
+    });
+
+    void goPriority() => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const PriorityPage()),
+        );
+    void goCategory(MainCategory category) => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => ItemListPage(category: category)),
+        );
+
+    if (days != null && days < 90 && missingMustHave.isNotEmpty) {
+      alerts.add(_SmartAlert(
+        title: 'Kritik eksikler yaklaşıyor',
+        subtitle:
+            'Düğüne 90 günden az kaldı; ${missingMustHave.length} olmazsa olmaz eksik var.',
+        icon: Icons.warning_amber_rounded,
+        onTap: goPriority,
+      ));
+    }
+    if (controller.settings.targetBudget > 0 && budgetUsage > 0.8) {
+      alerts.add(_SmartAlert(
+        title: 'Bütçe alarmı',
+        subtitle:
+            'Hedef bütçenin %${(budgetUsage * 100).round()} kadarı kullanıldı.',
+        icon: Icons.account_balance_wallet_outlined,
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const BudgetPage()),
+        ),
+      ));
+    }
+    if (luxuryCompleted && missingMustHave.isNotEmpty) {
+      alerts.add(_SmartAlert(
+        title: 'Lüks tamam, kritik bekliyor',
+        subtitle:
+            'Bazı lüks kalemler tamam ama olmazsa olmazlarda hâlâ eksik var.',
+        icon: Icons.diamond_outlined,
+        onTap: goPriority,
+      ));
+    }
+    if (missingCategory != null) {
+      final stats = calc.categoryStats(items)[missingCategory]!;
+      alerts.add(_SmartAlert(
+        title: 'En eksik alan: ${missingCategory.label}',
+        subtitle: '${stats.missing} eksik kalem var; buraya bir göz atalım.',
+        icon: _iconFor(missingCategory),
+        onTap: () => goCategory(missingCategory),
+      ));
+    }
+    if (days != null && days < 60 && balayiCriticalMissing) {
+      alerts.add(_SmartAlert(
+        title: 'Balayı evrakını unutma',
+        subtitle: 'Pasaport veya vize eksik görünüyor; süre daralıyor.',
+        icon: Icons.flight_takeoff_outlined,
+        onTap: () => goCategory(MainCategory.balayi),
+      ));
+    }
+
+    return alerts.take(3).toList();
+  }
+}
+
+class _SmartAlert {
+  const _SmartAlert({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.onTap,
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final VoidCallback onTap;
 }
 
 class _SectionTitle extends StatelessWidget {

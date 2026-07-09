@@ -2,9 +2,9 @@
 
 ## Konumlandırma
 
-Ana vaat: Düğüne kalan gününü, çeyiz eksiklerini ve toplam harcamanı tek ekranda takip et.
+Ana vaat: Düğüne kalan günü, çeyiz eksiklerini, davetlileri ve harcamalarını tek ekranda sakin sakin takip et.
 
-Bu uygulama yalnızca basit bir çeyiz listesi değildir; düğün hazırlığı, bütçe, davetli ve öncelik takibini aynı yerde toplar.
+Bu uygulama yalnızca basit bir çeyiz listesi değildir; düğün hazırlığı, bütçe, davetli, öncelik, garanti/fiş arşivi ve paylaşılabilir hazırlık özetini aynı yerde toplar.
 
 ## App Store Başlık Önerileri
 
@@ -15,7 +15,7 @@ Bu uygulama yalnızca basit bir çeyiz listesi değildir; düğün hazırlığı
 
 ## Google Play Kısa Açıklama
 
-Düğüne kalan günü, çeyiz eksiklerini, davetlileri ve harcamalarını tek ekranda takip et.
+Düğüne kalan günü, çeyiz eksiklerini, davetlileri ve harcamalarını akıllı uyarılarla takip et.
 
 ## Google Play Uzun Açıklama
 
@@ -26,27 +26,33 @@ Hazırlık Takibi, düğün ve çeyiz sürecini daha sakin yönetmek isteyen çi
 Öne çıkanlar:
 - Düğüne kalan gün takibi
 - Çeyiz ve düğün checklistleri
+- Akıllı eksik uyarıları
 - Öncelik bazlı eksik listesi
-- Bütçe ve harcama özeti
-- Davetli listesi
+- Bütçe ve harcama yüzdesi takibi
+- “Paran nereye gitti?” kategori dağılımı
+- Davetli listesi ve toplu davetli ekleme
+- Garanti/fiş arşivi
 - Hazırlık skoru
 - Paylaşılabilir hazırlık özeti
-- Premium dışa aktarma ve detaylı rapor altyapısı
+- Hediye listesi paylaşımı
+- Ürün önerileri ve fiyatlara bak alanları
+- Bütçeme göre alışveriş paketi
+- Teklif al talepleri
+- Premium dışa aktarma ve reklamsız kullanım altyapısı
 
-Veriler cihazda saklanır. Premium özellikler kademeli olarak etkinleştirilecektir.
+Veriler cihazda saklanır. Premium özellikler kademeli olarak ve gerçek mağaza satın alma altyapısı bağlandıktan sonra etkinleştirilecektir.
 
 ## Ana Keyword Listesi
 
-çeyiz listesi, düğün hazırlığı, düğün planlama, gelin çeyizi, çeyiz takip, düğün bütçesi, davetli listesi, nişan hazırlığı, kına hazırlığı, evlilik hazırlığı
+çeyiz listesi, düğün hazırlığı, düğün planlama, gelin çeyizi, çeyiz takip, düğün bütçesi, davetli listesi, nişan hazırlığı, kına hazırlığı, evlilik hazırlığı, fiş arşivi, garanti takibi
 
 ## Screenshot Üstü Yazılar
 
-- Düğüne kaç gün kaldı?
-- Çeyiz eksiklerini tek ekranda gör
-- Harcamanı ve kalan bütçeni takip et
-- Olmazsa olmazları önce tamamla
-- Davetli listesini düzenli tut
-- Hazırlık özetini paylaş
+1. Düğüne kaç gün kaldı, hazırlığın ne durumda?
+2. Akıllı eksik uyarılarıyla kritik işleri kaçırma
+3. Paran nereye gitti? Harcama yüzdelerini gör
+4. Hediye listeni paylaş, eksikleri birlikte tamamla
+5. Bütçene göre paket seç, teklif al ve fiyatlara bak
 
 ## TikTok/Reels Fikirleri
 
@@ -59,6 +65,7 @@ Veriler cihazda saklanır. Premium özellikler kademeli olarak etkinleştirilece
 ## Privacy Policy Taslak Maddeleri
 
 - Kullanıcının girdiği düğün tarihi, isimler, bütçe, ürün ve davetli verileri cihazda saklanır.
+- Fiş/garanti ve ürün fotoğrafları cihazda tutulur.
 - Reklam gösterimi için Google AdMob kullanılabilir.
 - Premium satın alma entegrasyonu eklendiğinde mağaza ödeme altyapıları veya RevenueCat kullanılabilir.
 - Uygulama hassas finansal veri istemez.
@@ -70,4 +77,4 @@ Veriler cihazda saklanır. Premium özellikler kademeli olarak etkinleştirilece
 - 6 Aylık Hazırlık Paketi: Düğün hazırlığı süresince premium özellikler.
 - Ömür Boyu Premium: Tek seferlik kalıcı erişim.
 
-Premium mock dönemi notu: Gerçek satın alma henüz bağlı değildir. Production için RevenueCat veya `in_app_purchase` entegrasyonu yapılacaktır.
+Premium notu: Gerçek satın alma henüz bağlı değildir. Production için RevenueCat veya `in_app_purchase` entegrasyonu yapılacaktır. Store build’de sahte satın alma butonu gösterilmez.

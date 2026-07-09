@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../models/item_model.dart';
+import 'budget_package_page.dart';
+import 'gift_list_page.dart';
 import 'guest_list_page.dart';
 import 'item_list_page.dart';
+import 'lead_request_page.dart';
+import 'product_recommendations_page.dart';
 
 class ListModulesPage extends StatelessWidget {
   const ListModulesPage({super.key});
@@ -27,6 +31,35 @@ class ListModulesPage extends StatelessWidget {
             icon: Icons.groups_outlined,
             onTap: () => Navigator.of(context).push(MaterialPageRoute(
               builder: (_) => const GuestListPage(),
+            )),
+          ),
+          const SizedBox(height: 12),
+          _ModuleTile(
+            title: 'Ürün Önerileri',
+            icon: Icons.shopping_bag_outlined,
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => const ProductRecommendationsPage(),
+            )),
+          ),
+          _ModuleTile(
+            title: 'Hediye Listem',
+            icon: Icons.card_giftcard_outlined,
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => const GiftListPage(),
+            )),
+          ),
+          _ModuleTile(
+            title: 'Bütçeme Göre Paket',
+            icon: Icons.inventory_2_outlined,
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => const BudgetPackagePage(),
+            )),
+          ),
+          _ModuleTile(
+            title: 'Teklif Al',
+            icon: Icons.request_quote_outlined,
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => const LeadRequestPage(),
             )),
           ),
         ],

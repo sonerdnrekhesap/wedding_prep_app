@@ -6,11 +6,13 @@ import '../data/seed_items.dart';
 import '../models/app_settings_model.dart';
 import '../models/guest_model.dart';
 import '../models/item_model.dart';
+import '../models/lead_request_model.dart';
 
 class StorageService {
   static const _itemsKey = 'prep_items';
   static const _guestsKey = 'guests';
   static const _settingsKey = 'settings';
+  static const _leadsKey = 'lead_requests';
 
   Future<List<PrepItem>> loadItems() async {
     final prefs = await SharedPreferences.getInstance();
@@ -52,6 +54,24 @@ class StorageService {
     );
   }
 
+  Future<List<LeadRequest>> loadLeads() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_leadsKey);
+    if (raw == null) return [];
+    final data = jsonDecode(raw) as List<dynamic>;
+    return data
+        .map((lead) => LeadRequest.fromJson(lead as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<void> saveLeads(List<LeadRequest> leads) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      _leadsKey,
+      jsonEncode(leads.map((lead) => lead.toJson()).toList()),
+    );
+  }
+
   Future<AppSettings> loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_settingsKey);
@@ -69,6 +89,7 @@ class StorageService {
     await prefs.remove(_itemsKey);
     await prefs.remove(_guestsKey);
     await prefs.remove(_settingsKey);
+    await prefs.remove(_leadsKey);
   }
 
   Future<void> loadDemoData() async {

@@ -4,7 +4,9 @@ import 'package:uuid/uuid.dart';
 import '../models/app_settings_model.dart';
 import '../models/guest_model.dart';
 import '../models/item_model.dart';
+import '../models/lead_request_model.dart';
 import 'ad_service.dart';
+import 'analytics_service.dart';
 import 'photo_storage_service.dart';
 import 'premium_service.dart';
 import 'storage_service.dart';
@@ -18,6 +20,7 @@ class AppController extends ChangeNotifier {
   final StorageService storage;
   final AdService ads;
   final PhotoStorageService photoStorage = const PhotoStorageService();
+  final AnalyticsService analytics = const AnalyticsService();
   final _uuid = const Uuid();
   late final PremiumService premium = PremiumService(storage: storage);
 
@@ -25,12 +28,14 @@ class AppController extends ChangeNotifier {
   AppSettings settings = const AppSettings();
   List<PrepItem> items = [];
   List<Guest> guests = [];
+  List<LeadRequest> leads = [];
 
   Future<void> load() async {
     await ads.initialize();
     settings = await storage.loadSettings();
     items = await storage.loadItems();
     guests = await storage.loadGuests();
+    leads = await storage.loadLeads();
     ads.setPremium(settings.isPremium);
     isLoading = false;
     notifyListeners();
@@ -52,11 +57,16 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> completeItem(PrepItem item, {double? actualPrice}) async {
+    final price = actualPrice ?? item.actualPrice;
     await updateItem(item.copyWith(
       isCompleted: true,
-      actualPrice: actualPrice ?? item.actualPrice,
+      actualPrice: price,
+      purchaseDate:
+          price > 0 ? item.purchaseDate ?? DateTime.now() : item.purchaseDate,
       completedDate: DateTime.now(),
     ));
+    analytics.itemCompleted(itemId: item.id);
+    if (price > 0) analytics.priceAdded(itemId: item.id, price: price);
   }
 
   Future<void> uncompleteItem(PrepItem item) async {
@@ -75,6 +85,38 @@ class AppController extends ChangeNotifier {
           ]
         : [...guests, guest];
     await storage.saveGuests(guests);
+    notifyListeners();
+  }
+
+  Future<void> addGuestsBulk(List<String> names) async {
+    final cleanNames = names
+        .map((name) => name.trim())
+        .where((name) => name.isNotEmpty)
+        .toSet()
+        .toList();
+    if (cleanNames.isEmpty) return;
+    guests = [
+      ...guests,
+      for (final name in cleanNames)
+        newGuest(
+          name: name,
+          side: GuestSide.common,
+          status: GuestStatus.uncertain,
+          personCount: 1,
+        ),
+    ];
+    await storage.saveGuests(guests);
+    notifyListeners();
+  }
+
+  Future<void> toggleGiftList(PrepItem item) async {
+    await updateItem(item.copyWith(isGiftListed: !item.isGiftListed));
+  }
+
+  Future<void> addLead(LeadRequest lead) async {
+    leads = [...leads, lead];
+    await storage.saveLeads(leads);
+    analytics.leadSubmitted(category: lead.category);
     notifyListeners();
   }
 
@@ -144,6 +186,7 @@ class AppController extends ChangeNotifier {
     settings = await storage.loadSettings();
     items = await storage.loadItems();
     guests = await storage.loadGuests();
+    leads = await storage.loadLeads();
     ads.setPremium(settings.isPremium);
     notifyListeners();
   }
@@ -153,6 +196,7 @@ class AppController extends ChangeNotifier {
     settings = await storage.loadSettings();
     items = await storage.loadItems();
     guests = await storage.loadGuests();
+    leads = await storage.loadLeads();
     ads.setPremium(settings.isPremium);
     notifyListeners();
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../main.dart';
 import '../models/item_model.dart';
@@ -264,7 +265,14 @@ class _ItemListPageState extends State<ItemListPage> {
       builder: (_) => _PriceSheet(item: current),
     );
     if (!mounted || price == null) return;
-    await controller.updateItem(current.copyWith(actualPrice: price));
+    await controller.updateItem(current.copyWith(
+      actualPrice: price,
+      purchaseDate:
+          price > 0 ? current.purchaseDate ?? DateTime.now() : current.purchaseDate,
+    ));
+    if (price > 0) {
+      controller.analytics.priceAdded(itemId: current.id, price: price);
+    }
   }
 
   Future<void> _handleQuickAction(
@@ -463,6 +471,7 @@ class _ItemDetailSheet extends StatefulWidget {
 class _ItemDetailSheetState extends State<_ItemDetailSheet> {
   final picker = ImagePicker();
   late bool completed;
+  late bool giftListed;
   late ItemPriority priority;
   late String? inspirationImagePath;
   late String? inspirationThumbPath;
@@ -470,6 +479,8 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
   late String? productThumbPath;
   late String? receiptImagePath;
   late String? receiptThumbPath;
+  late DateTime? purchaseDate;
+  late DateTime? warrantyEndDate;
   late final TextEditingController estimatedController;
   late final TextEditingController actualController;
   late final TextEditingController quantityController;
@@ -481,6 +492,7 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
   void initState() {
     super.initState();
     completed = widget.item.isCompleted;
+    giftListed = widget.item.isGiftListed;
     priority = widget.item.priority;
     inspirationImagePath = widget.item.inspirationImagePath;
     inspirationThumbPath = widget.item.inspirationThumbPath;
@@ -488,6 +500,8 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
     productThumbPath = widget.item.productThumbPath;
     receiptImagePath = widget.item.receiptImagePath;
     receiptThumbPath = widget.item.receiptThumbPath;
+    purchaseDate = widget.item.purchaseDate;
+    warrantyEndDate = widget.item.warrantyEndDate;
     estimatedController = TextEditingController(
       text: _moneyText(widget.item.estimatedPrice),
     );
@@ -581,6 +595,66 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
                 ),
               ),
               const SizedBox(height: 14),
+              _DatePickerTile(
+                title: 'Satın alma tarihi',
+                value: purchaseDate,
+                icon: Icons.event_available_outlined,
+                onPick: () => _pickDate(
+                  current: purchaseDate,
+                  onSelected: (date) => setState(() => purchaseDate = date),
+                ),
+                onClear: purchaseDate == null
+                    ? null
+                    : () => setState(() => purchaseDate = null),
+              ),
+              const SizedBox(height: 10),
+              _DatePickerTile(
+                title: 'Garanti bitiş tarihi',
+                value: warrantyEndDate,
+                icon: Icons.verified_user_outlined,
+                onPick: () => _pickDate(
+                  current: warrantyEndDate,
+                  onSelected: (date) => setState(() => warrantyEndDate = date),
+                ),
+                onClear: warrantyEndDate == null
+                    ? null
+                    : () => setState(() => warrantyEndDate = null),
+              ),
+              const SizedBox(height: 14),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  FilledButton.icon(
+                    onPressed: widget.item.affiliateUrl.isEmpty
+                        ? null
+                        : () => _openAffiliate(widget.item.affiliateUrl),
+                    icon: const Icon(Icons.open_in_new),
+                    label: Text(widget.item.affiliateUrl.isEmpty
+                        ? 'Fiyat linki yakında'
+                        : 'Fiyatlara Bak'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      final next = !giftListed;
+                      setState(() => giftListed = next);
+                      await AppScope.of(context).updateItem(
+                        widget.item.copyWith(isGiftListed: next),
+                      );
+                      if (mounted) {
+                        setState(() {});
+                      }
+                    },
+                    icon: Icon(giftListed
+                        ? Icons.card_giftcard
+                        : Icons.card_giftcard_outlined),
+                    label: Text(giftListed
+                        ? 'Hediye listesinden çıkar'
+                        : 'Hediye listeme ekle'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
@@ -639,8 +713,8 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
                 ],
               ),
               _SectionTile(
-                title: 'Fotoğraflar',
-                icon: Icons.photo_library_outlined,
+                title: 'Garanti & Fiş Arşivi',
+                icon: Icons.receipt_long_outlined,
                 children: [
                   _ImagePathTile(
                     title: 'İlham Fotoğrafı',
@@ -674,8 +748,9 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
                         : () => _removePhoto(ItemPhotoType.product),
                   ),
                   _ImagePathTile(
-                    title: 'Fiş / garanti',
-                    description: 'Faturanı veya garanti belgeni sakla.',
+                    title: 'Fiş / garanti belgesi',
+                    description:
+                        'Fatura, garanti veya servis evrakını burada sakla.',
                     path: receiptImagePath,
                     thumbPath: receiptThumbPath,
                     icon: Icons.receipt_long_outlined,
@@ -717,6 +792,28 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
   }
 
   String _moneyText(double value) => value == 0 ? '' : value.toStringAsFixed(0);
+
+  Future<void> _pickDate({
+    required DateTime? current,
+    required ValueChanged<DateTime> onSelected,
+  }) async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: current ?? now,
+      firstDate: DateTime(now.year - 10),
+      lastDate: DateTime(now.year + 15),
+    );
+    if (picked != null) onSelected(picked);
+  }
+
+  Future<void> _openAffiliate(String url) async {
+    AppScope.of(context).analytics.affiliateClicked(
+          source: 'item_detail:${widget.item.title}',
+          url: url,
+        );
+    await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+  }
 
   Future<void> _pickImage(ItemPhotoType type) async {
     final controller = AppScope.of(context);
@@ -806,15 +903,23 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
   Future<void> _save() async {
     final controller = AppScope.of(context);
     final quantity = int.tryParse(quantityController.text.trim());
+    final actualPrice = parseMoney(actualController.text);
+    final effectivePurchaseDate =
+        completed && actualPrice > 0 ? purchaseDate ?? DateTime.now() : purchaseDate;
     await controller.updateItem(widget.item.copyWith(
       priority: priority,
       isCompleted: completed,
       estimatedPrice: parseMoney(estimatedController.text),
-      actualPrice: parseMoney(actualController.text),
+      actualPrice: actualPrice,
+      isGiftListed: giftListed,
       quantity: quantity == null || quantity < 1 ? 1 : quantity,
       brandModel: brandModelController.text.trim(),
       shopName: shopController.text.trim(),
       note: noteController.text.trim(),
+      purchaseDate: effectivePurchaseDate,
+      warrantyEndDate: warrantyEndDate,
+      clearPurchaseDate: effectivePurchaseDate == null,
+      clearWarrantyEndDate: warrantyEndDate == null,
       inspirationImagePath: inspirationImagePath,
       inspirationThumbPath: inspirationThumbPath,
       productImagePath: productImagePath,
@@ -835,6 +940,68 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
     final controller = AppScope.of(context);
     await controller.deleteItem(widget.item);
     if (mounted) Navigator.pop(context);
+  }
+}
+
+class _DatePickerTile extends StatelessWidget {
+  const _DatePickerTile({
+    required this.title,
+    required this.value,
+    required this.icon,
+    required this.onPick,
+    required this.onClear,
+  });
+
+  final String title;
+  final DateTime? value;
+  final IconData icon;
+  final VoidCallback onPick;
+  final VoidCallback? onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.rose.withValues(alpha: 0.14)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: AppColors.rose),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+                Text(
+                  value == null
+                      ? 'Tarih seçilmedi'
+                      : '${value!.day}.${value!.month}.${value!.year}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: AppColors.muted),
+                ),
+              ],
+            ),
+          ),
+          TextButton(onPressed: onPick, child: const Text('Seç')),
+          if (onClear != null)
+            IconButton(
+              onPressed: onClear,
+              icon: const Icon(Icons.close),
+              tooltip: 'Temizle',
+            ),
+        ],
+      ),
+    );
   }
 }
 

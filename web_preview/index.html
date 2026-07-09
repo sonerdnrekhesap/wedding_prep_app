@@ -199,6 +199,29 @@
       font-weight: 800;
       white-space: nowrap;
     }
+    .revenue-banner {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 12px;
+      align-items: center;
+      background: linear-gradient(135deg, #fff, #fff1f6);
+      border: 1px solid #efbfd0;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 14px 0;
+      animation: fadeUp .55s ease both;
+    }
+    .revenue-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+    .mini-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .price-button {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .price-button[disabled] { opacity: .55; cursor: default; }
     .wrapped {
       min-height: 360px;
       display: grid;
@@ -240,6 +263,8 @@
     @keyframes checkedPulse { 0% { transform: scale(.99); } 55% { transform: scale(1.01); } 100% { transform: scale(1); } }
     @media (max-width: 760px) {
       .grid, .grid.two, .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .mini-grid, .revenue-banner { grid-template-columns: 1fr; }
+      .revenue-actions { justify-content: flex-start; }
       h1 { font-size: 22px; }
       .hero strong, .wrapped p { font-size: 23px; }
       .tabs button { font-size: 12px; padding: 9px 4px; }
@@ -252,15 +277,15 @@
 <body>
   <div class="splash">
     <div class="splash-card">
-      <b>Nazar değmesin, başlıyoruz.</b>
-      <span class="muted">Telaşı büyütmeden, tek tek toparlayacağız.</span>
+      <b>Hazırlık planı açılıyor.</b>
+      <span class="muted">Düğün ve çeyiz sürecini adım adım düzenleyelim.</span>
     </div>
   </div>
 
   <div class="app">
     <div class="topbar">
       <div>
-        <h1>Gel canım, şu düğün telaşını beraber toparlayalım</h1>
+        <h1>Düğün hazırlığını birlikte düzenleyelim</h1>
         <div class="muted" id="subtitle">Çeyiz ve düğün hazırlıkları</div>
       </div>
       <button class="btn ghost" onclick="openSettings()">Bilgiler</button>
@@ -277,7 +302,7 @@
 
   <dialog id="settingsDialog">
     <div class="modal form">
-      <h2>Hele bir tanışalım, sonra liste kolay</h2>
+      <h2>Başlangıç bilgilerini tamamlayalım</h2>
       <p class="muted" style="margin:0">Tarih tamam, bütçeyi de hangi para birimiyle takip edeceğimizi seçelim.</p>
       <label>Düğün tarihi <input id="weddingDate" type="date"></label>
       <div class="form-grid">
@@ -299,7 +324,7 @@
         <div class="muted" id="rateNote">Kur bilgisi yükleniyor...</div>
       </div>
       <div class="row">
-        <button class="btn primary" onclick="saveSettings()">Tamam teyzeciğim</button>
+        <button class="btn primary" onclick="saveSettings()">Kaydet</button>
         <button class="btn ghost" onclick="settingsDialog.close()">Kapat</button>
         <button class="btn ghost" onclick="resetData()">Verileri sıfırla</button>
       </div>
@@ -332,7 +357,7 @@
 
   <dialog id="priceDialog">
     <div class="modal form">
-      <h2>Kaça aldın canım?</h2>
+      <h2>Satın alma tutarı</h2>
       <p class="muted" id="priceItemTitle" style="margin:0"></p>
       <label>Tutar <input id="quickActualPrice" inputmode="decimal" placeholder="Boş bırakabilirsin"></label>
       <div class="row">
@@ -578,7 +603,7 @@
       const d = daysLeft();
       const s = score(state.items);
       view.innerHTML = `
-        <section class="hero"><span>${coupleName() || 'İki güzel insanın telaşı'}</span><strong>${d === null ? 'Tarihi söyle de yolumuzu ona göre çizelim' : d < 0 ? 'Düğün tarihi geçti, Allah tamamına erdirsin' : `Düğüne ${d} gün kaldı, panik yok canım`}</strong></section>
+        <section class="hero"><span>${coupleName() || 'Düğün hazırlığı'}</span><strong>${d === null ? 'Tarihi seçince planı netleştirelim' : d < 0 ? 'Düğün tarihi geçmiş, hazırlık arşivin hazır' : `Düğüne ${d} gün kaldı`}</strong></section>
         <section class="card"><h2>Genel hazırlık</h2><div class="muted">${scoreText(s)}</div><div class="progress"><i style="width:${s}%"></i></div><p><b>%${s}</b> hazırlık skoru</p></section>
         <div class="grid" style="margin-top:10px">
           ${metric('Toplam harcama', moneyTry(totalSpent()))}
@@ -586,8 +611,27 @@
           ${metric('Hedef bütçe', `${moneyCurrency(state.settings.targetBudget, state.settings.budgetCurrency)}`)}
           ${metric('Olmazsa olmaz eksik', state.items.filter(i => !i.done && i.priority === 'mustHave').length)}
         </div>
+        ${monetizationPanel()}
         <h2 style="margin-top:18px">Kategori ilerlemeleri</h2>
         <div class="grid two">${categories.map(categoryCard).join('')}</div>
+      `;
+    }
+
+    function monetizationPanel() {
+      return `
+        <section class="revenue-banner">
+          <div>
+            <h2>Alışveriş, teklif ve Pro alanları</h2>
+            <p class="muted" style="margin:6px 0 0">Para kazanma tarafı burada: ürün önerileri, hediye listesi paylaşımı, bütçeye göre paket, teklif toplama ve Pro özellikleri.</p>
+          </div>
+          <div class="revenue-actions">
+            <button class="btn primary" onclick="renderProductRecommendations()">Fiyatlara Bak</button>
+            <button class="btn ghost" onclick="renderGiftList()">Hediye Listem</button>
+            <button class="btn ghost" onclick="renderBudgetPackage()">Bütçeme Göre Paket</button>
+            <button class="btn ghost" onclick="renderLeadRequest()">Teklif Al</button>
+            <button class="btn ghost" onclick="renderPro()">Pro</button>
+          </div>
+        </section>
       `;
     }
 
@@ -599,6 +643,119 @@
       const items = state.items.filter(i => i.category === category);
       const pct = items.length ? Math.round(completed(items) / items.length * 100) : 0;
       return `<div class="card module" onclick="openCategory('${category}')"><div><h3>${category}</h3><small>${completed(items)}/${items.length} tamamlandı</small><div class="progress"><i style="width:${pct}%"></i></div></div><b>%${pct}</b></div>`;
+    }
+
+    const affiliateCategories = [
+      ['Mutfak ürünleri', 'Tencere, tava, küçük ev aleti ve servis ürünleri'],
+      ['Beyaz eşya', 'Buzdolabı, çamaşır, bulaşık, fırın ve paket seçenekleri'],
+      ['Ev tekstili', 'Nevresim, yorgan, havlu, perde ve günlük ev tekstili'],
+      ['Bohça ürünleri', 'Damat bohçası, gelin bohçası ve tamamlayıcı ürünler'],
+      ['Düğün hazırlığı', 'Alyans, davetiye, organizasyon ve çekim ihtiyaçları'],
+      ['Balayı ürünleri', 'Valiz, bakım seti, seyahat aksesuarı ve tatil hazırlığı']
+    ];
+
+    function renderProductRecommendations() {
+      view.innerHTML = `
+        <div class="topbar"><h2>Ürün Önerileri</h2><button class="btn ghost" onclick="render()">Ana sayfa</button></div>
+        <section class="card" style="margin-bottom:12px">
+          <h3>Affiliate alanı</h3>
+          <p class="muted">Buradaki “Fiyatlara Bak” butonları affiliate link bağlanınca gelir üretecek alan. Link boşsa kullanıcıyı yanıltmamak için “Yakında” görünür.</p>
+        </section>
+        <div class="grid two">${affiliateCategories.map(([title, desc], index) => `
+          <div class="card module">
+            <div><h3>${title}</h3><small>${desc}</small></div>
+            <button class="price-button" ${index < 2 ? '' : 'disabled'} onclick="event.stopPropagation(); alert('Demo link alanı. Gerçek affiliate URL bağlanınca mağazaya gider.')">${index < 2 ? 'Fiyatlara Bak' : 'Yakında'}</button>
+          </div>
+        `).join('')}</div>
+      `;
+    }
+
+    function renderGiftList() {
+      const missing = state.items.filter(i => !i.done).slice(0, 10);
+      const selected = state.items.filter(i => i.gift);
+      view.innerHTML = `
+        <div class="topbar"><h2>Hediye Listem</h2><button class="btn ghost" onclick="render()">Ana sayfa</button></div>
+        <section class="card" style="margin-bottom:12px">
+          <h3>Paylaşılabilir hediye listesi</h3>
+          <p class="muted">Ücretsiz paylaşımda uygulama imzası kalır. Pro yapıda watermark kaldırma gelir modeli olarak hazır.</p>
+          <button class="btn primary" onclick="shareGiftList()">Listeyi paylaş</button>
+        </section>
+        <div class="grid two">
+          <section class="card"><h3>Listemde</h3>${selected.map(giftRow).join('') || '<p class="muted">Henüz hediye eklenmedi.</p>'}</section>
+          <section class="card"><h3>Eksiklerden ekle</h3>${missing.map(giftRow).join('')}</section>
+        </div>
+      `;
+    }
+
+    function giftRow(item) {
+      return `<div class="item ${item.gift ? 'done' : ''}" onclick="toggleGift(${item.id})">
+        <div class="item-check">${item.gift ? '✓' : '+'}</div>
+        <div><div class="item-title">${item.title}</div><div class="muted">${item.category} · ${moneyTry(item.estimated)}</div></div>
+        <button class="price-button" disabled>Fiyat yakında</button>
+      </div>`;
+    }
+
+    function toggleGift(id) {
+      const item = state.items.find(i => i.id === id);
+      if (!item) return;
+      item.gift = !item.gift;
+      save();
+      renderGiftList();
+    }
+
+    async function shareGiftList() {
+      const selected = state.items.filter(i => i.gift);
+      const text = [
+        'Hediye listem:',
+        ...(selected.length ? selected.map(i => `- ${i.title}`) : ['- Henüz ürün seçilmedi']),
+        '',
+        'Hazırlık Takibi ile oluşturuldu.'
+      ].join('\n');
+      if (navigator.share) await navigator.share({ text });
+      else await navigator.clipboard.writeText(text);
+      alert('Hediye listesi paylaşım metni hazır.');
+    }
+
+    function renderBudgetPackage() {
+      const budget = targetBudgetTry() || 300000;
+      const recs = state.items.filter(i => !i.done).sort((a,b) => weights[b.priority] - weights[a.priority]).slice(0, 12);
+      view.innerHTML = `
+        <div class="topbar"><h2>Bütçeme Göre Paket</h2><button class="btn ghost" onclick="render()">Ana sayfa</button></div>
+        <section class="card" style="margin-bottom:12px">
+          <h3>${moneyTry(budget)} bütçeye göre öneri</h3>
+          <p class="muted">Önce olmazsa olmazlar, sonra gerekli kalemler, en sonda lüks/ertelenebilir ürünler gösterilir. Bu ekran ürün linki ve paket satışına bağlanabilir.</p>
+        </section>
+        <div class="card">${recs.map(i => `<div class="priority-row"><div><b>${i.title}</b><div class="muted">${i.category} · ${priorityLabel[i.priority]}</div></div><div><span class="range">${moneyTry(i.estimated)}</span><button class="price-button" disabled>Fiyatlara Bak yakında</button></div></div>`).join('')}</div>
+      `;
+    }
+
+    function renderLeadRequest() {
+      view.innerHTML = `
+        <div class="topbar"><h2>Teklif Al</h2><button class="btn ghost" onclick="render()">Ana sayfa</button></div>
+        <section class="card form">
+          <h3>Lead toplama alanı</h3>
+          <p class="muted" style="margin:0">Salon, fotoğrafçı, kuaför, organizasyon, gelinlik, beyaz eşya paketi ve balayı teklifleri için form.</p>
+          <label>Kategori<select><option>Düğün salonu</option><option>Fotoğrafçı</option><option>Kuaför / makyaj</option><option>Organizasyon</option><option>Gelinlik</option><option>Beyaz eşya paketi</option><option>Balayı</option></select></label>
+          <div class="form-grid"><label>Şehir<input placeholder="İstanbul"></label><label>Tarih<input type="date"></label></div>
+          <div class="form-grid"><label>Tahmini bütçe<input inputmode="decimal" placeholder="300000"></label><label>Kişi sayısı<input inputmode="numeric" placeholder="250"></label></div>
+          <label>Telefon veya e-posta<input placeholder="ornek@mail.com"></label>
+          <label>Not<textarea rows="3" placeholder="Kısa not"></textarea></label>
+          <button class="btn primary" onclick="alert('Teklif talebi demo olarak kaydedildi. Flutter tarafında lokal kayıt modeli hazır.')">Teklif talebi oluştur</button>
+        </section>
+      `;
+    }
+
+    function renderPro() {
+      view.innerHTML = `
+        <div class="topbar"><h2>Detaylı Rapor / Pro</h2><button class="btn ghost" onclick="render()">Ana sayfa</button></div>
+        <section class="card" style="margin-bottom:12px">
+          <h3>Pro paketi yakında</h3>
+          <p class="muted">Gerçek satın alma bağlı olmadığı için sahte ödeme göstermiyoruz. Store build için doğru davranış bu.</p>
+        </section>
+        <div class="mini-grid">
+          ${['Reklamsız kullanım','PDF/Excel çıktı','Detaylı harcama raporu','Görsel hazırlık özeti','Hediye listesi temaları','Watermark kaldırma'].map(x => `<div class="card"><h3>${x}</h3><p class="muted">Pro özelliği</p><button class="price-button" disabled>Yakında</button></div>`).join('')}
+        </div>
+      `;
     }
 
     function renderLists() {
@@ -853,7 +1010,14 @@
       saveQuickPrice,
       editItem,
       saveItem,
-      shareSummary
+      shareSummary,
+      renderProductRecommendations,
+      renderGiftList,
+      renderBudgetPackage,
+      renderLeadRequest,
+      renderPro,
+      toggleGift,
+      shareGiftList
     });
     document.querySelectorAll('.tabs button').forEach(button => button.addEventListener('click', () => { activeTab = button.dataset.tab; currentCategory = null; currentSubCategory = null; render(); }));
     const today = todayValue();

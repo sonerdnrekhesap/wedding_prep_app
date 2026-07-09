@@ -52,10 +52,24 @@ class _GuestListPageState extends State<GuestListPage> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Davetliler')),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showGuestSheet(),
-        icon: const Icon(Icons.add),
-        label: const Text('Davetli'),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          FloatingActionButton.extended(
+            heroTag: 'bulkGuest',
+            onPressed: _showBulkGuestSheet,
+            icon: const Icon(Icons.playlist_add),
+            label: const Text('Toplu ekle'),
+          ),
+          const SizedBox(height: 10),
+          FloatingActionButton.extended(
+            heroTag: 'singleGuest',
+            onPressed: () => _showGuestSheet(),
+            icon: const Icon(Icons.add),
+            label: const Text('Davetli'),
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -197,6 +211,93 @@ class _GuestListPageState extends State<GuestListPage> {
       useSafeArea: true,
       builder: (_) => _GuestSheet(guest: guest),
     );
+  }
+
+  Future<void> _showBulkGuestSheet() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => const _BulkGuestSheet(),
+    );
+  }
+}
+
+class _BulkGuestSheet extends StatefulWidget {
+  const _BulkGuestSheet();
+
+  @override
+  State<_BulkGuestSheet> createState() => _BulkGuestSheetState();
+}
+
+class _BulkGuestSheetState extends State<_BulkGuestSheet> {
+  final textController = TextEditingController();
+
+  @override
+  void dispose() {
+    textController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 18,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Toplu davetli ekle',
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Her satıra bir isim yaz. Taraf ortak, durum belirsiz, kişi sayısı 1 olarak eklenir.',
+            style: TextStyle(color: AppColors.muted),
+          ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: textController,
+            autofocus: true,
+            minLines: 7,
+            maxLines: 10,
+            decoration: const InputDecoration(
+              labelText: 'İsimleri yapıştır',
+              alignLabelWithHint: true,
+              hintText: 'Ayşe Yılmaz\nMehmet Demir\nFatma Kaya',
+            ),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: _save,
+              icon: const Icon(Icons.playlist_add_check),
+              label: const Text('Listeye ekle'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _save() async {
+    final names = textController.text
+        .split(RegExp(r'\r?\n'))
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .toList();
+    await AppScope.of(context).addGuestsBulk(names);
+    if (mounted) Navigator.pop(context);
   }
 }
 

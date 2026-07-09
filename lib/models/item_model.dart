@@ -69,6 +69,8 @@ class PrepItem {
     this.receiptImagePath,
     this.receiptThumbPath,
     this.brandModel,
+    this.affiliateUrl = '',
+    this.isGiftListed = false,
     this.quantity = 1,
     this.purchaseDate,
     this.warrantyEndDate,
@@ -94,6 +96,8 @@ class PrepItem {
   final String? receiptImagePath;
   final String? receiptThumbPath;
   final String? brandModel;
+  final String affiliateUrl;
+  final bool isGiftListed;
   final int quantity;
   final DateTime? purchaseDate;
   final DateTime? warrantyEndDate;
@@ -118,6 +122,8 @@ class PrepItem {
     String? receiptImagePath,
     String? receiptThumbPath,
     String? brandModel,
+    String? affiliateUrl,
+    bool? isGiftListed,
     int? quantity,
     DateTime? purchaseDate,
     DateTime? warrantyEndDate,
@@ -159,6 +165,8 @@ class PrepItem {
           ? null
           : (receiptThumbPath ?? this.receiptThumbPath),
       brandModel: brandModel ?? this.brandModel,
+      affiliateUrl: affiliateUrl ?? this.affiliateUrl,
+      isGiftListed: isGiftListed ?? this.isGiftListed,
       quantity: quantity ?? this.quantity,
       purchaseDate:
           clearPurchaseDate ? null : (purchaseDate ?? this.purchaseDate),
@@ -190,6 +198,8 @@ class PrepItem {
         'receiptImagePath': receiptImagePath,
         'receiptThumbPath': receiptThumbPath,
         'brandModel': brandModel,
+        'affiliateUrl': affiliateUrl,
+        'isGiftListed': isGiftListed,
         'quantity': quantity,
         'purchaseDate': purchaseDate?.toIso8601String(),
         'warrantyEndDate': warrantyEndDate?.toIso8601String(),
@@ -217,6 +227,8 @@ class PrepItem {
       receiptImagePath: json['receiptImagePath'] as String?,
       receiptThumbPath: json['receiptThumbPath'] as String?,
       brandModel: json['brandModel'] as String?,
+      affiliateUrl: json['affiliateUrl'] as String? ?? '',
+      isGiftListed: json['isGiftListed'] as bool? ?? false,
       quantity: (json['quantity'] as num?)?.toInt() ?? 1,
       purchaseDate: json['purchaseDate'] == null
           ? null
