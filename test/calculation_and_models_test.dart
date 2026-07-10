@@ -38,6 +38,38 @@ void main() {
 
       expect(category, MainCategory.dugun);
     });
+
+    test('finds due soon tasks and upcoming payments', () {
+      final service = CalculationService();
+      final item = _item(
+        dueDate: DateTime.now().add(const Duration(days: 3)),
+        paymentDeadline: DateTime.now().add(const Duration(days: 5)),
+        contractTotal: 10000,
+        depositPaid: 2500,
+      );
+
+      expect(service.dueSoonItems([item]), hasLength(1));
+      expect(service.upcomingPayments([item]), hasLength(1));
+      expect(service.remainingPaymentFor(item), 7500);
+    });
+
+    test('creates tasteful progress milestones', () {
+      final service = CalculationService();
+      final items = [
+        for (var i = 0; i < 10; i++)
+          _item(id: '$i', isCompleted: true, actualPrice: i == 0 ? 100 : 0),
+      ];
+
+      final milestones = service.milestones(
+        AppSettings(weddingDate: DateTime.now().add(const Duration(days: 20))),
+        items,
+        const [],
+      );
+
+      expect(milestones, contains('İlk 10 görev tamamlandı'));
+      expect(milestones, contains('İlk bütçe kaydı girildi'));
+      expect(milestones, contains('Son 30 güne girildi'));
+    });
   });
 
   group('Models', () {
@@ -146,6 +178,10 @@ PrepItem _item({
   double actualPrice = 0,
   String affiliateUrl = '',
   int quantity = 1,
+  DateTime? dueDate,
+  DateTime? paymentDeadline,
+  double contractTotal = 0,
+  double depositPaid = 0,
 }) {
   final now = DateTime(2026);
   return PrepItem(
@@ -159,6 +195,10 @@ PrepItem _item({
     isCompleted: isCompleted,
     affiliateUrl: affiliateUrl,
     quantity: quantity,
+    dueDate: dueDate,
+    paymentDeadline: paymentDeadline,
+    contractTotal: contractTotal,
+    depositPaid: depositPaid,
     createdAt: now,
     updatedAt: now,
   );

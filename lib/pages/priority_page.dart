@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import '../main.dart';
 import '../models/item_model.dart';
@@ -22,15 +22,15 @@ class PriorityPage extends StatelessWidget {
       });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Ã–nce Ne AlmalÄ±yÄ±m?')),
+      appBar: AppBar(title: const Text('Önce Ne Almalıyım?')),
       body: items.isEmpty
           ? const Padding(
               padding: EdgeInsets.all(16),
               child: EmptyStateCard(
                 icon: Icons.check_circle_outline,
-                title: 'Kritik eksik gÃ¶rÃ¼nmÃ¼yor',
+                title: 'Kritik eksik görünmüyor',
                 message:
-                    'GÃ¼zel gidiyorsun. Ä°stersen detay listelerini kontrol et.',
+                    'Güzel gidiyorsun. İstersen detay listelerini kontrol et.',
               ),
             )
           : ListView(
@@ -74,8 +74,8 @@ class _PrioritySection extends StatelessWidget {
             if (items.isEmpty)
               Text(
                 priority == ItemPriority.mustHave
-                    ? 'Olmazsa olmazlarÄ±n tamam.'
-                    : 'Bu bÃ¶lÃ¼mde eksik yok.',
+                    ? 'Olmazsa olmazların tamam.'
+                    : 'Bu bölümde eksik yok.',
               )
             else
               for (final item in items)
@@ -87,7 +87,7 @@ class _PrioritySection extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   subtitle: Text(
-                    '${item.subCategory} Â· ${money(item.estimatedPrice)}',
+                    '${item.subCategory} · ${money(item.estimatedPrice)}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

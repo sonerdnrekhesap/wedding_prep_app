@@ -1,3 +1,5 @@
+import 'item_model.dart';
+
 class AppSettings {
   const AppSettings({
     this.weddingDate,
@@ -9,6 +11,8 @@ class AppSettings {
     this.reminderHour = 20,
     this.weeklySummaryEnabled = true,
     this.paymentRemindersEnabled = true,
+    this.celebrationsEnabled = true,
+    this.lastOpenedCategory,
     this.hasCompletedOnboarding = false,
   });
 
@@ -21,6 +25,8 @@ class AppSettings {
   final int reminderHour;
   final bool weeklySummaryEnabled;
   final bool paymentRemindersEnabled;
+  final bool celebrationsEnabled;
+  final MainCategory? lastOpenedCategory;
   final bool hasCompletedOnboarding;
 
   String get coupleNames {
@@ -38,6 +44,9 @@ class AppSettings {
     int? reminderHour,
     bool? weeklySummaryEnabled,
     bool? paymentRemindersEnabled,
+    bool? celebrationsEnabled,
+    MainCategory? lastOpenedCategory,
+    bool clearLastOpenedCategory = false,
     bool? hasCompletedOnboarding,
     bool clearWeddingDate = false,
   }) {
@@ -53,6 +62,10 @@ class AppSettings {
           weeklySummaryEnabled ?? this.weeklySummaryEnabled,
       paymentRemindersEnabled:
           paymentRemindersEnabled ?? this.paymentRemindersEnabled,
+      celebrationsEnabled: celebrationsEnabled ?? this.celebrationsEnabled,
+      lastOpenedCategory: clearLastOpenedCategory
+          ? null
+          : (lastOpenedCategory ?? this.lastOpenedCategory),
       hasCompletedOnboarding:
           hasCompletedOnboarding ?? this.hasCompletedOnboarding,
     );
@@ -69,6 +82,8 @@ class AppSettings {
       reminderHour: reminderHour.clamp(0, 23).toInt(),
       weeklySummaryEnabled: weeklySummaryEnabled,
       paymentRemindersEnabled: paymentRemindersEnabled,
+      celebrationsEnabled: celebrationsEnabled,
+      lastOpenedCategory: lastOpenedCategory,
       hasCompletedOnboarding: hasCompletedOnboarding,
     );
   }
@@ -83,6 +98,8 @@ class AppSettings {
         'reminderHour': reminderHour,
         'weeklySummaryEnabled': weeklySummaryEnabled,
         'paymentRemindersEnabled': paymentRemindersEnabled,
+        'celebrationsEnabled': celebrationsEnabled,
+        'lastOpenedCategory': lastOpenedCategory?.name,
         'hasCompletedOnboarding': hasCompletedOnboarding,
       };
 
@@ -110,7 +127,17 @@ class AppSettings {
       weeklySummaryEnabled: json['weeklySummaryEnabled'] as bool? ?? true,
       paymentRemindersEnabled:
           json['paymentRemindersEnabled'] as bool? ?? true,
+      celebrationsEnabled: json['celebrationsEnabled'] as bool? ?? true,
+      lastOpenedCategory: _parseMainCategory(json['lastOpenedCategory'] as String?),
       hasCompletedOnboarding: json['hasCompletedOnboarding'] as bool? ?? false,
     ).sanitized();
   }
+}
+
+MainCategory? _parseMainCategory(String? value) {
+  if (value == null) return null;
+  return MainCategory.values.firstWhere(
+    (category) => category.name == value,
+    orElse: () => MainCategory.ceyiz,
+  );
 }

@@ -13,6 +13,12 @@ Flutter ile geliştirilmiş offline çeyiz ve düğün hazırlık takip uygulama
 - Bütçe ekranında kategori yüzdeleri, aşım uyarıları ve yorumlar
 - Akıllı eksik uyarıları
 - Ürün önerileri, hediye listesi, bütçeme göre paket ve teklif alma alanları
+- Modern alt kategori deneyimi, subkategori chipleri ve kategori seçici
+- Gelişmiş arama, filtreleme ve sıralama
+- Haftalık Plan: bu haftanın işleri, yaklaşan ödemeler ve önerilen adımlar
+- Son kaldığın yerden devam etme desteği
+- Kapora, toplam ödeme, ödeme son tarihi ve tedarikçi takibi
+- Hazırlık milestone'ları ve sade motivasyon mekanikleri
 - RevenueCat tabanlı premium mimarisi
 - Hive tabanlı lokal veri saklama ve SharedPreferences'tan güvenli migration
 - Local notification altyapısı

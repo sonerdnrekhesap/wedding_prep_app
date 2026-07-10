@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:in_app_review/in_app_review.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../main.dart';
@@ -78,6 +79,21 @@ class _SettingsPageState extends State<SettingsPage> {
           _PremiumStatusCard(controller: controller),
           _NotificationSettingsCard(controller: controller),
           Card(
+            child: SwitchListTile(
+              secondary: const Icon(Icons.auto_awesome_outlined),
+              title: const Text('Kutlama animasyonları'),
+              subtitle: const Text(
+                'Büyük ilerlemelerde kısa ve sade başarı animasyonları gösterilir.',
+              ),
+              value: controller.settings.celebrationsEnabled,
+              onChanged: (value) async {
+                await controller.saveSettings(
+                  controller.settings.copyWith(celebrationsEnabled: value),
+                );
+              },
+            ),
+          ),
+          Card(
             child: ListTile(
               leading: const Icon(Icons.ios_share_outlined),
               title: const Text('Davetli listesini CSV olarak paylaş'),
@@ -122,6 +138,23 @@ class _SettingsPageState extends State<SettingsPage> {
                 'Veriler ve seçtiğin fotoğraflar cihazda saklanır. Bulut yedekleme yoktur. Fotoğraf silersen uygulama içindeki dosya da silinir.',
               ),
               isThreeLine: true,
+            ),
+          ),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.star_border_outlined),
+              title: const Text('Bizi Değerlendir'),
+              subtitle: const Text(
+                'Hazırlık sürecinde işine yarıyorsa kısa bir değerlendirme bırakabilirsin.',
+              ),
+              onTap: () async {
+                final review = InAppReview.instance;
+                if (await review.isAvailable()) {
+                  await review.requestReview();
+                } else {
+                  await review.openStoreListing();
+                }
+              },
             ),
           ),
           const Card(

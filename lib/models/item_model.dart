@@ -73,7 +73,13 @@ class PrepItem {
     this.isGiftListed = false,
     this.quantity = 1,
     this.purchaseDate,
+    this.dueDate,
     this.warrantyEndDate,
+    this.vendorName = '',
+    this.contractTotal = 0,
+    this.depositPaid = 0,
+    this.totalPaid = 0,
+    this.paymentDeadline,
     this.completedDate,
     required this.createdAt,
     required this.updatedAt,
@@ -100,7 +106,13 @@ class PrepItem {
   final bool isGiftListed;
   final int quantity;
   final DateTime? purchaseDate;
+  final DateTime? dueDate;
   final DateTime? warrantyEndDate;
+  final String vendorName;
+  final double contractTotal;
+  final double depositPaid;
+  final double totalPaid;
+  final DateTime? paymentDeadline;
   final DateTime? completedDate;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -126,14 +138,22 @@ class PrepItem {
     bool? isGiftListed,
     int? quantity,
     DateTime? purchaseDate,
+    DateTime? dueDate,
     DateTime? warrantyEndDate,
+    String? vendorName,
+    double? contractTotal,
+    double? depositPaid,
+    double? totalPaid,
+    DateTime? paymentDeadline,
     DateTime? completedDate,
     bool clearCompletedDate = false,
     bool clearInspirationImage = false,
     bool clearProductImage = false,
     bool clearReceiptImage = false,
     bool clearPurchaseDate = false,
+    bool clearDueDate = false,
     bool clearWarrantyEndDate = false,
+    bool clearPaymentDeadline = false,
   }) {
     return PrepItem(
       id: id,
@@ -170,9 +190,17 @@ class PrepItem {
       quantity: quantity ?? this.quantity,
       purchaseDate:
           clearPurchaseDate ? null : (purchaseDate ?? this.purchaseDate),
+      dueDate: clearDueDate ? null : (dueDate ?? this.dueDate),
       warrantyEndDate: clearWarrantyEndDate
           ? null
           : (warrantyEndDate ?? this.warrantyEndDate),
+      vendorName: vendorName ?? this.vendorName,
+      contractTotal: contractTotal ?? this.contractTotal,
+      depositPaid: depositPaid ?? this.depositPaid,
+      totalPaid: totalPaid ?? this.totalPaid,
+      paymentDeadline: clearPaymentDeadline
+          ? null
+          : (paymentDeadline ?? this.paymentDeadline),
       completedDate:
           clearCompletedDate ? null : (completedDate ?? this.completedDate),
       createdAt: createdAt,
@@ -214,7 +242,13 @@ class PrepItem {
       isGiftListed: isGiftListed,
       quantity: quantity < 1 ? 1 : quantity,
       purchaseDate: safePurchaseDate,
+      dueDate: dueDate,
       warrantyEndDate: safeWarrantyEndDate,
+      vendorName: vendorName.trim(),
+      contractTotal: contractTotal < 0 ? 0 : contractTotal,
+      depositPaid: depositPaid < 0 ? 0 : depositPaid,
+      totalPaid: totalPaid < 0 ? 0 : totalPaid,
+      paymentDeadline: paymentDeadline,
       completedDate: completedDate,
       createdAt: createdAt,
       updatedAt: updatedAt,
@@ -243,7 +277,13 @@ class PrepItem {
         'isGiftListed': isGiftListed,
         'quantity': quantity,
         'purchaseDate': purchaseDate?.toIso8601String(),
+        'dueDate': dueDate?.toIso8601String(),
         'warrantyEndDate': warrantyEndDate?.toIso8601String(),
+        'vendorName': vendorName,
+        'contractTotal': contractTotal,
+        'depositPaid': depositPaid,
+        'totalPaid': totalPaid,
+        'paymentDeadline': paymentDeadline?.toIso8601String(),
         'completedDate': completedDate?.toIso8601String(),
         'createdAt': createdAt.toIso8601String(),
         'updatedAt': updatedAt.toIso8601String(),
@@ -275,9 +315,19 @@ class PrepItem {
       purchaseDate: json['purchaseDate'] == null
           ? null
           : DateTime.parse(json['purchaseDate'] as String),
+      dueDate: json['dueDate'] == null
+          ? null
+          : DateTime.parse(json['dueDate'] as String),
       warrantyEndDate: json['warrantyEndDate'] == null
           ? null
           : DateTime.parse(json['warrantyEndDate'] as String),
+      vendorName: json['vendorName'] as String? ?? '',
+      contractTotal: (json['contractTotal'] as num?)?.toDouble() ?? 0,
+      depositPaid: (json['depositPaid'] as num?)?.toDouble() ?? 0,
+      totalPaid: (json['totalPaid'] as num?)?.toDouble() ?? 0,
+      paymentDeadline: json['paymentDeadline'] == null
+          ? null
+          : DateTime.parse(json['paymentDeadline'] as String),
       completedDate: json['completedDate'] == null
           ? null
           : DateTime.parse(json['completedDate'] as String),

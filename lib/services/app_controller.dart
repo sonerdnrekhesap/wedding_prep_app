@@ -177,6 +177,13 @@ class AppController extends ChangeNotifier {
     await updateItem(item.copyWith(isGiftListed: !item.isGiftListed));
   }
 
+  Future<void> rememberOpenedCategory(MainCategory category) async {
+    if (settings.lastOpenedCategory == category) return;
+    settings = settings.copyWith(lastOpenedCategory: category);
+    await storage.saveSettings(settings);
+    notifyListeners();
+  }
+
   Future<void> addLead(LeadRequest lead) async {
     leads = [...leads, lead.sanitized()];
     await storage.saveLeads(leads);

@@ -141,6 +141,60 @@ class CalculationService {
     return sorted.take(limit).toList();
   }
 
+  List<PrepItem> dueSoonItems(List<PrepItem> items, {int withinDays = 7}) {
+    final now = DateTime.now();
+    final end = DateTime(now.year, now.month, now.day)
+        .add(Duration(days: withinDays + 1));
+    final sorted = [
+      ...items.where((item) =>
+          !item.isCompleted &&
+          item.dueDate != null &&
+          item.dueDate!.isBefore(end))
+    ]..sort((a, b) => a.dueDate!.compareTo(b.dueDate!));
+    return sorted;
+  }
+
+  List<PrepItem> upcomingPayments(List<PrepItem> items, {int withinDays = 30}) {
+    final now = DateTime.now();
+    final end = DateTime(now.year, now.month, now.day)
+        .add(Duration(days: withinDays + 1));
+    final sorted = [
+      ...items.where((item) =>
+          item.paymentDeadline != null &&
+          item.paymentDeadline!.isBefore(end) &&
+          remainingPaymentFor(item) > 0)
+    ]..sort((a, b) => a.paymentDeadline!.compareTo(b.paymentDeadline!));
+    return sorted;
+  }
+
+  double remainingPaymentFor(PrepItem item) {
+    final contract = item.contractTotal > 0 ? item.contractTotal : item.actualPrice;
+    if (contract <= 0) return 0;
+    final paid = item.totalPaid > 0 ? item.totalPaid : item.depositPaid;
+    final remaining = contract - paid;
+    return remaining < 0 ? 0 : remaining;
+  }
+
+  List<String> milestones(
+    AppSettings settings,
+    List<PrepItem> items,
+    List<Guest> guests,
+  ) {
+    final completed = completedItems(items);
+    final score = weightedPreparationScore(items);
+    final guestStatsValue = guestStats(guests);
+    final days = daysUntilWedding(settings);
+    return [
+      if (completed >= 10) 'İlk 10 görev tamamlandı',
+      if (score >= 50) 'Hazırlığın yarısı tamamlandı',
+      if (totalSpent(items) > 0) 'İlk bütçe kaydı girildi',
+      if (guests.isNotEmpty && guestStatsValue.unsurePeople == 0)
+        'Davetli listesi netleşti',
+      if (days != null && days <= 100) 'Düğüne 100 günden az kaldı',
+      if (days != null && days <= 30) 'Son 30 güne girildi',
+    ];
+  }
+
   MainCategory? topSpentCategory(List<PrepItem> items) {
     final stats = categoryStats(items);
     final entries = stats.entries.toList()

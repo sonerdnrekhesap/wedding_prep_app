@@ -7,6 +7,7 @@ import 'guest_list_page.dart';
 import 'item_list_page.dart';
 import 'lead_request_page.dart';
 import 'product_recommendations_page.dart';
+import 'weekly_plan_page.dart';
 
 class ListModulesPage extends StatelessWidget {
   const ListModulesPage({super.key});
@@ -60,6 +61,13 @@ class ListModulesPage extends StatelessWidget {
             icon: Icons.request_quote_outlined,
             onTap: () => Navigator.of(context).push(MaterialPageRoute(
               builder: (_) => const LeadRequestPage(),
+            )),
+          ),
+          _ModuleTile(
+            title: 'Haftalık Plan',
+            icon: Icons.calendar_month_outlined,
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => const WeeklyPlanPage(),
             )),
           ),
         ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -13,7 +14,9 @@ import '../widgets/item_tile.dart';
 import '../widgets/visual_cards.dart';
 import 'paywall_page.dart';
 
-enum ItemFilter { all, missing, completed, mustHave, necessary, later, luxury }
+enum ItemFilter { all, missing, completed, purchased, notPurchased, highPriority, dueSoon, overBudget, hasPhoto, hasNote, hasPayment, mustHave, necessary, later, luxury }
+
+enum ItemSort { recommended, priority, dueDate, newest, oldest, estimatedPrice, actualPrice, alphabetical }
 
 Iterable<String?> _pathsFor(PrepItem item, ItemPhotoType type) =>
     switch (type) {
@@ -59,14 +62,36 @@ PrepItem _withPhoto(
 extension ItemFilterText on ItemFilter {
   String get label => switch (this) {
         ItemFilter.all => 'Tümü',
-        ItemFilter.missing => 'Alınmadı',
-        ItemFilter.completed => 'Alındı',
+        ItemFilter.missing => 'Eksik',
+        ItemFilter.completed => 'Tamamlandı',
+        ItemFilter.purchased => 'Satın alındı',
+        ItemFilter.notPurchased => 'Satın alınmadı',
+        ItemFilter.highPriority => 'Yüksek öncelik',
+        ItemFilter.dueSoon => 'Yakın tarih',
+        ItemFilter.overBudget => 'Bütçeyi aşan',
+        ItemFilter.hasPhoto => 'Fotoğraflı',
+        ItemFilter.hasNote => 'Notlu',
+        ItemFilter.hasPayment => 'Ödemeli',
         ItemFilter.mustHave => 'Olmazsa Olmaz',
         ItemFilter.necessary => 'Gerekli',
-        ItemFilter.later => 'Sonra Alınabilir',
+        ItemFilter.later => 'Sonra',
         ItemFilter.luxury => 'Lüks',
       };
 }
+
+extension ItemSortText on ItemSort {
+  String get label => switch (this) {
+        ItemSort.recommended => 'Önerilen',
+        ItemSort.priority => 'Öncelik',
+        ItemSort.dueDate => 'Tarih',
+        ItemSort.newest => 'Yeni',
+        ItemSort.oldest => 'Eski',
+        ItemSort.estimatedPrice => 'Tahmini fiyat',
+        ItemSort.actualPrice => 'Gerçek fiyat',
+        ItemSort.alphabetical => 'A-Z',
+      };
+}
+
 
 class ItemListPage extends StatefulWidget {
   const ItemListPage({super.key, required this.category});
@@ -79,13 +104,17 @@ class ItemListPage extends StatefulWidget {
 
 class _ItemListPageState extends State<ItemListPage> {
   ItemFilter filter = ItemFilter.all;
+  ItemSort sort = ItemSort.recommended;
+  String? selectedSubCategory;
   final searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      AppScope.of(context).ads.maybeShowCategoryInterstitial();
+      final controller = AppScope.of(context);
+      controller.ads.maybeShowCategoryInterstitial();
+      controller.rememberOpenedCategory(widget.category);
     });
   }
 
@@ -100,14 +129,13 @@ class _ItemListPageState extends State<ItemListPage> {
     final controller = AppScope.of(context);
     final items = controller.items
         .where((item) => item.mainCategory == widget.category)
+        .where((item) =>
+            selectedSubCategory == null ||
+            item.subCategory == selectedSubCategory)
         .where(_matchesFilter)
         .where(_matchesSearch)
-        .toList()
-      ..sort((a, b) {
-        final priority = a.priority.sortOrder.compareTo(b.priority.sortOrder);
-        if (priority != 0) return priority;
-        return a.title.compareTo(b.title);
-      });
+        .toList();
+    _sortItems(items);
 
     final subCategories = controller.items
         .where((item) => item.mainCategory == widget.category)
@@ -116,7 +144,16 @@ class _ItemListPageState extends State<ItemListPage> {
         .toList();
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.category.label)),
+      appBar: AppBar(
+        title: Text(widget.category.label),
+        actions: [
+          IconButton(
+            tooltip: 'Filtre ve sıralama',
+            onPressed: _showFilterSheet,
+            icon: const Icon(Icons.tune),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddItemSheet,
         icon: const Icon(Icons.add),
@@ -125,6 +162,20 @@ class _ItemListPageState extends State<ItemListPage> {
       bottomNavigationBar: const AdBannerWidget(),
       body: Column(
         children: [
+          _CategoryHeader(
+            category: widget.category,
+            total: controller.items
+                .where((item) => item.mainCategory == widget.category)
+                .length,
+            shown: items.length,
+            selectedSubCategory: selectedSubCategory,
+            onChooseSubCategory: subCategories.isEmpty
+                ? null
+                : () => _showSubCategorySheet(subCategories),
+            onClearSubCategory: selectedSubCategory == null
+                ? null
+                : () => setState(() => selectedSubCategory = null),
+          ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
             child: TextField(
@@ -154,19 +205,37 @@ class _ItemListPageState extends State<ItemListPage> {
               ],
             ),
           ),
-          if (widget.category == MainCategory.ceyiz)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  subCategories.join(' · '),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Color(0xFF6F6470)),
+          SizedBox(
+            height: 48,
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              scrollDirection: Axis.horizontal,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ChoiceChip(
+                    label: const Text('Tüm alt kategoriler'),
+                    selected: selectedSubCategory == null,
+                    onSelected: (_) => setState(() => selectedSubCategory = null),
+                  ),
                 ),
-              ),
+                for (final subCategory in subCategories)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text(
+                        subCategory,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      selected: selectedSubCategory == subCategory,
+                      onSelected: (_) =>
+                          setState(() => selectedSubCategory = subCategory),
+                    ),
+                  ),
+              ],
             ),
+          ),
           Expanded(
             child: items.isEmpty
                 ? const Padding(
@@ -185,13 +254,39 @@ class _ItemListPageState extends State<ItemListPage> {
                     separatorBuilder: (_, __) => const Divider(height: 1),
                     itemBuilder: (context, index) {
                       final item = items[index];
-                      return ItemTile(
-                        item: item,
-                        onTap: () => _showDetail(item),
-                        onCheckboxChanged: (_) => _toggleItem(item),
-                        onQuickAction: (action) => _handleQuickAction(
-                          item,
-                          action,
+                      return Dismissible(
+                        key: ValueKey(item.id),
+                        background: _SwipeBackground(
+                          alignment: Alignment.centerLeft,
+                          icon: item.isCompleted
+                              ? Icons.undo
+                              : Icons.check_circle_outline,
+                          label: item.isCompleted ? 'Geri al' : 'Tamamla',
+                          color: AppColors.mint,
+                        ),
+                        secondaryBackground: const _SwipeBackground(
+                          alignment: Alignment.centerRight,
+                          icon: Icons.edit_outlined,
+                          label: 'Düzenle',
+                          color: AppColors.gold,
+                        ),
+                        confirmDismiss: (direction) async {
+                          HapticFeedback.selectionClick();
+                          if (direction == DismissDirection.startToEnd) {
+                            await _toggleItem(item);
+                          } else {
+                            await _showDetail(item);
+                          }
+                          return false;
+                        },
+                        child: ItemTile(
+                          item: item,
+                          onTap: () => _showDetail(item),
+                          onCheckboxChanged: (_) => _toggleItem(item),
+                          onQuickAction: (action) => _handleQuickAction(
+                            item,
+                            action,
+                          ),
                         ),
                       );
                     },
@@ -206,6 +301,25 @@ class _ItemListPageState extends State<ItemListPage> {
         ItemFilter.all => true,
         ItemFilter.missing => !item.isCompleted,
         ItemFilter.completed => item.isCompleted,
+        ItemFilter.purchased => item.actualPrice > 0,
+        ItemFilter.notPurchased => item.actualPrice <= 0,
+        ItemFilter.highPriority => item.priority == ItemPriority.mustHave ||
+            item.priority == ItemPriority.necessary,
+        ItemFilter.dueSoon => item.dueDate != null &&
+            item.dueDate!.difference(DateTime.now()).inDays <= 14,
+        ItemFilter.overBudget =>
+          item.actualPrice > 0 && item.estimatedPrice > 0 &&
+              item.actualPrice > item.estimatedPrice,
+        ItemFilter.hasPhoto =>
+          item.inspirationImagePath != null ||
+          item.productImagePath != null ||
+          item.receiptImagePath != null,
+        ItemFilter.hasNote => item.note.trim().isNotEmpty,
+        ItemFilter.hasPayment =>
+          item.contractTotal > 0 ||
+          item.depositPaid > 0 ||
+          item.totalPaid > 0 ||
+          item.paymentDeadline != null,
         ItemFilter.mustHave => item.priority == ItemPriority.mustHave,
         ItemFilter.necessary => item.priority == ItemPriority.necessary,
         ItemFilter.later => item.priority == ItemPriority.later,
@@ -216,7 +330,45 @@ class _ItemListPageState extends State<ItemListPage> {
     final query = searchController.text.trim().toLowerCase();
     if (query.isEmpty) return true;
     return item.title.toLowerCase().contains(query) ||
-        item.subCategory.toLowerCase().contains(query);
+        item.subCategory.toLowerCase().contains(query) ||
+        item.shopName.toLowerCase().contains(query) ||
+        item.vendorName.toLowerCase().contains(query) ||
+        item.note.toLowerCase().contains(query) ||
+        item.mainCategory.label.toLowerCase().contains(query);
+  }
+
+  void _sortItems(List<PrepItem> items) {
+    items.sort((a, b) {
+      return switch (sort) {
+        ItemSort.recommended => _recommendedCompare(a, b),
+        ItemSort.priority => a.priority.sortOrder.compareTo(b.priority.sortOrder),
+        ItemSort.dueDate => _dateCompare(a.dueDate, b.dueDate),
+        ItemSort.newest => b.createdAt.compareTo(a.createdAt),
+        ItemSort.oldest => a.createdAt.compareTo(b.createdAt),
+        ItemSort.estimatedPrice => b.estimatedPrice.compareTo(a.estimatedPrice),
+        ItemSort.actualPrice => b.actualPrice.compareTo(a.actualPrice),
+        ItemSort.alphabetical => a.title.compareTo(b.title),
+      };
+    });
+  }
+
+  int _recommendedCompare(PrepItem a, PrepItem b) {
+    final completed = a.isCompleted == b.isCompleted
+        ? 0
+        : a.isCompleted
+            ? 1
+            : -1;
+    if (completed != 0) return completed;
+    final priority = a.priority.sortOrder.compareTo(b.priority.sortOrder);
+    if (priority != 0) return priority;
+    return _dateCompare(a.dueDate, b.dueDate);
+  }
+
+  int _dateCompare(DateTime? a, DateTime? b) {
+    if (a == null && b == null) return 0;
+    if (a == null) return 1;
+    if (b == null) return -1;
+    return a.compareTo(b);
   }
 
   Future<void> _toggleItem(PrepItem item) async {
@@ -382,6 +534,217 @@ class _ItemListPageState extends State<ItemListPage> {
       builder: (_) => _AddItemSheet(category: widget.category),
     );
   }
+
+  Future<void> _showSubCategorySheet(List<String> subCategories) async {
+    final selected = await showModalBottomSheet<String?>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.all(16),
+          children: [
+            Text(
+              'Alt kategori seç',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(height: 12),
+            ListTile(
+              leading: const Icon(Icons.apps_outlined),
+              title: const Text('Tüm alt kategoriler'),
+              onTap: () => Navigator.pop(context),
+            ),
+            for (final subCategory in subCategories)
+              ListTile(
+                leading: Icon(
+                  selectedSubCategory == subCategory
+                      ? Icons.check_circle
+                      : Icons.circle_outlined,
+                ),
+                title: Text(subCategory),
+                onTap: () => Navigator.pop(context, subCategory),
+              ),
+          ],
+        ),
+      ),
+    );
+    setState(() => selectedSubCategory = selected);
+  }
+
+  Future<void> _showFilterSheet() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setSheetState) => SafeArea(
+          child: ListView(
+            shrinkWrap: true,
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            children: [
+              Text(
+                'Filtre ve sıralama',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 14),
+              const Text('Filtre',
+                  style: TextStyle(fontWeight: FontWeight.w800)),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final option in ItemFilter.values)
+                    FilterChip(
+                      label: Text(option.label),
+                      selected: filter == option,
+                      onSelected: (_) {
+                        setSheetState(() => filter = option);
+                        setState(() => filter = option);
+                      },
+                    ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              const Text('Sıralama',
+                  style: TextStyle(fontWeight: FontWeight.w800)),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final option in ItemSort.values)
+                    ChoiceChip(
+                      label: Text(option.label),
+                      selected: sort == option,
+                      onSelected: (_) {
+                        setSheetState(() => sort = option);
+                        setState(() => sort = option);
+                      },
+                    ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Align(
+                alignment: Alignment.centerRight,
+                child: FilledButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Uygula'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CategoryHeader extends StatelessWidget {
+  const _CategoryHeader({
+    required this.category,
+    required this.total,
+    required this.shown,
+    required this.selectedSubCategory,
+    required this.onChooseSubCategory,
+    required this.onClearSubCategory,
+  });
+
+  final MainCategory category;
+  final int total;
+  final int shown;
+  final String? selectedSubCategory;
+  final VoidCallback? onChooseSubCategory;
+  final VoidCallback? onClearSubCategory;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: AppColors.mintSoft,
+              foregroundColor: AppColors.ink,
+              child: Text(category.label.substring(0, 1)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    selectedSubCategory ?? category.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '$shown/$total kalem gösteriliyor',
+                    style: const TextStyle(color: AppColors.muted),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              tooltip: 'Alt kategori değiştir',
+              onPressed: onChooseSubCategory,
+              icon: const Icon(Icons.keyboard_arrow_down),
+            ),
+            if (selectedSubCategory != null)
+              IconButton(
+                tooltip: 'Alt kategori filtresini temizle',
+                onPressed: onClearSubCategory,
+                icon: const Icon(Icons.close),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SwipeBackground extends StatelessWidget {
+  const _SwipeBackground({
+    required this.alignment,
+    required this.icon,
+    required this.label,
+    required this.color,
+  });
+
+  final Alignment alignment;
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final isLeft = alignment == Alignment.centerLeft;
+    return Container(
+      color: color.withValues(alpha: 0.14),
+      alignment: alignment,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        textDirection: isLeft ? TextDirection.ltr : TextDirection.rtl,
+        children: [
+          Icon(icon, color: color),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(color: color, fontWeight: FontWeight.w800),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _PriceSheet extends StatefulWidget {
@@ -480,12 +843,18 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
   late String? receiptImagePath;
   late String? receiptThumbPath;
   late DateTime? purchaseDate;
+  late DateTime? dueDate;
   late DateTime? warrantyEndDate;
+  late DateTime? paymentDeadline;
   late final TextEditingController estimatedController;
   late final TextEditingController actualController;
   late final TextEditingController quantityController;
   late final TextEditingController brandModelController;
   late final TextEditingController shopController;
+  late final TextEditingController vendorController;
+  late final TextEditingController contractTotalController;
+  late final TextEditingController depositPaidController;
+  late final TextEditingController totalPaidController;
   late final TextEditingController noteController;
 
   @override
@@ -501,7 +870,9 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
     receiptImagePath = widget.item.receiptImagePath;
     receiptThumbPath = widget.item.receiptThumbPath;
     purchaseDate = widget.item.purchaseDate;
+    dueDate = widget.item.dueDate;
     warrantyEndDate = widget.item.warrantyEndDate;
+    paymentDeadline = widget.item.paymentDeadline;
     estimatedController = TextEditingController(
       text: _moneyText(widget.item.estimatedPrice),
     );
@@ -515,6 +886,16 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
       text: widget.item.brandModel ?? '',
     );
     shopController = TextEditingController(text: widget.item.shopName);
+    vendorController = TextEditingController(text: widget.item.vendorName);
+    contractTotalController = TextEditingController(
+      text: _moneyText(widget.item.contractTotal),
+    );
+    depositPaidController = TextEditingController(
+      text: _moneyText(widget.item.depositPaid),
+    );
+    totalPaidController = TextEditingController(
+      text: _moneyText(widget.item.totalPaid),
+    );
     noteController = TextEditingController(text: widget.item.note);
   }
 
@@ -525,6 +906,10 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
     quantityController.dispose();
     brandModelController.dispose();
     shopController.dispose();
+    vendorController.dispose();
+    contractTotalController.dispose();
+    depositPaidController.dispose();
+    totalPaidController.dispose();
     noteController.dispose();
     super.dispose();
   }
@@ -691,6 +1076,19 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
                     ),
                   ),
                   const SizedBox(height: 12),
+                  _DatePickerTile(
+                    title: 'Son hedef tarihi',
+                    value: dueDate,
+                    icon: Icons.event_note_outlined,
+                    onPick: () => _pickDate(
+                      current: dueDate,
+                      onSelected: (date) => setState(() => dueDate = date),
+                    ),
+                    onClear: dueDate == null
+                        ? null
+                        : () => setState(() => dueDate = null),
+                  ),
+                  const SizedBox(height: 12),
                   TextField(
                     controller: quantityController,
                     keyboardType: TextInputType.number,
@@ -709,6 +1107,59 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
                     decoration: const InputDecoration(
                       labelText: 'Mağaza / nereden alındı?',
                     ),
+                  ),
+                ],
+              ),
+              _SectionTile(
+                title: 'Ödeme ve Kapora',
+                icon: Icons.payments_outlined,
+                children: [
+                  TextField(
+                    controller: vendorController,
+                    decoration: const InputDecoration(
+                      labelText: 'Tedarikçi / satıcı',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: contractTotalController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Sözleşme toplamı',
+                      suffixText: 'TL',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: depositPaidController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Ödenen kapora',
+                      suffixText: 'TL',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: totalPaidController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Toplam ödenen',
+                      suffixText: 'TL',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _DatePickerTile(
+                    title: 'Ödeme son tarihi',
+                    value: paymentDeadline,
+                    icon: Icons.event_busy_outlined,
+                    onPick: () => _pickDate(
+                      current: paymentDeadline,
+                      onSelected: (date) =>
+                          setState(() => paymentDeadline = date),
+                    ),
+                    onClear: paymentDeadline == null
+                        ? null
+                        : () => setState(() => paymentDeadline = null),
                   ),
                 ],
               ),
@@ -915,11 +1366,19 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
       quantity: quantity == null || quantity < 1 ? 1 : quantity,
       brandModel: brandModelController.text.trim(),
       shopName: shopController.text.trim(),
+      vendorName: vendorController.text.trim(),
       note: noteController.text.trim(),
       purchaseDate: effectivePurchaseDate,
+      dueDate: dueDate,
       warrantyEndDate: warrantyEndDate,
+      contractTotal: parseMoney(contractTotalController.text),
+      depositPaid: parseMoney(depositPaidController.text),
+      totalPaid: parseMoney(totalPaidController.text),
+      paymentDeadline: paymentDeadline,
       clearPurchaseDate: effectivePurchaseDate == null,
+      clearDueDate: dueDate == null,
       clearWarrantyEndDate: warrantyEndDate == null,
+      clearPaymentDeadline: paymentDeadline == null,
       inspirationImagePath: inspirationImagePath,
       inspirationThumbPath: inspirationThumbPath,
       productImagePath: productImagePath,
@@ -1142,6 +1601,8 @@ class _AddItemSheetState extends State<_AddItemSheet> {
   final subCategoryController = TextEditingController();
   final priceController = TextEditingController();
   ItemPriority priority = ItemPriority.necessary;
+  final selectedSuggestions = <String>{};
+  bool showMore = false;
 
   @override
   void initState() {
@@ -1159,6 +1620,14 @@ class _AddItemSheetState extends State<_AddItemSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final existingTitles = AppScope.of(context)
+        .items
+        .where((item) => item.mainCategory == widget.category)
+        .map((item) => item.title.toLowerCase())
+        .toSet();
+    final suggestions = _suggestionsFor(widget.category)
+        .where((title) => !existingTitles.contains(title.toLowerCase()))
+        .toList();
     return Padding(
       padding: EdgeInsets.only(
         left: 20,
@@ -1171,13 +1640,81 @@ class _AddItemSheetState extends State<_AddItemSheet> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Özel ürün ekle',
+              'Hızlı ekle',
               style: Theme.of(context)
                   .textTheme
                   .titleLarge
                   ?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 14),
+            if (suggestions.isNotEmpty) ...[
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Önerilenlerden ekle',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w900),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final suggestion in suggestions.take(10))
+                    FilterChip(
+                      label: Text(suggestion),
+                      selected: selectedSuggestions.contains(suggestion),
+                      onSelected: (selected) {
+                        setState(() {
+                          if (selected) {
+                            selectedSuggestions.add(suggestion);
+                          } else {
+                            selectedSuggestions.remove(suggestion);
+                          }
+                        });
+                      },
+                    ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: suggestions.isEmpty
+                        ? null
+                        : () => setState(() {
+                              selectedSuggestions
+                                ..clear()
+                                ..addAll(suggestions.take(10));
+                            }),
+                    icon: const Icon(Icons.playlist_add_check),
+                    label: const Text('Tümünü seç'),
+                  ),
+                  const Spacer(),
+                  FilledButton(
+                    onPressed: selectedSuggestions.isEmpty
+                        ? null
+                        : _saveSuggestions,
+                    child: Text('${selectedSuggestions.length} ekle'),
+                  ),
+                ],
+              ),
+              const Divider(height: 28),
+            ],
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Tek ürün ekle',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w900),
+              ),
+            ),
+            const SizedBox(height: 8),
             TextField(
               controller: titleController,
               decoration: const InputDecoration(labelText: 'Ürün adı'),
@@ -1188,23 +1725,33 @@ class _AddItemSheetState extends State<_AddItemSheet> {
               decoration: const InputDecoration(labelText: 'Alt kategori'),
             ),
             const SizedBox(height: 12),
-            DropdownButtonFormField<ItemPriority>(
-              value: priority,
-              decoration: const InputDecoration(labelText: 'Öncelik'),
-              items: [
-                for (final option in ItemPriority.values)
-                  DropdownMenuItem(value: option, child: Text(option.label)),
-              ],
-              onChanged: (value) {
-                if (value != null) setState(() => priority = value);
-              },
+            TextButton.icon(
+              onPressed: () => setState(() => showMore = !showMore),
+              icon: Icon(showMore
+                  ? Icons.expand_less
+                  : Icons.expand_more),
+              label: Text(showMore ? 'Detayları gizle' : 'Daha fazla detay'),
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: priceController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Tahmini fiyat'),
-            ),
+            if (showMore) ...[
+              const SizedBox(height: 12),
+              DropdownButtonFormField<ItemPriority>(
+                value: priority,
+                decoration: const InputDecoration(labelText: 'Öncelik'),
+                items: [
+                  for (final option in ItemPriority.values)
+                    DropdownMenuItem(value: option, child: Text(option.label)),
+                ],
+                onChanged: (value) {
+                  if (value != null) setState(() => priority = value);
+                },
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: priceController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Tahmini fiyat'),
+              ),
+            ],
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
@@ -1232,5 +1779,53 @@ class _AddItemSheetState extends State<_AddItemSheet> {
       estimatedPrice: parseMoney(priceController.text),
     );
     if (mounted) Navigator.pop(context);
+  }
+
+  Future<void> _saveSuggestions() async {
+    final controller = AppScope.of(context);
+    for (final title in selectedSuggestions) {
+      await controller.addCustomItem(
+        title: title,
+        category: widget.category,
+        subCategory: _defaultSubCategoryFor(widget.category),
+        priority: ItemPriority.necessary,
+      );
+    }
+    if (mounted) Navigator.pop(context);
+  }
+
+  List<String> _suggestionsFor(MainCategory category) {
+    return switch (category) {
+      MainCategory.ceyiz => [
+          'Yedek nevresim takımı',
+          'Mutfak düzenleyici',
+          'Misafir havlusu',
+          'Kiler saklama kutuları',
+        ],
+      MainCategory.bohca => [
+          'Bohça not kartı',
+          'Hediye paketi',
+          'Aile hediyesi',
+        ],
+      MainCategory.balayi => [
+          'Yurt dışı priz adaptörü',
+          'Bavul etiketi',
+          'Seyahat boy bakım seti',
+        ],
+      _ => [
+          'Tedarikçi teyidi',
+          'Son ödeme kontrolü',
+          'Aile bilgilendirme notu',
+        ],
+    };
+  }
+
+  String _defaultSubCategoryFor(MainCategory category) {
+    return switch (category) {
+      MainCategory.ceyiz => 'Diğer Ev İhtiyaçları',
+      MainCategory.bohca => 'Sunum ve Süsleme',
+      MainCategory.balayi => 'Bavul',
+      _ => 'Son Kontroller',
+    };
   }
 }

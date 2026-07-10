@@ -97,6 +97,15 @@ class ItemTile extends StatelessWidget {
                       children: [
                         PriorityBadge(priority: item.priority),
                         Text(
+                          item.subCategory,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.muted,
+                          ),
+                        ),
+                        Text(
                           item.actualPrice > 0
                               ? 'Harcama: ${money(item.actualPrice)}'
                               : 'Tahmini: ${money(item.estimatedPrice)}',
@@ -105,6 +114,19 @@ class ItemTile extends StatelessWidget {
                             color: AppColors.muted,
                           ),
                         ),
+                        if (item.dueDate != null)
+                          _MiniMeta(
+                            icon: Icons.event_outlined,
+                            text:
+                                '${item.dueDate!.day}.${item.dueDate!.month}',
+                            color: AppColors.gold,
+                          ),
+                        if (item.paymentDeadline != null)
+                          _MiniMeta(
+                            icon: Icons.payments_outlined,
+                            text: 'Odeme',
+                            color: AppColors.coral,
+                          ),
                         if (item.inspirationImagePath != null)
                           const Icon(
                             Icons.lightbulb_outline,
@@ -156,5 +178,39 @@ class ItemTile extends StatelessWidget {
         ),
       ),
     ).animate().fadeIn(duration: 260.ms).slideX(begin: 0.03, end: 0);
+  }
+}
+
+class _MiniMeta extends StatelessWidget {
+  const _MiniMeta({
+    required this.icon,
+    required this.text,
+    required this.color,
+  });
+
+  final IconData icon;
+  final String text;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: text,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 15, color: color),
+          const SizedBox(width: 3),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 12,
+              color: color,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
