@@ -1,0 +1,93 @@
+name: Flutter CI
+
+on:
+  push:
+    branches:
+      - monetization-v1
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  REVENUECAT_APPLE_API_KEY: ""
+  REVENUECAT_GOOGLE_API_KEY: ""
+  REVENUECAT_ENTITLEMENT_ID: pro
+  ADMOB_ANDROID_APP_ID: ca-app-pub-3940256099942544~3347511713
+  ADMOB_IOS_APP_ID: ca-app-pub-3940256099942544~1458002511
+
+jobs:
+  validate-and-android:
+    name: Validate and Android debug build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Flutter stable
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Print Flutter and Dart versions
+        run: |
+          flutter --version
+          dart --version
+
+      - name: Run flutter pub get
+        run: flutter pub get
+
+      - name: Check Dart formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Run flutter analyze
+        run: flutter analyze
+
+      - name: Run flutter test
+        run: flutter test
+
+      - name: Create temporary Android and iOS platform folders
+        run: flutter create --platforms=android,ios .
+
+      - name: Run flutter pub get after platform generation
+        run: flutter pub get
+
+      - name: Build Android debug APK
+        run: flutter build apk --debug
+
+      - name: Upload Android debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: wedding-prep-debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error
+
+  ios-build:
+    name: iOS no-codesign build
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Flutter stable
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Print Flutter and Dart versions
+        run: |
+          flutter --version
+          dart --version
+
+      - name: Create temporary iOS platform folder
+        run: flutter create --platforms=ios .
+
+      - name: Run flutter pub get
+        run: flutter pub get
+
+      - name: Build iOS without codesigning
+        run: flutter build ios --no-codesign

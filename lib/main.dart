@@ -37,6 +37,12 @@ class _WeddingPrepAppState extends State<WeddingPrepApp> {
   }
 
   @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return AppScope(
       controller: controller,

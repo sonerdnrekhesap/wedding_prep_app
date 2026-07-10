@@ -37,12 +37,23 @@ class AppController extends ChangeNotifier {
   List<PrepItem> items = [];
   List<Guest> guests = [];
   List<LeadRequest> leads = [];
+  bool _isDisposed = false;
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
+  }
+
+  void _notify() {
+    if (!_isDisposed) notifyListeners();
+  }
 
   Future<void> load() async {
     isLoading = true;
     recoveredFromStartupError = false;
     startupMessage = null;
-    notifyListeners();
+    _notify();
 
     try {
       await storage.initialize();
@@ -53,7 +64,7 @@ class AppController extends ChangeNotifier {
     } catch (error, stackTrace) {
       recoveredFromStartupError = true;
       startupMessage =
-          'Bazı yerel veriler okunamadı. Uygulama güvenli modda açıldı.';
+          'Bazi yerel veriler okunamadi. Uygulama guvenli modda acildi.';
       developer.log(
         'Application startup recovered from a storage failure.',
         error: error,
@@ -65,7 +76,7 @@ class AppController extends ChangeNotifier {
       leads = [];
     } finally {
       isLoading = false;
-      notifyListeners();
+      _notify();
     }
 
     unawaited(_refreshPremiumAndAds());
@@ -75,14 +86,14 @@ class AppController extends ChangeNotifier {
 
   void continueAfterStartupRecovery() {
     recoveredFromStartupError = false;
-    notifyListeners();
+    _notify();
   }
 
   Future<void> _refreshPremiumAndAds() async {
     try {
       settings = await premium.refreshEntitlement(settings);
       ads.setPremium(settings.isPremium);
-      notifyListeners();
+      _notify();
     } catch (error, stackTrace) {
       developer.log(
         'Premium refresh failed during startup.',
@@ -107,7 +118,7 @@ class AppController extends ChangeNotifier {
     await storage.saveSettings(settings);
     ads.setPremium(settings.isPremium);
     await notifications.rescheduleAll(settings, items);
-    notifyListeners();
+    _notify();
   }
 
   Future<void> updateItem(PrepItem item) async {
@@ -117,7 +128,7 @@ class AppController extends ChangeNotifier {
         current.id == sanitized.id ? sanitized : current,
     ];
     await storage.saveItems(items);
-    notifyListeners();
+    _notify();
   }
 
   Future<void> completeItem(PrepItem item, {double? actualPrice}) async {
@@ -149,7 +160,7 @@ class AppController extends ChangeNotifier {
           ]
         : [...guests, guest.sanitized()];
     await storage.saveGuests(guests);
-    notifyListeners();
+    _notify();
   }
 
   Future<void> addGuestsBulk(List<String> names) async {
@@ -170,7 +181,7 @@ class AppController extends ChangeNotifier {
         ),
     ];
     await storage.saveGuests(guests);
-    notifyListeners();
+    _notify();
   }
 
   Future<void> toggleGiftList(PrepItem item) async {
@@ -181,14 +192,14 @@ class AppController extends ChangeNotifier {
     if (settings.lastOpenedCategory == category) return;
     settings = settings.copyWith(lastOpenedCategory: category);
     await storage.saveSettings(settings);
-    notifyListeners();
+    _notify();
   }
 
   Future<void> addLead(LeadRequest lead) async {
     leads = [...leads, lead.sanitized()];
     await storage.saveLeads(leads);
     analytics.leadSubmitted(category: lead.category);
-    notifyListeners();
+    _notify();
   }
 
   Future<void> addCustomItem({
@@ -213,14 +224,14 @@ class AppController extends ChangeNotifier {
       ),
     ];
     await storage.saveItems(items);
-    notifyListeners();
+    _notify();
   }
 
   Future<void> deleteItem(PrepItem item) async {
     await photoStorage.deleteItemPhotos(item.id);
     items = items.where((current) => current.id != item.id).toList();
     await storage.saveItems(items);
-    notifyListeners();
+    _notify();
   }
 
   Guest newGuest({
@@ -248,7 +259,7 @@ class AppController extends ChangeNotifier {
   Future<void> deleteGuest(Guest guest) async {
     guests = guests.where((current) => current.id != guest.id).toList();
     await storage.saveGuests(guests);
-    notifyListeners();
+    _notify();
   }
 
   Future<void> resetAll() async {
@@ -259,7 +270,7 @@ class AppController extends ChangeNotifier {
     guests = await storage.loadGuests();
     leads = await storage.loadLeads();
     ads.setPremium(settings.isPremium);
-    notifyListeners();
+    _notify();
   }
 
   Future<void> loadDemoData() async {
@@ -269,7 +280,7 @@ class AppController extends ChangeNotifier {
     guests = await storage.loadGuests();
     leads = await storage.loadLeads();
     ads.setPremium(settings.isPremium);
-    notifyListeners();
+    _notify();
   }
 
   String buildJsonBackup() {
@@ -291,18 +302,18 @@ class AppController extends ChangeNotifier {
     await storage.saveItems(items);
     await storage.saveGuests(guests);
     await storage.saveLeads(leads);
-    notifyListeners();
+    _notify();
   }
 
   Future<void> purchasePremium(PremiumProduct product) async {
     settings = await premium.purchase(settings, product);
     ads.setPremium(settings.isPremium);
-    notifyListeners();
+    _notify();
   }
 
   Future<void> restorePurchases() async {
     settings = await premium.restorePurchases(settings);
     ads.setPremium(settings.isPremium);
-    notifyListeners();
+    _notify();
   }
 }
