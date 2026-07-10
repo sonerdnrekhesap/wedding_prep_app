@@ -668,7 +668,7 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
                 icon: Icons.tune,
                 children: [
                   DropdownButtonFormField<ItemPriority>(
-                    initialValue: priority,
+                    value: priority,
                     decoration: const InputDecoration(labelText: 'Öncelik'),
                     items: [
                       for (final option in ItemPriority.values)
@@ -1189,7 +1189,7 @@ class _AddItemSheetState extends State<_AddItemSheet> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<ItemPriority>(
-              initialValue: priority,
+              value: priority,
               decoration: const InputDecoration(labelText: 'Öncelik'),
               items: [
                 for (final option in ItemPriority.values)

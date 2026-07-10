@@ -61,11 +61,61 @@ class _WeddingPrepAppState extends State<WeddingPrepApp> {
                 body: Center(child: CircularProgressIndicator()),
               );
             }
+            if (controller.recoveredFromStartupError) {
+              return _StartupRecoveryPage(controller: controller);
+            }
             if (!controller.settings.hasCompletedOnboarding) {
               return const OnboardingPage();
             }
             return const MainShell();
           },
+        ),
+      ),
+    );
+  }
+}
+
+class _StartupRecoveryPage extends StatelessWidget {
+  const _StartupRecoveryPage({required this.controller});
+
+  final AppController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.info_outline, size: 42),
+                const SizedBox(height: 12),
+                Text(
+                  'Veriler kontrol ediliyor',
+                  style: Theme.of(context).textTheme.titleLarge,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  controller.startupMessage ??
+                      'Uygulama güvenli şekilde açıldı.',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                FilledButton.icon(
+                  onPressed: controller.retryStartup,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Tekrar dene'),
+                ),
+                TextButton(
+                  onPressed: controller.continueAfterStartupRecovery,
+                  child: const Text('Güvenli modda devam et'),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -107,7 +157,10 @@ class _MainShellState extends State<MainShell> {
     ];
 
     return Scaffold(
-      body: pages[index],
+      body: IndexedStack(
+        index: index,
+        children: pages,
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: index,
         onDestinationSelected: (next) => setState(() => index = next),

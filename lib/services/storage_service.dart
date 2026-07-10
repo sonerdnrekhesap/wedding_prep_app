@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/seed_items.dart';
@@ -14,77 +16,119 @@ class StorageService {
   static const _settingsKey = 'settings';
   static const _leadsKey = 'lead_requests';
 
+  static const _boxName = 'wedding_prep_data_v1';
+  static const _schemaVersionKey = 'schema_version';
+  static const _migrationCompleteKey = 'hive_migration_complete_v1';
+  static const _currentSchemaVersion = 1;
+
+  Box<dynamic>? _box;
+  bool _initAttempted = false;
+  bool _usePrefsFallback = false;
+
+  Future<void> initialize() async {
+    if (_initAttempted) return;
+    _initAttempted = true;
+    try {
+      await Hive.initFlutter();
+      _box = await Hive.openBox<dynamic>(_boxName);
+      await _box!.put(_schemaVersionKey, _currentSchemaVersion);
+      await _migrateSharedPreferencesIfNeeded();
+    } catch (error, stackTrace) {
+      _usePrefsFallback = true;
+      developer.log(
+        'Local database initialization failed; using preferences fallback.',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
   Future<List<PrepItem>> loadItems() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_itemsKey);
+    await initialize();
+    final raw = await _readStructured(_itemsKey);
     if (raw == null) {
-      final seed = buildSeedItems();
+      final seed = _dedupeItems(buildSeedItems());
       await saveItems(seed);
       return seed;
     }
-    final data = jsonDecode(raw) as List<dynamic>;
-    return data
-        .map((item) => PrepItem.fromJson(item as Map<String, dynamic>))
-        .toList();
+    final items = _decodeList(raw, PrepItem.fromJson);
+    if (items.isEmpty) {
+      final seed = _dedupeItems(buildSeedItems());
+      await saveItems(seed);
+      return seed;
+    }
+    return _dedupeItems(items);
   }
 
   Future<void> saveItems(List<PrepItem> items) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
+    await initialize();
+    await _writeStructured(
       _itemsKey,
-      jsonEncode(items.map((item) => item.toJson()).toList()),
+      _dedupeItems(items).map((item) => item.toJson()).toList(),
     );
   }
 
   Future<List<Guest>> loadGuests() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_guestsKey);
+    await initialize();
+    final raw = await _readStructured(_guestsKey);
     if (raw == null) return [];
-    final data = jsonDecode(raw) as List<dynamic>;
-    return data
-        .map((guest) => Guest.fromJson(guest as Map<String, dynamic>))
-        .toList();
+    return _dedupeGuests(_decodeList(raw, Guest.fromJson));
   }
 
   Future<void> saveGuests(List<Guest> guests) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
+    await initialize();
+    await _writeStructured(
       _guestsKey,
-      jsonEncode(guests.map((guest) => guest.toJson()).toList()),
+      _dedupeGuests(guests).map((guest) => guest.toJson()).toList(),
     );
   }
 
   Future<List<LeadRequest>> loadLeads() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_leadsKey);
+    await initialize();
+    final raw = await _readStructured(_leadsKey);
     if (raw == null) return [];
-    final data = jsonDecode(raw) as List<dynamic>;
-    return data
-        .map((lead) => LeadRequest.fromJson(lead as Map<String, dynamic>))
-        .toList();
+    return _dedupeLeads(_decodeList(raw, LeadRequest.fromJson));
   }
 
   Future<void> saveLeads(List<LeadRequest> leads) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
+    await initialize();
+    await _writeStructured(
       _leadsKey,
-      jsonEncode(leads.map((lead) => lead.toJson()).toList()),
+      _dedupeLeads(leads).map((lead) => lead.toJson()).toList(),
     );
   }
 
   Future<AppSettings> loadSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_settingsKey);
+    await initialize();
+    final raw = await _readStructured(_settingsKey);
     if (raw == null) return const AppSettings();
-    return AppSettings.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+    try {
+      return AppSettings.fromJson(_asMap(raw));
+    } catch (error, stackTrace) {
+      await _backupCorruptedValue(_settingsKey, raw);
+      developer.log(
+        'Settings data was invalid; safe defaults are used.',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      return const AppSettings();
+    }
   }
 
   Future<void> saveSettings(AppSettings settings) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_settingsKey, jsonEncode(settings.toJson()));
+    await initialize();
+    await _writeStructured(_settingsKey, settings.toJson());
   }
 
   Future<void> resetAll() async {
+    await initialize();
+    final box = _box;
+    if (!_usePrefsFallback && box != null) {
+      await box.delete(_itemsKey);
+      await box.delete(_guestsKey);
+      await box.delete(_settingsKey);
+      await box.delete(_leadsKey);
+    }
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_itemsKey);
     await prefs.remove(_guestsKey);
@@ -96,5 +140,121 @@ class StorageService {
     await saveItems(buildSeedItems());
     await saveGuests(buildDemoGuests());
     await saveSettings(buildDemoSettings());
+  }
+
+  Future<void> _migrateSharedPreferencesIfNeeded() async {
+    final box = _box;
+    if (box == null || box.get(_migrationCompleteKey) == true) return;
+    final prefs = await SharedPreferences.getInstance();
+    for (final key in [_itemsKey, _guestsKey, _settingsKey, _leadsKey]) {
+      final raw = prefs.getString(key);
+      if (raw == null || box.containsKey(key)) continue;
+      await prefs.setString('backup_before_hive_$key', raw);
+      try {
+        final decoded = jsonDecode(raw);
+        await box.put(key, decoded);
+      } catch (error, stackTrace) {
+        await prefs.setString('corrupted_before_hive_$key', raw);
+        developer.log(
+          'SharedPreferences migration skipped invalid value for $key.',
+          error: error,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+    await box.put(_migrationCompleteKey, true);
+  }
+
+  Future<dynamic> _readStructured(String key) async {
+    if (!_usePrefsFallback && _box != null) {
+      final value = _box!.get(key);
+      if (value != null) return value;
+    }
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(key);
+    if (raw == null) return null;
+    try {
+      return jsonDecode(raw);
+    } catch (error, stackTrace) {
+      await prefs.setString('corrupted_$key', raw);
+      developer.log(
+        'Stored JSON was invalid for $key.',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
+  }
+
+  Future<void> _writeStructured(String key, Object value) async {
+    if (!_usePrefsFallback && _box != null) {
+      await _box!.put(key, value);
+    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('backup_current_$key', jsonEncode(value));
+    if (_usePrefsFallback) {
+      await prefs.setString(key, jsonEncode(value));
+    }
+  }
+
+  List<T> _decodeList<T>(
+    dynamic raw,
+    T Function(Map<String, dynamic> json) fromJson,
+  ) {
+    final source = raw is List ? raw : const [];
+    final result = <T>[];
+    for (final entry in source) {
+      try {
+        result.add(fromJson(_asMap(entry)));
+      } catch (error, stackTrace) {
+        developer.log(
+          'A stored record was skipped because it was invalid.',
+          error: error,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+    return result;
+  }
+
+  Map<String, dynamic> _asMap(dynamic value) {
+    if (value is Map<String, dynamic>) return value;
+    if (value is Map) return Map<String, dynamic>.from(value);
+    throw const FormatException('Expected a JSON object.');
+  }
+
+  Future<void> _backupCorruptedValue(String key, Object value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      'corrupted_${key}_${DateTime.now().millisecondsSinceEpoch}',
+      jsonEncode(value),
+    );
+  }
+
+  List<PrepItem> _dedupeItems(List<PrepItem> items) {
+    final byId = <String, PrepItem>{};
+    for (final item in items) {
+      if (item.id.trim().isEmpty || item.title.trim().isEmpty) continue;
+      byId[item.id] = item;
+    }
+    return byId.values.toList();
+  }
+
+  List<Guest> _dedupeGuests(List<Guest> guests) {
+    final byId = <String, Guest>{};
+    for (final guest in guests) {
+      if (guest.id.trim().isEmpty || guest.name.trim().isEmpty) continue;
+      byId[guest.id] = guest;
+    }
+    return byId.values.toList();
+  }
+
+  List<LeadRequest> _dedupeLeads(List<LeadRequest> leads) {
+    final byId = <String, LeadRequest>{};
+    for (final lead in leads) {
+      if (lead.id.trim().isEmpty) continue;
+      byId[lead.id] = lead;
+    }
+    return byId.values.toList();
   }
 }

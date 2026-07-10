@@ -65,6 +65,20 @@ class Guest {
     );
   }
 
+  Guest sanitized() {
+    return Guest(
+      id: id.trim(),
+      name: name.trim(),
+      phone: phone.trim(),
+      side: side,
+      guestCount: guestCount < 1 ? 1 : guestCount,
+      status: status,
+      note: note.trim(),
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+    );
+  }
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
@@ -96,7 +110,7 @@ class Guest {
       updatedAt: json['updatedAt'] == null
           ? now
           : DateTime.parse(json['updatedAt'] as String),
-    );
+    ).sanitized();
   }
 }
 

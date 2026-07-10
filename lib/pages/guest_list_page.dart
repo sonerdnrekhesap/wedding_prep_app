@@ -628,7 +628,7 @@ class _GuestSheetState extends State<_GuestSheet> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<GuestSide>(
-              initialValue: side,
+              value: side,
               decoration: const InputDecoration(labelText: 'Taraf'),
               items: [
                 for (final option in GuestSide.values)

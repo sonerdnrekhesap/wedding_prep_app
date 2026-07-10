@@ -50,7 +50,7 @@ class _LeadRequestPageState extends State<LeadRequestPage> {
         padding: const EdgeInsets.all(16),
         children: [
           DropdownButtonFormField<String>(
-            initialValue: category,
+            value: category,
             decoration: const InputDecoration(labelText: 'Kategori'),
             items: [
               for (final option in categories)

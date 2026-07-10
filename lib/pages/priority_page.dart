@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../main.dart';
 import '../models/item_model.dart';
@@ -22,22 +22,22 @@ class PriorityPage extends StatelessWidget {
       });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Önce Ne Almalıyım?')),
+      appBar: AppBar(title: const Text('Ã–nce Ne AlmalÄ±yÄ±m?')),
       body: items.isEmpty
           ? const Padding(
               padding: EdgeInsets.all(16),
               child: EmptyStateCard(
                 icon: Icons.check_circle_outline,
-                title: 'Kritik eksik görünmüyor',
+                title: 'Kritik eksik gÃ¶rÃ¼nmÃ¼yor',
                 message:
-                    'Güzel gidiyorsun. İstersen detay listelerini kontrol et.',
+                    'GÃ¼zel gidiyorsun. Ä°stersen detay listelerini kontrol et.',
               ),
             )
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
                 const Text(
-                  'Panik yok. Önce olmazsa olmazları, sonra gerekli parçaları toparlayalım.',
+                  'Önce olmazsa olmazları, sonra gerekli parçaları sırayla tamamlayalım.',
                   style: TextStyle(color: Color(0xFF7B6B72)),
                 ),
                 const SizedBox(height: 14),
@@ -74,8 +74,8 @@ class _PrioritySection extends StatelessWidget {
             if (items.isEmpty)
               Text(
                 priority == ItemPriority.mustHave
-                    ? 'Olmazsa olmazların tamam.'
-                    : 'Bu bölümde eksik yok.',
+                    ? 'Olmazsa olmazlarÄ±n tamam.'
+                    : 'Bu bÃ¶lÃ¼mde eksik yok.',
               )
             else
               for (final item in items)
@@ -87,7 +87,7 @@ class _PrioritySection extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   subtitle: Text(
-                    '${item.subCategory} · ${money(item.estimatedPrice)}',
+                    '${item.subCategory} Â· ${money(item.estimatedPrice)}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

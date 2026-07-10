@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../main.dart';
+import '../services/app_controller.dart';
 import '../services/export_service.dart';
 import '../services/formatters.dart';
-import '../services/notification_service.dart';
 import 'paywall_page.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -66,151 +66,17 @@ class _SettingsPageState extends State<SettingsPage> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: dayController,
-                          keyboardType: TextInputType.number,
-                          maxLength: 2,
-                          decoration: const InputDecoration(
-                            labelText: 'Gün',
-                            counterText: '',
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: TextField(
-                          controller: monthController,
-                          keyboardType: TextInputType.number,
-                          maxLength: 2,
-                          decoration: const InputDecoration(
-                            labelText: 'Ay',
-                            counterText: '',
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        flex: 2,
-                        child: TextField(
-                          controller: yearController,
-                          keyboardType: TextInputType.number,
-                          maxLength: 4,
-                          decoration: const InputDecoration(
-                            labelText: 'Yıl',
-                            counterText: '',
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: budgetController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Hedef bütçe'),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: brideNameController,
-                    decoration: const InputDecoration(labelText: 'Gelin adı'),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: groomNameController,
-                    decoration: const InputDecoration(labelText: 'Damat adı'),
-                  ),
-                  const SizedBox(height: 14),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: () async {
-                        final weddingDate = _readDate();
-                        if (weddingDate == null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Düğün tarihini gün, ay, yıl olarak yaz.',
-                              ),
-                            ),
-                          );
-                          return;
-                        }
-
-                        await controller.saveSettings(
-                          controller.settings.copyWith(
-                            weddingDate: weddingDate,
-                            targetBudget: parseMoney(budgetController.text),
-                            brideName: brideNameController.text.trim(),
-                            groomName: groomNameController.text.trim(),
-                            hasCompletedOnboarding: true,
-                          ),
-                        );
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Ayarlar kaydedildi')),
-                          );
-                        }
-                      },
-                      child: const Text('Kaydet'),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          _ProfileSettingsCard(
+            dayController: dayController,
+            monthController: monthController,
+            yearController: yearController,
+            budgetController: budgetController,
+            brideNameController: brideNameController,
+            groomNameController: groomNameController,
+            onSave: () => _saveProfile(context, controller),
           ),
-          Card(
-            child: SwitchListTile(
-              secondary: const Icon(Icons.workspace_premium_outlined),
-              title: const Text('Premium mock modu'),
-              subtitle: Text(
-                controller.settings.isPremium
-                    ? 'Premium açık: reklam ve paywall kısıtları kapalı.'
-                    : 'Premium kapalı: gelişmiş özelliklerde paywall gösterilir.',
-              ),
-              value: controller.settings.isPremium,
-              onChanged: (value) async {
-                if (value) {
-                  await Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const PaywallPage(source: 'settings'),
-                    ),
-                  );
-                } else {
-                  await controller.saveSettings(
-                    controller.settings.copyWith(isPremium: false),
-                  );
-                }
-              },
-            ),
-          ),
-          Card(
-            child: SwitchListTile(
-              secondary: const Icon(Icons.notifications_active_outlined),
-              title: const Text('Bildirimler'),
-              subtitle: Text(
-                const NotificationService()
-                    .previewMessages(controller.settings, controller.items)
-                    .join(' '),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              value: controller.settings.notificationsEnabled,
-              onChanged: (value) async {
-                await const NotificationService().configure(enabled: value);
-                await controller.saveSettings(
-                  controller.settings.copyWith(notificationsEnabled: value),
-                );
-              },
-            ),
-          ),
+          _PremiumStatusCard(controller: controller),
+          _NotificationSettingsCard(controller: controller),
           Card(
             child: ListTile(
               leading: const Icon(Icons.ios_share_outlined),
@@ -300,6 +166,36 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  Future<void> _saveProfile(
+    BuildContext context,
+    AppController controller,
+  ) async {
+    final weddingDate = _readDate();
+    if (weddingDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Düğün tarihini gün, ay, yıl olarak yaz.'),
+        ),
+      );
+      return;
+    }
+
+    await controller.saveSettings(
+      controller.settings.copyWith(
+        weddingDate: weddingDate,
+        targetBudget: parseMoney(budgetController.text),
+        brideName: brideNameController.text.trim(),
+        groomName: groomNameController.text.trim(),
+        hasCompletedOnboarding: true,
+      ),
+    );
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Ayarlar kaydedildi')),
+      );
+    }
+  }
+
   DateTime? _readDate() {
     final day = int.tryParse(dayController.text.trim());
     final month = int.tryParse(monthController.text.trim());
@@ -311,5 +207,207 @@ class _SettingsPageState extends State<SettingsPage> {
       return null;
     }
     return date;
+  }
+}
+
+class _ProfileSettingsCard extends StatelessWidget {
+  const _ProfileSettingsCard({
+    required this.dayController,
+    required this.monthController,
+    required this.yearController,
+    required this.budgetController,
+    required this.brideNameController,
+    required this.groomNameController,
+    required this.onSave,
+  });
+
+  final TextEditingController dayController;
+  final TextEditingController monthController;
+  final TextEditingController yearController;
+  final TextEditingController budgetController;
+  final TextEditingController brideNameController;
+  final TextEditingController groomNameController;
+  final VoidCallback onSave;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: dayController,
+                    keyboardType: TextInputType.number,
+                    maxLength: 2,
+                    decoration: const InputDecoration(
+                      labelText: 'Gün',
+                      counterText: '',
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TextField(
+                    controller: monthController,
+                    keyboardType: TextInputType.number,
+                    maxLength: 2,
+                    decoration: const InputDecoration(
+                      labelText: 'Ay',
+                      counterText: '',
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  flex: 2,
+                  child: TextField(
+                    controller: yearController,
+                    keyboardType: TextInputType.number,
+                    maxLength: 4,
+                    decoration: const InputDecoration(
+                      labelText: 'Yıl',
+                      counterText: '',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: budgetController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Hedef bütçe'),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: brideNameController,
+              decoration: const InputDecoration(labelText: 'Gelin adı'),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: groomNameController,
+              decoration: const InputDecoration(labelText: 'Damat adı'),
+            ),
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: onSave,
+                child: const Text('Kaydet'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PremiumStatusCard extends StatelessWidget {
+  const _PremiumStatusCard({required this.controller});
+
+  final AppController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: SwitchListTile(
+        secondary: const Icon(Icons.workspace_premium_outlined),
+        title: const Text('Premium durumu'),
+        subtitle: Text(
+          controller.settings.isPremium
+              ? 'Premium aktif: mağaza yetkisi doğrulandı.'
+              : 'Premium kapalı: gelişmiş özelliklerde paywall gösterilir.',
+        ),
+        value: controller.settings.isPremium,
+        onChanged: (_) async {
+          await Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const PaywallPage(source: 'settings'),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _NotificationSettingsCard extends StatelessWidget {
+  const _NotificationSettingsCard({required this.controller});
+
+  final AppController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = controller.settings;
+    return Card(
+      child: Column(
+        children: [
+          SwitchListTile(
+            secondary: const Icon(Icons.notifications_active_outlined),
+            title: const Text('Bildirimler'),
+            subtitle: Text(
+              controller.notifications
+                  .previewMessages(settings, controller.items)
+                  .join(' '),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            value: settings.notificationsEnabled,
+            onChanged: (value) async {
+              await controller.notifications.configure(enabled: value);
+              await controller.saveSettings(
+                settings.copyWith(notificationsEnabled: value),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.schedule_outlined),
+            title: const Text('Hatırlatma saati'),
+            subtitle: Slider(
+              min: 8,
+              max: 22,
+              divisions: 14,
+              label: '${settings.reminderHour}:00',
+              value: settings.reminderHour.clamp(8, 22).toDouble(),
+              onChanged: settings.notificationsEnabled
+                  ? (value) async {
+                      await controller.saveSettings(
+                        settings.copyWith(reminderHour: value.round()),
+                      );
+                    }
+                  : null,
+            ),
+            trailing: Text('${settings.reminderHour}:00'),
+          ),
+          SwitchListTile(
+            title: const Text('Haftalık hazırlık özeti'),
+            value: settings.weeklySummaryEnabled,
+            onChanged: settings.notificationsEnabled
+                ? (value) async {
+                    await controller.saveSettings(
+                      settings.copyWith(weeklySummaryEnabled: value),
+                    );
+                  }
+                : null,
+          ),
+          SwitchListTile(
+            title: const Text('Ödeme hatırlatmaları'),
+            value: settings.paymentRemindersEnabled,
+            onChanged: settings.notificationsEnabled
+                ? (value) async {
+                    await controller.saveSettings(
+                      settings.copyWith(paymentRemindersEnabled: value),
+                    );
+                  }
+                : null,
+          ),
+        ],
+      ),
+    );
   }
 }

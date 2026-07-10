@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../main.dart';
@@ -20,14 +19,14 @@ class PaywallPage extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         children: [
           Text(
-            'Hazırlığı daha sakin yönet',
+            'Hazırlığı daha düzenli yönet',
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.w900,
             ),
           ),
           const SizedBox(height: 8),
           const Text(
-            'Temel checklist, öncelik listesi, davetli takibi ve hazırlık kartı paylaşımı ücretsiz kalır. Premium özellikler yakında gerçek mağaza satın almasıyla açılacaktır; şimdilik kullanıcıdan ödeme alınmaz.',
+            'Temel checklist, öncelik listesi, davetli takibi ve hazırlık özeti ücretsiz kalır. Premium yalnızca gerçek mağaza satın alması doğrulandığında açılır.',
             style: TextStyle(color: Color(0xFF6F6470)),
           ),
           const SizedBox(height: 18),
@@ -65,12 +64,9 @@ class PaywallPage extends StatelessWidget {
             text: 'Premium özet kartları',
           ),
           const _Benefit(
-            icon: Icons.sync_alt,
-            text: 'Partner senkronizasyonu altyapısı',
+            icon: Icons.receipt_long_outlined,
+            text: 'Fatura / garanti arşivi',
           ),
-          const _Benefit(
-              icon: Icons.receipt_long_outlined,
-              text: 'Fatura / garanti arşivi'),
           const _Benefit(
             icon: Icons.palette_outlined,
             text: 'Premium temalar ve watermark kaldırma',
@@ -80,27 +76,26 @@ class PaywallPage extends StatelessWidget {
             text: 'Sınırsız fotoğraf arşivi hazırlığı',
           ),
           const SizedBox(height: 18),
-          if (kDebugMode)
-            for (final product in PremiumProduct.values) ...[
+          if (controller.premium.canPurchase)
+            for (final product in PremiumProduct.values)
               Card(
                 child: ListTile(
-                  title: Text('${product.label} (demo)'),
-                  subtitle: const Text('Sadece debug/demo modunda açılır.'),
-                  trailing: const Icon(Icons.science_outlined),
+                  title: Text(product.label),
+                  subtitle: const Text('Güvenli mağaza satın alma akışı.'),
+                  trailing: const Icon(Icons.chevron_right),
                   onTap: () async {
-                    await controller.purchaseMockPremium(product);
+                    await controller.purchasePremium(product);
                     if (context.mounted) Navigator.pop(context);
                   },
                 ),
-              ),
-            ]
+              )
           else
-            const Card(
+            Card(
               child: ListTile(
-                leading: Icon(Icons.schedule_outlined),
-                title: Text('Premium yakında'),
+                leading: const Icon(Icons.schedule_outlined),
+                title: const Text('Premium yakında'),
                 subtitle: Text(
-                  'Gerçek satın alma bağlanmadan abonelik veya ödeme butonu gösterilmez.',
+                  _availabilityText(controller.premium.availability),
                 ),
               ),
             ),
@@ -111,7 +106,8 @@ class PaywallPage extends StatelessWidget {
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                      content: Text('Satın almalar kontrol edildi.')),
+                    content: Text('Satın almalar kontrol edildi.'),
+                  ),
                 );
               }
             },
@@ -121,6 +117,18 @@ class PaywallPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _availabilityText(PremiumAvailability availability) {
+    return switch (availability) {
+      PremiumAvailability.missingApiKey =>
+        'RevenueCat anahtarları tanımlı değil. Satın alma butonu gösterilmiyor.',
+      PremiumAvailability.unavailableOnWeb =>
+        'Web önizlemede mağaza satın alma desteklenmez.',
+      PremiumAvailability.initializationFailed =>
+        'Mağaza bağlantısı kurulamadı. Daha sonra tekrar denenebilir.',
+      PremiumAvailability.configured => 'Premium paketleri yükleniyor.',
+    };
   }
 }
 

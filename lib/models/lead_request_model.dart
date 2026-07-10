@@ -33,6 +33,20 @@ class LeadRequest {
         'createdAt': createdAt.toIso8601String(),
       };
 
+  LeadRequest sanitized() {
+    return LeadRequest(
+      id: id.trim(),
+      category: category.trim(),
+      city: city.trim(),
+      eventDate: eventDate,
+      estimatedBudget: estimatedBudget < 0 ? 0 : estimatedBudget,
+      guestCount: guestCount < 0 ? 0 : guestCount,
+      contact: contact.trim(),
+      note: note.trim(),
+      createdAt: createdAt,
+    );
+  }
+
   factory LeadRequest.fromJson(Map<String, dynamic> json) => LeadRequest(
         id: json['id'] as String,
         category: json['category'] as String? ?? '',
@@ -47,5 +61,5 @@ class LeadRequest {
         createdAt: json['createdAt'] == null
             ? DateTime.now()
             : DateTime.parse(json['createdAt'] as String),
-      );
+      ).sanitized();
 }

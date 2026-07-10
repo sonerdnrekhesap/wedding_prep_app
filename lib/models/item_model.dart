@@ -180,6 +180,47 @@ class PrepItem {
     );
   }
 
+  PrepItem sanitized() {
+    final safeCreatedAt = createdAt;
+    final safePurchaseDate = purchaseDate != null &&
+            purchaseDate!.isBefore(DateTime(safeCreatedAt.year,
+                safeCreatedAt.month, safeCreatedAt.day))
+        ? null
+        : purchaseDate;
+    final safeWarrantyEndDate =
+        warrantyEndDate != null && safePurchaseDate != null &&
+                warrantyEndDate!.isBefore(safePurchaseDate)
+            ? null
+            : warrantyEndDate;
+    return PrepItem(
+      id: id.trim(),
+      title: title.trim(),
+      mainCategory: mainCategory,
+      subCategory: subCategory.trim(),
+      priority: priority,
+      estimatedPrice: estimatedPrice < 0 ? 0 : estimatedPrice,
+      actualPrice: actualPrice < 0 ? 0 : actualPrice,
+      isCompleted: isCompleted,
+      note: note.trim(),
+      shopName: shopName.trim(),
+      inspirationImagePath: inspirationImagePath,
+      inspirationThumbPath: inspirationThumbPath,
+      productImagePath: productImagePath,
+      productThumbPath: productThumbPath,
+      receiptImagePath: receiptImagePath,
+      receiptThumbPath: receiptThumbPath,
+      brandModel: brandModel?.trim(),
+      affiliateUrl: affiliateUrl.trim(),
+      isGiftListed: isGiftListed,
+      quantity: quantity < 1 ? 1 : quantity,
+      purchaseDate: safePurchaseDate,
+      warrantyEndDate: safeWarrantyEndDate,
+      completedDate: completedDate,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+    );
+  }
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'title': title,
@@ -209,12 +250,13 @@ class PrepItem {
       };
 
   factory PrepItem.fromJson(Map<String, dynamic> json) {
+    final now = DateTime.now();
     return PrepItem(
       id: json['id'] as String,
-      title: json['title'] as String,
-      mainCategory: MainCategory.values.byName(json['mainCategory'] as String),
-      subCategory: json['subCategory'] as String,
-      priority: ItemPriority.values.byName(json['priority'] as String),
+      title: json['title'] as String? ?? '',
+      mainCategory: _parseMainCategory(json['mainCategory'] as String?),
+      subCategory: json['subCategory'] as String? ?? '',
+      priority: _parsePriority(json['priority'] as String?),
       estimatedPrice: (json['estimatedPrice'] as num?)?.toDouble() ?? 0,
       actualPrice: (json['actualPrice'] as num?)?.toDouble() ?? 0,
       isCompleted: json['isCompleted'] as bool? ?? false,
@@ -239,8 +281,26 @@ class PrepItem {
       completedDate: json['completedDate'] == null
           ? null
           : DateTime.parse(json['completedDate'] as String),
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
-    );
+      createdAt: json['createdAt'] == null
+          ? now
+          : DateTime.parse(json['createdAt'] as String),
+      updatedAt: json['updatedAt'] == null
+          ? now
+          : DateTime.parse(json['updatedAt'] as String),
+    ).sanitized();
   }
+}
+
+MainCategory _parseMainCategory(String? value) {
+  return MainCategory.values.firstWhere(
+    (category) => category.name == value,
+    orElse: () => MainCategory.ceyiz,
+  );
+}
+
+ItemPriority _parsePriority(String? value) {
+  return ItemPriority.values.firstWhere(
+    (priority) => priority.name == value,
+    orElse: () => ItemPriority.necessary,
+  );
 }

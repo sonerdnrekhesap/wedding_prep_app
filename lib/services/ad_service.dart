@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -24,21 +26,37 @@ class AdService {
 
   Future<void> initialize() async {
     if (kIsWeb) return;
-    await MobileAds.instance.initialize();
-    _loadInterstitial();
-    _loadRewarded();
+    try {
+      await MobileAds.instance.initialize();
+      _loadInterstitial();
+      _loadRewarded();
+    } catch (error, stackTrace) {
+      developer.log(
+        'AdMob initialization failed.',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   void _loadInterstitial() {
     if (kIsWeb || _isPremium) return;
-    InterstitialAd.load(
-      adUnitId: AdConfig.active.interstitialUnitId,
-      request: const AdRequest(),
-      adLoadCallback: InterstitialAdLoadCallback(
-        onAdLoaded: (ad) => _interstitialAd = ad,
-        onAdFailedToLoad: (_) => _interstitialAd = null,
-      ),
-    );
+    try {
+      InterstitialAd.load(
+        adUnitId: AdConfig.active.interstitialUnitId,
+        request: const AdRequest(),
+        adLoadCallback: InterstitialAdLoadCallback(
+          onAdLoaded: (ad) => _interstitialAd = ad,
+          onAdFailedToLoad: (_) => _interstitialAd = null,
+        ),
+      );
+    } catch (error, stackTrace) {
+      developer.log(
+        'Interstitial ad load failed.',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   void maybeShowCategoryInterstitial() {
@@ -70,14 +88,22 @@ class AdService {
 
   void _loadRewarded() {
     if (kIsWeb || _isPremium) return;
-    RewardedAd.load(
-      adUnitId: AdConfig.active.rewardedUnitId,
-      request: const AdRequest(),
-      rewardedAdLoadCallback: RewardedAdLoadCallback(
-        onAdLoaded: (ad) => _rewardedAd = ad,
-        onAdFailedToLoad: (_) => _rewardedAd = null,
-      ),
-    );
+    try {
+      RewardedAd.load(
+        adUnitId: AdConfig.active.rewardedUnitId,
+        request: const AdRequest(),
+        rewardedAdLoadCallback: RewardedAdLoadCallback(
+          onAdLoaded: (ad) => _rewardedAd = ad,
+          onAdFailedToLoad: (_) => _rewardedAd = null,
+        ),
+      );
+    } catch (error, stackTrace) {
+      developer.log(
+        'Rewarded ad load failed.',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   Future<bool> showRewardedForFeature() async {

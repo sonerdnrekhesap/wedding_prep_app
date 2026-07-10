@@ -66,7 +66,7 @@ class CalculationService {
 
   double budgetUsagePercent(AppSettings settings, List<PrepItem> items) {
     if (settings.targetBudget <= 0) return 0;
-    return (totalSpent(items) / settings.targetBudget).clamp(0, 1);
+    return (totalSpent(items) / settings.targetBudget).clamp(0, 1).toDouble();
   }
 
   double weightedPreparationScore(List<PrepItem> items) {
@@ -83,7 +83,7 @@ class CalculationService {
   }
 
   String scoreMessage(double score) {
-    if (score < 25) return 'Panik yok, birlikte toparlıyoruz';
+    if (score < 25) return 'Başlangıç aşamasındasın, sırayla ilerleyelim';
     if (score < 50) return 'Plan netleşiyor, sırayla gidelim';
     if (score < 75) return 'İyi gidiyorsun, kritiklere odaklanalım';
     if (score < 90) return 'Neredeyse hazır, eksikleri kapatıyoruz';

@@ -6,6 +6,9 @@ class AppSettings {
     this.groomName = '',
     this.isPremium = false,
     this.notificationsEnabled = false,
+    this.reminderHour = 20,
+    this.weeklySummaryEnabled = true,
+    this.paymentRemindersEnabled = true,
     this.hasCompletedOnboarding = false,
   });
 
@@ -15,6 +18,9 @@ class AppSettings {
   final String groomName;
   final bool isPremium;
   final bool notificationsEnabled;
+  final int reminderHour;
+  final bool weeklySummaryEnabled;
+  final bool paymentRemindersEnabled;
   final bool hasCompletedOnboarding;
 
   String get coupleNames {
@@ -29,6 +35,9 @@ class AppSettings {
     String? groomName,
     bool? isPremium,
     bool? notificationsEnabled,
+    int? reminderHour,
+    bool? weeklySummaryEnabled,
+    bool? paymentRemindersEnabled,
     bool? hasCompletedOnboarding,
     bool clearWeddingDate = false,
   }) {
@@ -39,8 +48,28 @@ class AppSettings {
       groomName: groomName ?? this.groomName,
       isPremium: isPremium ?? this.isPremium,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
+      reminderHour: reminderHour ?? this.reminderHour,
+      weeklySummaryEnabled:
+          weeklySummaryEnabled ?? this.weeklySummaryEnabled,
+      paymentRemindersEnabled:
+          paymentRemindersEnabled ?? this.paymentRemindersEnabled,
       hasCompletedOnboarding:
           hasCompletedOnboarding ?? this.hasCompletedOnboarding,
+    );
+  }
+
+  AppSettings sanitized() {
+    return AppSettings(
+      weddingDate: weddingDate,
+      targetBudget: targetBudget < 0 ? 0 : targetBudget,
+      brideName: brideName.trim(),
+      groomName: groomName.trim(),
+      isPremium: isPremium,
+      notificationsEnabled: notificationsEnabled,
+      reminderHour: reminderHour.clamp(0, 23).toInt(),
+      weeklySummaryEnabled: weeklySummaryEnabled,
+      paymentRemindersEnabled: paymentRemindersEnabled,
+      hasCompletedOnboarding: hasCompletedOnboarding,
     );
   }
 
@@ -51,6 +80,9 @@ class AppSettings {
         'groomName': groomName,
         'isPremium': isPremium,
         'notificationsEnabled': notificationsEnabled,
+        'reminderHour': reminderHour,
+        'weeklySummaryEnabled': weeklySummaryEnabled,
+        'paymentRemindersEnabled': paymentRemindersEnabled,
         'hasCompletedOnboarding': hasCompletedOnboarding,
       };
 
@@ -74,7 +106,11 @@ class AppSettings {
               : ''),
       isPremium: json['isPremium'] as bool? ?? false,
       notificationsEnabled: json['notificationsEnabled'] as bool? ?? false,
+      reminderHour: (json['reminderHour'] as num?)?.toInt() ?? 20,
+      weeklySummaryEnabled: json['weeklySummaryEnabled'] as bool? ?? true,
+      paymentRemindersEnabled:
+          json['paymentRemindersEnabled'] as bool? ?? true,
       hasCompletedOnboarding: json['hasCompletedOnboarding'] as bool? ?? false,
-    );
+    ).sanitized();
   }
 }
