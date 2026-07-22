@@ -1,11 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../main.dart';
+import '../models/guest_model.dart';
 import '../services/export_service.dart';
 import '../services/formatters.dart';
 import '../services/notification_service.dart';
+import '../services/share_file_service.dart';
 import 'paywall_page.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -80,7 +81,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           keyboardType: TextInputType.number,
                           maxLength: 2,
                           decoration: const InputDecoration(
-                            labelText: 'GÃƒÂ¼n',
+                            labelText: 'Gun',
                             counterText: '',
                           ),
                         ),
@@ -105,7 +106,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           keyboardType: TextInputType.number,
                           maxLength: 4,
                           decoration: const InputDecoration(
-                            labelText: 'YÃ„Â±l',
+                            labelText: 'Yil',
                             counterText: '',
                           ),
                         ),
@@ -116,20 +117,17 @@ class _SettingsPageState extends State<SettingsPage> {
                   TextField(
                     controller: budgetController,
                     keyboardType: TextInputType.number,
-                    decoration:
-                        const InputDecoration(labelText: 'Hedef bÃƒÂ¼tÃƒÂ§e'),
+                    decoration: const InputDecoration(labelText: 'Hedef butce'),
                   ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: brideNameController,
-                    decoration:
-                        const InputDecoration(labelText: 'Gelin adÃ„Â±'),
+                    decoration: const InputDecoration(labelText: 'Gelin adi'),
                   ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: groomNameController,
-                    decoration:
-                        const InputDecoration(labelText: 'Damat adÃ„Â±'),
+                    decoration: const InputDecoration(labelText: 'Damat adi'),
                   ),
                   const SizedBox(height: 14),
                   SizedBox(
@@ -141,7 +139,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text(
-                                'DÃƒÂ¼Ã„Å¸ÃƒÂ¼n tarihini gÃƒÂ¼n, ay, yÃ„Â±l olarak yaz.',
+                                'Dugun tarihini gun, ay, yil olarak yaz.',
                               ),
                             ),
                           );
@@ -219,35 +217,25 @@ class _SettingsPageState extends State<SettingsPage> {
           Card(
             child: ListTile(
               leading: const Icon(Icons.ios_share_outlined),
-              title: const Text('Davetli listesini CSV olarak paylaÃ…Å¸'),
+              title: const Text('Davetli listesini CSV olarak paylas'),
               subtitle: const Text(
-                  'Premium dÃ„Â±Ã…Å¸a aktarma altyapÃ„Â±sÃ„Â±nÃ„Â±n ilk adÃ„Â±mÃ„Â±.'),
-              onTap: () async {
-                if (!controller.settings.isPremium) {
-                  await Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const PaywallPage(source: 'export'),
-                    ),
-                  );
-                  return;
-                }
-                final csv = ExportService().buildGuestCsv(controller.guests);
-                await Share.share(csv, subject: 'Davetli listesi');
-              },
+                'Davetli listesini Excel uyumlu CSV dosyasi olarak disa aktar.',
+              ),
+              onTap: () => _shareGuestCsv(controller.guests),
             ),
           ),
           Card(
             child: ListTile(
               leading: const Icon(Icons.auto_awesome_outlined),
-              title: const Text('Demo verileri yÃƒÂ¼kle'),
+              title: const Text('Demo verileri yukle'),
               subtitle: const Text(
-                'MaÃ„Å¸aza ÃƒÂ¶ncesi sunum ve test iÃƒÂ§in ÃƒÂ¶rnek ÃƒÂ§ift, bÃƒÂ¼tÃƒÂ§e ve davetli verisi yÃƒÂ¼kler.',
+                'Magaza oncesi sunum ve test icin ornek cift, butce ve davetli verisi yukler.',
               ),
               onTap: () async {
                 await controller.loadDemoData();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Demo verileri yÃƒÂ¼klendi.')),
+                    const SnackBar(content: Text('Demo verileri yuklendi.')),
                   );
                 }
               },
@@ -258,7 +246,7 @@ class _SettingsPageState extends State<SettingsPage> {
               leading: Icon(Icons.privacy_tip_outlined),
               title: Text('Gizlilik'),
               subtitle: Text(
-                'Veriler ve seÃƒÂ§tiÃ„Å¸in fotoÃ„Å¸raflar cihazda saklanÃ„Â±r. Bulut yedekleme yoktur. FotoÃ„Å¸raf silersen uygulama iÃƒÂ§indeki dosya da silinir.',
+                'Veriler ve sectigin fotograflar cihazda saklanir. Bulut yedekleme yoktur. Fotograf silersen uygulama icindeki dosya da silinir.',
               ),
               isThreeLine: true,
             ),
@@ -266,32 +254,32 @@ class _SettingsPageState extends State<SettingsPage> {
           const Card(
             child: ListTile(
               leading: Icon(Icons.info_outline),
-              title: Text('Uygulama hakkÃ„Â±nda'),
+              title: Text('Uygulama hakkinda'),
               subtitle: Text(
-                'Ãƒâ€¡eyiz, dÃƒÂ¼Ã„Å¸ÃƒÂ¼n, bÃƒÂ¼tÃƒÂ§e ve davetli hazÃ„Â±rlÃ„Â±klarÃ„Â±nÃ„Â± offline takip eder.',
+                'Ceyiz, dugun, butce ve davetli hazirliklarini offline takip eder.',
               ),
             ),
           ),
           Card(
             child: ListTile(
               leading: const Icon(Icons.delete_forever_outlined),
-              title: const Text('Verileri sÃ„Â±fÃ„Â±rla'),
+              title: const Text('Verileri sifirla'),
               subtitle:
-                  const Text('TÃƒÂ¼m liste, davetli ve ayar verileri silinir.'),
+                  const Text('Tum liste, davetli ve ayar verileri silinir.'),
               onTap: () async {
                 final ok = await showDialog<bool>(
                   context: context,
                   builder: (context) => AlertDialog(
-                    title: const Text('Veriler sÃ„Â±fÃ„Â±rlansÃ„Â±n mÃ„Â±?'),
-                    content: const Text('Bu iÃ…Å¸lem geri alÃ„Â±namaz.'),
+                    title: const Text('Veriler sifirlansin mi?'),
+                    content: const Text('Bu islem geri alinamaz.'),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context, false),
-                        child: const Text('VazgeÃƒÂ§'),
+                        child: const Text('Vazgec'),
                       ),
                       FilledButton(
                         onPressed: () => Navigator.pop(context, true),
-                        child: const Text('SÃ„Â±fÃ„Â±rla'),
+                        child: const Text('Sifirla'),
                       ),
                     ],
                   ),
@@ -303,6 +291,23 @@ class _SettingsPageState extends State<SettingsPage> {
         ],
       ),
     );
+  }
+
+  Future<void> _shareGuestCsv(List<Guest> guests) async {
+    try {
+      final csv = ExportService().buildGuestCsv(guests);
+      await const ShareFileService().shareTextFile(
+        fileName: 'davetli-listesi.csv',
+        content: csv,
+        subject: 'Davetli listesi',
+        mimeType: 'text/csv',
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Davetli listesi paylasilamadi.')),
+      );
+    }
   }
 
   DateTime? _readDate() {
