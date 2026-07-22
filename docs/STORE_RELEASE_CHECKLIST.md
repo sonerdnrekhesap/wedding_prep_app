@@ -24,6 +24,7 @@
 - [ ] Bundle id final: `com.sonerdnrekhesap.hazirliktakibi`
 - [ ] Apple Developer signing configured on macOS/Xcode
 - [ ] iOS no-codesign build verified on macOS
+- [ ] App Store Connect IAP products created: `premium_monthly`, `premium_6months`, `premium_lifetime`
 - [x] Production AdMob iOS app id added to `Info.plist`
 - [x] Production AdMob iOS unit ids documented for `--dart-define`
 - [ ] Photo permission text reviewed
@@ -43,11 +44,13 @@
 - [ ] Reset all data
 - [ ] Offline usage
 - [ ] Release AAB installed on a real Android device
+- [ ] Play Console IAP products created and tested with license tester
+- [ ] Store purchase restore tested on iOS sandbox
 
 ## Current Known Gaps
 
 - AdMob apps are created but still require store linking/review after Play Store/App Store listings exist.
 - Production signing key is not in the repo.
-- Premium purchase is intentionally hidden in release until real purchase integration is ready.
+- Premium purchase skeleton is implemented; real store products and subscription validation are still pending.
 - Splash still uses template assets.
 - iOS build must be verified on macOS.

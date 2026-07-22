@@ -32,3 +32,17 @@ Detayli ID listesi: `docs/ADMOB_RELEASE_IDS.md`
 Premium mock satin alma release build'de gizlidir. Gercek premium icin RevenueCat veya `in_app_purchase` ile ayri entegrasyon gerekir.
 
 Premium olmayan kullaniciya reklam gosterilebilir; premium kullaniciya reklam gosterilmez.
+
+## Store Satin Alma
+
+`in_app_purchase` iskeleti eklendi.
+
+Urun ID'leri:
+
+- `premium_monthly`
+- `premium_6months`
+- `premium_lifetime`
+
+Detayli kurulum: `docs/STORE_PURCHASE_SETUP.md`
+
+Ilk release icin en dusuk riskli urun `premium_lifetime` non-consumable olarak acilmali. Aylik ve 6 aylik paketler abonelik/expiry dogrulamasi tamamlanmadan canli satis icin acilmamali.

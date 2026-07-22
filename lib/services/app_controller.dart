@@ -7,6 +7,7 @@ import '../models/item_model.dart';
 import 'ad_service.dart';
 import 'photo_storage_service.dart';
 import 'premium_service.dart';
+import 'purchase_store.dart';
 import 'storage_service.dart';
 
 class AppController extends ChangeNotifier {
@@ -20,8 +21,10 @@ class AppController extends ChangeNotifier {
   final PhotoStorageService photoStorage = const PhotoStorageService();
   final _uuid = const Uuid();
   late final PremiumService premium = PremiumService(storage: storage);
+  final PurchaseStore purchaseStore = PurchaseStore();
 
   bool isLoading = true;
+  PurchaseStoreState purchaseState = PurchaseStoreState.initial;
   AppSettings settings = const AppSettings();
   List<PrepItem> items = [];
   List<Guest> guests = [];
@@ -32,8 +35,21 @@ class AppController extends ChangeNotifier {
     items = await storage.loadItems();
     guests = await storage.loadGuests();
     ads.setPremium(settings.isPremium);
+    purchaseState = await purchaseStore.initialize(
+      onEntitlement: (_) => _activatePremiumFromStore(),
+      onState: (state) {
+        purchaseState = state;
+        notifyListeners();
+      },
+    );
     isLoading = false;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    purchaseStore.dispose();
+    super.dispose();
   }
 
   Future<void> saveSettings(AppSettings next) async {
@@ -164,7 +180,37 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> restorePurchases() async {
+    if (purchaseState.canPurchase) {
+      await purchaseStore.restore();
+      return;
+    }
     settings = await premium.restorePurchases(settings);
+    ads.setPremium(settings.isPremium);
+    notifyListeners();
+  }
+
+  Future<void> purchasePremium(PremiumProduct product) async {
+    final details = purchaseState.detailsFor(product);
+    if (details == null) {
+      purchaseState = purchaseState.copyWith(
+        message: 'Bu premium urun henuz store tarafinda aktif degil.',
+      );
+      notifyListeners();
+      return;
+    }
+
+    final started = await purchaseStore.buy(details);
+    if (!started) {
+      purchaseState = purchaseState.copyWith(
+        status: PurchaseStoreStatus.failed,
+        message: 'Satin alma baslatilamadi.',
+      );
+      notifyListeners();
+    }
+  }
+
+  Future<void> _activatePremiumFromStore() async {
+    settings = await premium.activateFromStore(settings);
     ads.setPremium(settings.isPremium);
     notifyListeners();
   }

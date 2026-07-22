@@ -15,6 +15,7 @@ class PaywallPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = AppScope.of(context);
     final theme = Theme.of(context);
+    final purchaseState = controller.purchaseState;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Premium')),
@@ -46,10 +47,21 @@ class PaywallPage extends StatelessWidget {
           for (final product in PremiumProduct.values) ...[
             _PlanCard(
               product: product,
-              enabled: !kReleaseMode,
+              priceLabel: purchaseState.detailsFor(product)?.price ??
+                  product.priceLabel,
+              enabled: !kReleaseMode ||
+                  (purchaseState.canPurchase &&
+                      purchaseState.detailsFor(product) != null),
               isActive: controller.settings.isPremium && !kReleaseMode,
               onTap: () async {
-                if (kReleaseMode) {
+                if (!kReleaseMode) {
+                  await controller.purchaseMockPremium(product);
+                  if (context.mounted) Navigator.pop(context);
+                  return;
+                }
+
+                if (!purchaseState.canPurchase ||
+                    purchaseState.detailsFor(product) == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text(
@@ -59,28 +71,28 @@ class PaywallPage extends StatelessWidget {
                   );
                   return;
                 }
-                await controller.purchaseMockPremium(product);
-                if (context.mounted) Navigator.pop(context);
+                await controller.purchasePremium(product);
               },
             ),
             const SizedBox(height: 10),
           ],
           const SizedBox(height: 4),
-          const _TrustStrip(isRelease: kReleaseMode),
+          _TrustStrip(
+            isRelease: kReleaseMode,
+            message: purchaseState.message,
+          ),
           const SizedBox(height: 12),
           OutlinedButton.icon(
-            onPressed: kReleaseMode
-                ? null
-                : () async {
-                    await controller.restorePurchases();
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Satin almalar kontrol edildi.'),
-                        ),
-                      );
-                    }
-                  },
+            onPressed: () async {
+              await controller.restorePurchases();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Satin almalar kontrol edildi.'),
+                  ),
+                );
+              }
+            },
             icon: const Icon(Icons.restore),
             label: const Text('Satin almalari geri yukle'),
           ),
@@ -192,12 +204,14 @@ class _HeroChip extends StatelessWidget {
 class _PlanCard extends StatelessWidget {
   const _PlanCard({
     required this.product,
+    required this.priceLabel,
     required this.enabled,
     required this.isActive,
     required this.onTap,
   });
 
   final PremiumProduct product;
+  final String priceLabel;
   final bool enabled;
   final bool isActive;
   final VoidCallback onTap;
@@ -253,7 +267,7 @@ class _PlanCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  product.priceLabel,
+                  priceLabel,
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w900,
@@ -280,7 +294,9 @@ class _PlanCard extends StatelessWidget {
                 onPressed: onTap,
                 icon: Icon(enabled ? Icons.lock_open : Icons.lock_clock),
                 label: Text(
-                  enabled ? 'Debug satin al' : 'Store onayi sonrasi acilacak',
+                  enabled
+                      ? (kReleaseMode ? 'Premium al' : 'Debug satin al')
+                      : 'Store onayi sonrasi acilacak',
                 ),
               ),
             ),
@@ -318,9 +334,13 @@ class _Badge extends StatelessWidget {
 }
 
 class _TrustStrip extends StatelessWidget {
-  const _TrustStrip({required this.isRelease});
+  const _TrustStrip({
+    required this.isRelease,
+    required this.message,
+  });
 
   final bool isRelease;
+  final String message;
 
   @override
   Widget build(BuildContext context) {
@@ -333,9 +353,11 @@ class _TrustStrip extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                isRelease
-                    ? 'Gercek satin alma, App Store ve Play Store urunleri baglandiktan sonra acilacak.'
-                    : 'Debug modda satin alma mock calisir; release modda sahte satis yapilmaz.',
+                message.isNotEmpty
+                    ? message
+                    : isRelease
+                        ? 'Gercek satin alma, App Store ve Play Store urunleri baglandiktan sonra acilacak.'
+                        : 'Debug modda satin alma mock calisir; release modda sahte satis yapilmaz.',
                 style: const TextStyle(
                   color: AppColors.muted,
                   fontWeight: FontWeight.w700,

@@ -13,6 +13,17 @@ void main() {
       expect(PremiumCatalog.recommended.id, 'premium_6months');
     });
 
+    test('exposes product ids for store setup', () {
+      expect(
+        PremiumCatalog.productIds,
+        {
+          'premium_monthly',
+          'premium_6months',
+          'premium_lifetime',
+        },
+      );
+    });
+
     test('keeps free value separate from premium value', () {
       expect(PremiumCatalog.freeKeeps, isNotEmpty);
       expect(PremiumCatalog.premiumBenefits, contains('Reklamsiz planlama'));

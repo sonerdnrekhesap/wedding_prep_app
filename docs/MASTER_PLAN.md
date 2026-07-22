@@ -29,6 +29,8 @@ Ek urun/premium notu:
 - Android ve iOS native launch ekranlari marka rengi ve merkez marka isaretiyle guncellendi.
 - Premium katalogu urun ID, fiyat etiketi, onerilen paket ve fayda listesi tasiyacak sekilde guclendirildi.
 - Paywall ekrani free value, premium value, plan kartlari ve store-onayi guven metniyle yeniden tasarlandi.
+- `in_app_purchase` tabanli satin alma iskeleti eklendi.
+- Store urun kurulum notlari `docs/STORE_PURCHASE_SETUP.md` dosyasina eklendi.
 
 Tamamlananlar:
 

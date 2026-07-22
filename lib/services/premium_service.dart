@@ -73,6 +73,10 @@ class PremiumCatalog {
         (product) => product.isRecommended,
         orElse: () => PremiumProduct.sixMonths,
       );
+
+  static Set<String> get productIds => {
+        for (final product in PremiumProduct.values) product.id,
+      };
 }
 
 class PremiumService {
@@ -92,6 +96,12 @@ class PremiumService {
   Future<AppSettings> restorePurchases(AppSettings settings) async {
     await storage.saveSettings(settings);
     return settings;
+  }
+
+  Future<AppSettings> activateFromStore(AppSettings settings) async {
+    final next = settings.copyWith(isPremium: true);
+    await storage.saveSettings(next);
+    return next;
   }
 
   Future<AppSettings> disableMockPremium(AppSettings settings) async {
