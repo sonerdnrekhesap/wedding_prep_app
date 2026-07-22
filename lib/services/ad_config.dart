@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class AdConfig {
   const AdConfig({
     required this.bannerUnitId,
@@ -15,8 +17,18 @@ class AdConfig {
     rewardedUnitId: 'ca-app-pub-3940256099942544/5224354917',
   );
 
-  // Release öncesi gerçek AdMob ID'leri burada test ID'leriyle değiştirilecek.
-  static const production = test;
+  static const production = AdConfig(
+    bannerUnitId: String.fromEnvironment('ADMOB_BANNER_UNIT_ID'),
+    interstitialUnitId: String.fromEnvironment('ADMOB_INTERSTITIAL_UNIT_ID'),
+    rewardedUnitId: String.fromEnvironment('ADMOB_REWARDED_UNIT_ID'),
+  );
 
-  static const active = test;
+  static AdConfig get active => kReleaseMode ? production : test;
+
+  static bool get canRequestAds {
+    final config = active;
+    return config.bannerUnitId.isNotEmpty &&
+        config.interstitialUnitId.isNotEmpty &&
+        config.rewardedUnitId.isNotEmpty;
+  }
 }

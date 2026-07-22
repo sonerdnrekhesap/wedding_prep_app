@@ -349,3 +349,32 @@ Yayina cikmadan once hepsi evet olmali:
 - En az 5 screenshot hazir.
 - Cihazda manuel QA tamam.
 - Reset/export/fotoğraf/davetli/checklist akislari calisiyor.
+
+## 22 Temmuz 2026 Ek Ilerleme
+
+Tamamlananlar:
+
+- Rakip analizinde one cikan "smart checklist / this week / next best action" yaklasimi MVP'ye uyarlandi.
+- `WeeklyPlanAction` motoru eklendi; tarih, kritik eksikler, pahali kalemler, butce riski ve davetli belirsizligi uzerinden haftalik plan uretiyor.
+- Ana ekrana `Bu haftanin plani` girisi eklendi.
+- `Bu Haftanin Plani` sayfasi eklendi.
+- Onboarding daha net deger vaadiyle yenilendi.
+- Ana ekran, oncelik ekrani, settings ve temel etiketlerde bozuk karakterler temizlendi.
+- Haftalik plan icin unit testler eklendi.
+- AdMob unit id yapisi `--dart-define` destekli hale getirildi.
+- Release build'de AdMob unit id'ler bos kalirsa reklam request'i atilmaz.
+
+Production AdMob build ornegi:
+
+```bash
+flutter build appbundle \
+  --dart-define=ADMOB_BANNER_UNIT_ID=... \
+  --dart-define=ADMOB_INTERSTITIAL_UNIT_ID=... \
+  --dart-define=ADMOB_REWARDED_UNIT_ID=...
+```
+
+Halen gerekenler:
+
+- Native Android/iOS AdMob app id placeholder'lari gercek AdMob app id ile degistirilmeli.
+- Production signing key kurulumu tamamlanmali.
+- App icon ve splash template olmaktan cikarilmali.

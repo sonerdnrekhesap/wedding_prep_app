@@ -23,14 +23,14 @@ class AdService {
   }
 
   Future<void> initialize() async {
-    if (kIsWeb) return;
+    if (kIsWeb || !AdConfig.canRequestAds) return;
     await MobileAds.instance.initialize();
     _loadInterstitial();
     _loadRewarded();
   }
 
   void _loadInterstitial() {
-    if (kIsWeb || _isPremium) return;
+    if (kIsWeb || _isPremium || !AdConfig.canRequestAds) return;
     InterstitialAd.load(
       adUnitId: AdConfig.active.interstitialUnitId,
       request: const AdRequest(),
@@ -42,7 +42,7 @@ class AdService {
   }
 
   void maybeShowCategoryInterstitial() {
-    if (kIsWeb || _isPremium) return;
+    if (kIsWeb || _isPremium || !AdConfig.canRequestAds) return;
     _categoryOpenCount += 1;
     if (_categoryOpenCount % 3 != 0) return;
     final now = DateTime.now();
@@ -69,7 +69,7 @@ class AdService {
   }
 
   void _loadRewarded() {
-    if (kIsWeb || _isPremium) return;
+    if (kIsWeb || _isPremium || !AdConfig.canRequestAds) return;
     RewardedAd.load(
       adUnitId: AdConfig.active.rewardedUnitId,
       request: const AdRequest(),
@@ -81,7 +81,7 @@ class AdService {
   }
 
   Future<bool> showRewardedForFeature() async {
-    if (kIsWeb || _isPremium) return false;
+    if (kIsWeb || _isPremium || !AdConfig.canRequestAds) return false;
     final ad = _rewardedAd;
     if (ad == null) {
       _loadRewarded();

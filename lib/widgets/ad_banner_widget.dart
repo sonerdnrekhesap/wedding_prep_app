@@ -19,7 +19,7 @@ class _AdBannerWidgetState extends State<AdBannerWidget> {
   @override
   void initState() {
     super.initState();
-    if (kIsWeb) return;
+    if (kIsWeb || !AdConfig.canRequestAds) return;
     _ad = BannerAd(
       adUnitId: AdConfig.active.bannerUnitId,
       request: const AdRequest(),
@@ -40,7 +40,9 @@ class _AdBannerWidgetState extends State<AdBannerWidget> {
   @override
   Widget build(BuildContext context) {
     if (AppScope.of(context).settings.isPremium) return const SizedBox.shrink();
-    if (kIsWeb || !_loaded || _ad == null) return const SizedBox.shrink();
+    if (kIsWeb || !AdConfig.canRequestAds || !_loaded || _ad == null) {
+      return const SizedBox.shrink();
+    }
     return SafeArea(
       top: false,
       child: SizedBox(
