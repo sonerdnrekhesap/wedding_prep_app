@@ -4,8 +4,8 @@ enum GuestStatus { uncertain, coming, notComing }
 
 extension GuestSideText on GuestSide {
   String get label => switch (this) {
-        GuestSide.bride => 'Gelin tarafÄ±',
-        GuestSide.groom => 'Damat tarafÄ±',
+        GuestSide.bride => 'Gelin tarafi',
+        GuestSide.groom => 'Damat tarafi',
         GuestSide.common => 'Ortak',
       };
 }

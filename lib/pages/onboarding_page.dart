@@ -50,15 +50,21 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 children: [
                   const _IntroPage(
                     icon: Icons.event_available_outlined,
-                    title: 'Düğüne kalan günü takip et',
+                    title: 'Dugune kadar tek plan',
                     message:
-                        'Tarih yaklaştıkça ne durumda olduğunu tek bakışta gör.',
+                        'Kalan gunu, eksikleri, butceyi ve davetlileri ayni yerde takip et.',
                   ),
                   const _IntroPage(
-                    icon: Icons.checklist_rtl,
-                    title: 'Çeyiz ve düğün eksiklerini tamamla',
+                    icon: Icons.auto_awesome_outlined,
+                    title: 'Bu hafta ne yapacagini gor',
                     message:
-                        'Çeyiz, bohça, söz, nişan, kına, düğün ve balayı listeleri düzenli kalsın.',
+                        'Oncelikli ceyiz ve dugun kalemleri siralanir; panik yerine net adimlar gorursun.',
+                  ),
+                  const _IntroPage(
+                    icon: Icons.groups_outlined,
+                    title: 'Davetli ve harcama kontrolu',
+                    message:
+                        'Kim geliyor, ne kadar harcandi, hangi liste eksik kaldi tek bakista anlasilir.',
                   ),
                   _SetupPage(
                     dayController: dayController,
@@ -76,7 +82,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
               padding: const EdgeInsets.all(AppSpacing.lg),
               child: Row(
                 children: [
-                  for (var i = 0; i < 3; i += 1)
+                  for (var i = 0; i < 4; i += 1)
                     AnimatedContainer(
                       duration: 250.ms,
                       width: page == i ? 28 : 8,
@@ -88,7 +94,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       ),
                     ),
                   const Spacer(),
-                  if (page < 2)
+                  if (page < 3)
                     FilledButton(
                       onPressed: () => pageController.nextPage(
                         duration: 320.ms,
@@ -110,7 +116,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     if (weddingDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Düğün tarihini gün, ay, yıl olarak yaz.'),
+          content: Text('Dugun tarihini gun, ay, yil olarak yaz.'),
         ),
       );
       return;
@@ -206,7 +212,7 @@ class _SetupPage extends StatelessWidget {
         const SafeLottiePlaceholder(icon: Icons.favorite_border, size: 96),
         const SizedBox(height: AppSpacing.lg),
         Text(
-          'Bilgileri yaz, hazırlığa başlayalım',
+          'Bilgileri yaz, plani kuralim',
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w900,
               ),
@@ -220,7 +226,7 @@ class _SetupPage extends StatelessWidget {
                 keyboardType: TextInputType.number,
                 maxLength: 2,
                 decoration:
-                    const InputDecoration(labelText: 'Gün', counterText: ''),
+                    const InputDecoration(labelText: 'Gun', counterText: ''),
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
@@ -241,7 +247,7 @@ class _SetupPage extends StatelessWidget {
                 keyboardType: TextInputType.number,
                 maxLength: 4,
                 decoration:
-                    const InputDecoration(labelText: 'Yıl', counterText: ''),
+                    const InputDecoration(labelText: 'Yil', counterText: ''),
               ),
             ),
           ],
@@ -251,7 +257,7 @@ class _SetupPage extends StatelessWidget {
           controller: budgetController,
           keyboardType: TextInputType.number,
           decoration: const InputDecoration(
-            labelText: 'Toplam hedef bütçe',
+            labelText: 'Toplam hedef butce',
             prefixIcon: Icon(Icons.account_balance_wallet_outlined),
           ),
         ),
@@ -259,7 +265,7 @@ class _SetupPage extends StatelessWidget {
         TextField(
           controller: brideNameController,
           decoration: const InputDecoration(
-            labelText: 'Gelin adı',
+            labelText: 'Gelin adi',
             prefixIcon: Icon(Icons.favorite_border),
           ),
         ),
@@ -267,7 +273,7 @@ class _SetupPage extends StatelessWidget {
         TextField(
           controller: groomNameController,
           decoration: const InputDecoration(
-            labelText: 'Damat adı',
+            labelText: 'Damat adi',
             prefixIcon: Icon(Icons.person_outline),
           ),
         ),
@@ -275,7 +281,7 @@ class _SetupPage extends StatelessWidget {
         FilledButton.icon(
           onPressed: onSave,
           icon: const Icon(Icons.check),
-          label: const Text('Kaydet ve başla'),
+          label: const Text('Kaydet ve basla'),
         ),
       ].animate(interval: 55.ms).fadeIn(duration: 320.ms).slideY(begin: 0.06),
     );

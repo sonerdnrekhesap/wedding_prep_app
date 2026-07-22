@@ -51,7 +51,7 @@ class _WeddingPrepAppState extends State<WeddingPrepApp> {
           GlobalCupertinoLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
         ],
-        title: 'Hazırlık Takibi',
+        title: 'Hazirlik Takibi',
         theme: AppTheme.light(),
         home: AnimatedBuilder(
           animation: controller,
@@ -81,7 +81,7 @@ class AppScope extends InheritedNotifier<AppController> {
 
   static AppController of(BuildContext context) {
     final scope = context.dependOnInheritedWidgetOfExactType<AppScope>();
-    assert(scope != null, 'AppScope bulunamadı');
+    assert(scope != null, 'AppScope bulunamadi');
     return scope!.notifier!;
   }
 }
@@ -125,12 +125,12 @@ class _MainShellState extends State<MainShell> {
           NavigationDestination(
             icon: Icon(Icons.account_balance_wallet_outlined),
             selectedIcon: Icon(Icons.account_balance_wallet),
-            label: 'Bütçe',
+            label: 'Butce',
           ),
           NavigationDestination(
             icon: Icon(Icons.auto_awesome_outlined),
             selectedIcon: Icon(Icons.auto_awesome),
-            label: 'Özet',
+            label: 'Ozet',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_outlined),

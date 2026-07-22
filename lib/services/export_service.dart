@@ -5,7 +5,7 @@ import 'formatters.dart';
 class ExportService {
   String buildGuestCsv(List<Guest> guests) {
     final rows = [
-      ['Ad', 'Telefon', 'Taraf', 'Kişi', 'Durum', 'Not'],
+      ['Ad', 'Telefon', 'Taraf', 'Kisi', 'Durum', 'Not'],
       for (final guest in guests)
         [
           guest.name,
@@ -20,7 +20,7 @@ class ExportService {
   }
 
   String buildPrepListText(List<PrepItem> items) {
-    final buffer = StringBuffer('Hazırlık listesi\n\n');
+    final buffer = StringBuffer('Hazirlik listesi\n\n');
     for (final category in MainCategory.values) {
       final categoryItems =
           items.where((item) => item.mainCategory == category).toList();
@@ -40,7 +40,9 @@ class ExportService {
     final spent = items.fold<double>(0, (sum, item) => sum + item.actualPrice);
     final estimated =
         items.fold<double>(0, (sum, item) => sum + item.estimatedPrice);
-    return 'Harcama özeti\nToplam harcama: ${money(spent)}\nTahmini ihtiyaç: ${money(estimated)}';
+    return 'Harcama ozeti\n'
+        'Toplam harcama: ${money(spent)}\n'
+        'Tahmini ihtiyac: ${money(estimated)}';
   }
 
   String _csvCell(String value) {

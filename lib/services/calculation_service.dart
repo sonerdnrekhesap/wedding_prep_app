@@ -1,6 +1,32 @@
 import '../models/app_settings_model.dart';
 import '../models/guest_model.dart';
 import '../models/item_model.dart';
+import 'formatters.dart';
+
+enum WeeklyPlanActionType {
+  completeItem,
+  reviewBudget,
+  addGuests,
+  confirmGuests,
+  updateWeddingDate,
+  reviewPhotos,
+}
+
+class WeeklyPlanAction {
+  const WeeklyPlanAction({
+    required this.type,
+    required this.title,
+    required this.subtitle,
+    required this.urgency,
+    this.item,
+  });
+
+  final WeeklyPlanActionType type;
+  final String title;
+  final String subtitle;
+  final int urgency;
+  final PrepItem? item;
+}
 
 class CategoryStats {
   const CategoryStats({
@@ -83,11 +109,11 @@ class CalculationService {
   }
 
   String scoreMessage(double score) {
-    if (score < 25) return 'Panik yok, birlikte toparlıyoruz';
-    if (score < 50) return 'Plan netleşiyor, sırayla gidelim';
-    if (score < 75) return 'İyi gidiyorsun, kritiklere odaklanalım';
-    if (score < 90) return 'Neredeyse hazır, eksikleri kapatıyoruz';
-    return 'Harika, hazırlık büyük ölçüde tamam';
+    if (score < 25) return 'Panik yok, birlikte toparliyoruz';
+    if (score < 50) return 'Plan netlesiyor, sirayla gidelim';
+    if (score < 75) return 'Iyi gidiyorsun, kritiklere odaklanalim';
+    if (score < 90) return 'Neredeyse hazir, eksikleri kapatiyoruz';
+    return 'Harika, hazirlik buyuk olcude tamam';
   }
 
   Map<MainCategory, CategoryStats> categoryStats(List<PrepItem> items) {
@@ -139,6 +165,103 @@ class CalculationService {
         return b.estimatedPrice.compareTo(a.estimatedPrice);
       });
     return sorted.take(limit).toList();
+  }
+
+  List<WeeklyPlanAction> weeklyPlanActions(
+    AppSettings settings,
+    List<PrepItem> items,
+    List<Guest> guests, {
+    int limit = 6,
+  }) {
+    final days = daysUntilWedding(settings);
+    final actions = <WeeklyPlanAction>[];
+    final missingCritical = missingMustHaveItems(items);
+    final missingHighEstimate = missingHighEstimateItems(items, limit: 2);
+    final guestSummary = guestStats(guests);
+    final budgetUsage = budgetUsagePercent(settings, items);
+    final spent = totalSpent(items);
+    final remaining = remainingBudget(settings, items);
+
+    if (days == null) {
+      actions.add(const WeeklyPlanAction(
+        type: WeeklyPlanActionType.updateWeddingDate,
+        title: 'Dugun tarihini netlestir',
+        subtitle: 'Tarihe gore haftalik plan ve oncelikler daha akilli olur.',
+        urgency: 100,
+      ));
+    } else if (days <= 30 && missingCritical.isNotEmpty) {
+      actions.add(WeeklyPlanAction(
+        type: WeeklyPlanActionType.completeItem,
+        title: 'Son 30 gun kritiklerini kapat',
+        subtitle: '${missingCritical.length} olmazsa olmaz kalem bekliyor.',
+        urgency: 96,
+        item: missingCritical.first,
+      ));
+    }
+
+    for (final item in missingCritical.take(3)) {
+      actions.add(WeeklyPlanAction(
+        type: WeeklyPlanActionType.completeItem,
+        title: item.title,
+        subtitle: '${item.mainCategory.label} / ${item.subCategory}',
+        urgency: 90 - item.priority.sortOrder,
+        item: item,
+      ));
+    }
+
+    for (final item in missingHighEstimate) {
+      if (missingCritical.any((critical) => critical.id == item.id)) continue;
+      actions.add(WeeklyPlanAction(
+        type: WeeklyPlanActionType.completeItem,
+        title: item.title,
+        subtitle: 'Fiyat yuksek olabilir: ${item.subCategory}',
+        urgency: 72,
+        item: item,
+      ));
+    }
+
+    if (settings.targetBudget <= 0) {
+      actions.add(const WeeklyPlanAction(
+        type: WeeklyPlanActionType.reviewBudget,
+        title: 'Hedef butce ekle',
+        subtitle: 'Harcamalari anlamli takip etmek icin bir ust limit belirle.',
+        urgency: 74,
+      ));
+    } else if (budgetUsage >= 0.85 || remaining < 0) {
+      actions.add(WeeklyPlanAction(
+        type: WeeklyPlanActionType.reviewBudget,
+        title: remaining < 0
+            ? 'Butce asimini kontrol et'
+            : 'Butce sinirina yaklastin',
+        subtitle: 'Su ana kadar ${money(spent)} harcandi.',
+        urgency: 82,
+      ));
+    }
+
+    if (guests.isEmpty) {
+      actions.add(const WeeklyPlanAction(
+        type: WeeklyPlanActionType.addGuests,
+        title: 'Ilk davetli listesini olustur',
+        subtitle: 'Kisi sayisi butce ve masa planini dogrudan etkiler.',
+        urgency: 70,
+      ));
+    } else if (guestSummary.unsurePeople > 0) {
+      actions.add(WeeklyPlanAction(
+        type: WeeklyPlanActionType.confirmGuests,
+        title: 'Belirsiz davetlileri netlestir',
+        subtitle: '${guestSummary.unsurePeople} kisi icin cevap bekleniyor.',
+        urgency: days != null && days < 45 ? 86 : 64,
+      ));
+    }
+
+    actions.sort((a, b) => b.urgency.compareTo(a.urgency));
+
+    final seen = <String>{};
+    return [
+      for (final action in actions)
+        if (seen.add('${action.type.name}:${action.item?.id ?? action.title}'))
+          action,
+    ].take(limit).toList();
   }
 
   MainCategory? topSpentCategory(List<PrepItem> items) {

@@ -17,13 +17,13 @@ enum ItemPriority {
 
 extension MainCategoryText on MainCategory {
   String get label => switch (this) {
-        MainCategory.ceyiz => 'Ã‡eyiz',
-        MainCategory.bohca => 'BohÃ§a',
-        MainCategory.soz => 'SÃ¶z',
-        MainCategory.nisan => 'NiÅŸan',
-        MainCategory.kina => 'KÄ±na',
-        MainCategory.dugun => 'DÃ¼ÄŸÃ¼n',
-        MainCategory.balayi => 'BalayÄ±',
+        MainCategory.ceyiz => 'Ceyiz',
+        MainCategory.bohca => 'Bohca',
+        MainCategory.soz => 'Soz',
+        MainCategory.nisan => 'Nisan',
+        MainCategory.kina => 'Kina',
+        MainCategory.dugun => 'Dugun',
+        MainCategory.balayi => 'Balayi',
       };
 }
 
@@ -31,8 +31,8 @@ extension ItemPriorityText on ItemPriority {
   String get label => switch (this) {
         ItemPriority.mustHave => 'Olmazsa Olmaz',
         ItemPriority.necessary => 'Gerekli',
-        ItemPriority.later => 'Sonra AlÄ±nabilir',
-        ItemPriority.luxury => 'LÃ¼ks',
+        ItemPriority.later => 'Sonra Alinabilir',
+        ItemPriority.luxury => 'Luks',
       };
 
   double get weight => switch (this) {

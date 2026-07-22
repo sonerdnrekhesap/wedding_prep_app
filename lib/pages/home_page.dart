@@ -15,6 +15,7 @@ import 'budget_page.dart';
 import 'guest_list_page.dart';
 import 'item_list_page.dart';
 import 'priority_page.dart';
+import 'weekly_plan_page.dart';
 import 'wrapped_summary_page.dart';
 
 class HomePage extends StatelessWidget {
@@ -28,8 +29,15 @@ class HomePage extends StatelessWidget {
     final score = calc.weightedPreparationScore(controller.items);
     final stats = calc.categoryStats(controller.items);
     final missingMustHave = calc.missingMustHaveItems(controller.items);
-    final todayItems = calc.nextActionItems(controller.items);
+    final weeklyActions = calc.weeklyPlanActions(
+      controller.settings,
+      controller.items,
+      controller.guests,
+      limit: 3,
+    );
     final totalSpent = calc.totalSpent(controller.items);
+    final remainingBudget =
+        calc.remainingBudget(controller.settings, controller.items);
 
     final children = <Widget>[
       HomeHeroCard(
@@ -39,7 +47,7 @@ class HomePage extends StatelessWidget {
       ),
       const SizedBox(height: 14),
       ProgressCard(
-        title: 'Hazırlık durumun',
+        title: 'Hazirlik durumun',
         subtitle: calc.scoreMessage(score),
         progress: score / 100,
         trailing: '%${score.round()} tamam',
@@ -71,14 +79,13 @@ class HomePage extends StatelessWidget {
             icon: Icons.payments_outlined,
           ),
           SummaryCard(
-            title: 'Kalan bütçe',
-            value: money(
-                calc.remainingBudget(controller.settings, controller.items)),
+            title: 'Kalan butce',
+            value: money(remainingBudget),
             icon: Icons.savings_outlined,
             tint: AppColors.mint,
           ),
           SummaryCard(
-            title: 'Eksik ürün',
+            title: 'Eksik urun',
             value: '${calc.missingItems(controller.items)}',
             icon: Icons.pending_actions_outlined,
             tint: AppColors.roseDeep,
@@ -86,47 +93,37 @@ class HomePage extends StatelessWidget {
         ],
       ),
       const SizedBox(height: 16),
-      PriorityActionCard(
-        title: 'Bugün bunlara bak',
-        subtitle: todayItems.isEmpty
-            ? 'Şimdilik kritik eksik görünmüyor. Güzel gidiyorsun.'
-            : todayItems.take(3).map((item) => item.title).join(' · '),
-        icon: Icons.today_outlined,
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const PriorityPage()),
-        ),
-      ),
+      _WeeklyPlanPreview(actions: weeklyActions),
       const SizedBox(height: 10),
       PriorityActionCard(
-        title: 'Listeyi paylaş',
-        subtitle: 'Ailene veya nişanlına özet kartı ücretsiz gönder.',
-        icon: Icons.ios_share,
-        onTap: () => Share.share(_shareHomeText(days, score, totalSpent)),
-      ),
-      const SizedBox(height: 18),
-      _SectionTitle(
-        title: 'Kontrol noktaları',
-        actionLabel: 'Özet',
-        onAction: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const WrappedSummaryPage()),
-        ),
-      ),
-      const SizedBox(height: 10),
-      ProgressCard(
-        title: 'Neyi önce almalıyım?',
-        subtitle: 'Olmazsa olmazlar ve gerekli ürünler önde.',
-        progress: controller.items.isEmpty
-            ? 0
-            : 1 - (missingMustHave.length / controller.items.length),
+        title: 'Once ne almaliyim?',
+        subtitle: 'Olmazsa olmazlar ve yuksek maliyetli eksikler sirada.',
         icon: Icons.route_outlined,
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => const PriorityPage()),
         ),
       ),
       const SizedBox(height: 10),
+      PriorityActionCard(
+        title: 'Listeyi paylas',
+        subtitle: 'Ailene veya nisanlina hazirlik ozetini gonder.',
+        icon: Icons.ios_share,
+        onTap: () => Share.share(_shareHomeText(days, score, totalSpent)),
+      ),
+      const SizedBox(height: 18),
+      _SectionTitle(
+        title: 'Kontrol noktalari',
+        actionLabel: 'Ozet',
+        onAction: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const WrappedSummaryPage()),
+        ),
+      ),
+      const SizedBox(height: 10),
       ProgressCard(
-        title: 'Bütçe ve harcama',
-        subtitle: 'Ne kadar harcadığını ve pahalı kalemleri gör.',
+        title: 'Butce ve harcama',
+        subtitle: remainingBudget < 0
+            ? 'Hedef butce asildi. Pahali kalemleri kontrol et.'
+            : 'Ne kadar harcadigini ve kalan butceni gor.',
         progress:
             calc.budgetUsagePercent(controller.settings, controller.items),
         icon: Icons.account_balance_wallet_outlined,
@@ -137,7 +134,7 @@ class HomePage extends StatelessWidget {
       const SizedBox(height: 10),
       ProgressCard(
         title: 'Davetliler',
-        subtitle: 'Gelecek, gelmeyecek ve belirsiz kişi sayıları.',
+        subtitle: 'Gelecek, gelmeyecek ve belirsiz kisi sayilari.',
         progress: controller.guests.isEmpty ? 0 : 1,
         icon: Icons.groups_outlined,
         onTap: () => Navigator.of(context).push(
@@ -151,7 +148,7 @@ class HomePage extends StatelessWidget {
         ProgressCard(
           title: category.label,
           subtitle:
-              '${stats[category]!.completed}/${stats[category]!.total} tamamlandı',
+              '${stats[category]!.completed}/${stats[category]!.total} tamamlandi',
           progress: stats[category]!.progress,
           icon: _iconFor(category),
           onTap: () => Navigator.of(context).push(
@@ -163,7 +160,7 @@ class HomePage extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Hazırlık Asistanı')),
+      appBar: AppBar(title: const Text('Hazirlik Asistani')),
       bottomNavigationBar: const AdBannerWidget(),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -179,19 +176,19 @@ class HomePage extends StatelessWidget {
   }
 
   String _heroMessage(int? days) {
-    if (days == null) return 'Tarihi ekleyelim, planı sakin sakin kuralım';
-    if (days < 0) return 'Düğün tarihi geçti, anıları toparlama zamanı';
-    if (days == 0) return 'Bugün büyük gün. Her şey yolunda.';
-    return 'Düğüne $days gün kaldı';
+    if (days == null) return 'Tarihi ekleyelim, plani sakin sakin kuralim';
+    if (days < 0) return 'Dugun tarihi gecti, anilari toparlama zamani';
+    if (days == 0) return 'Bugun buyuk gun. Her sey yolunda.';
+    return 'Dugune $days gun kaldi';
   }
 
   String _shareHomeText(int? days, double score, double spent) {
     return [
-      if (days != null) 'Düğünüme $days gün kaldı 🎉',
-      'Hazırlığım %${score.round()} tamamlandı.',
+      if (days != null) 'Dugunume $days gun kaldi.',
+      'Hazirligim %${score.round()} tamamlandi.',
       'Toplam harcama: ${money(spent)}',
-      'Panik yok, listeyi birlikte toparlıyoruz.',
-      'Hazırlık kartım — Hazırlık Takibi',
+      'Panik yok, listeyi birlikte toparliyoruz.',
+      'Hazirlik kartim - Hazirlik Takibi',
     ].join('\n');
   }
 
@@ -204,6 +201,28 @@ class HomePage extends StatelessWidget {
         MainCategory.dugun => Icons.favorite_border,
         MainCategory.balayi => Icons.flight_takeoff_outlined,
       };
+}
+
+class _WeeklyPlanPreview extends StatelessWidget {
+  const _WeeklyPlanPreview({required this.actions});
+
+  final List<WeeklyPlanAction> actions;
+
+  @override
+  Widget build(BuildContext context) {
+    final subtitle = actions.isEmpty
+        ? 'Kritik bir is yok. Haftalik kontrol icin yine de plana bak.'
+        : actions.map((action) => action.title).join(' / ');
+
+    return PriorityActionCard(
+      title: 'Bu haftanin plani',
+      subtitle: subtitle,
+      icon: Icons.calendar_month_outlined,
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const WeeklyPlanPage()),
+      ),
+    );
+  }
 }
 
 class _SectionTitle extends StatelessWidget {
