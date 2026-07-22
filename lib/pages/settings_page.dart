@@ -168,6 +168,23 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
           ),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.workspace_premium_outlined),
+              title: const Text('Premium plan'),
+              subtitle: Text(
+                controller.settings.isPremium
+                    ? 'Premium aktif: reklamlar kapali ve premium kilitleri acik.'
+                    : 'Reklamsiz kullanim, akilli plan ve export paketlerini incele.',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const PaywallPage(source: 'settings'),
+                ),
+              ),
+            ),
+          ),
           if (!kReleaseMode)
             Card(
               child: SwitchListTile(

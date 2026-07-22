@@ -22,6 +22,14 @@ Ek AdMob tamamlama notu:
 - AdMob ID listesi `docs/ADMOB_RELEASE_IDS.md` dosyasina eklendi.
 - Son `flutter analyze` temiz; `flutter test` 10 testle temiz; Android AAB gercek Android AdMob unit ID'leriyle uretildi.
 
+Ek urun/premium notu:
+
+- Rakip urun desenleri `docs/COMPETITOR_PRODUCT_NOTES.md` dosyasina eklendi.
+- Flutter acilis animasyonu eklendi.
+- Android ve iOS native launch ekranlari marka rengi ve merkez marka isaretiyle guncellendi.
+- Premium katalogu urun ID, fiyat etiketi, onerilen paket ve fayda listesi tasiyacak sekilde guclendirildi.
+- Paywall ekrani free value, premium value, plan kartlari ve store-onayi guven metniyle yeniden tasarlandi.
+
 Tamamlananlar:
 
 - Android ve iOS platform klasorleri olusturuldu.

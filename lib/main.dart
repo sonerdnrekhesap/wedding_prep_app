@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'pages/app_launch_splash.dart';
 import 'pages/home_page.dart';
 import 'pages/list_modules_page.dart';
 import 'pages/onboarding_page.dart';
@@ -57,9 +58,7 @@ class _WeddingPrepAppState extends State<WeddingPrepApp> {
           animation: controller,
           builder: (context, _) {
             if (controller.isLoading) {
-              return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
-              );
+              return const AppLaunchSplash();
             }
             if (!controller.settings.hasCompletedOnboarding) {
               return const OnboardingPage();
