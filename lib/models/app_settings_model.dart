@@ -62,10 +62,8 @@ class AppSettings {
         .toList();
 
     return AppSettings(
-      weddingDate: json['weddingDate'] == null
-          ? null
-          : DateTime.parse(json['weddingDate'] as String),
-      targetBudget: (json['targetBudget'] as num?)?.toDouble() ?? 0,
+      weddingDate: _parseDate(json['weddingDate']),
+      targetBudget: _safeBudget(json['targetBudget']),
       brideName: json['brideName'] as String? ??
           (legacyParts.isNotEmpty ? legacyParts.first.trim() : ''),
       groomName: json['groomName'] as String? ??
@@ -77,4 +75,17 @@ class AppSettings {
       hasCompletedOnboarding: json['hasCompletedOnboarding'] as bool? ?? false,
     );
   }
+}
+
+double _safeBudget(Object? value) {
+  final parsed = value is num ? value.toDouble() : null;
+  if (parsed == null || parsed.isNaN || parsed.isInfinite || parsed < 0) {
+    return 0;
+  }
+  return parsed;
+}
+
+DateTime? _parseDate(Object? value) {
+  if (value is! String || value.isEmpty) return null;
+  return DateTime.tryParse(value);
 }

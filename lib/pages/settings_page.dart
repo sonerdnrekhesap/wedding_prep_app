@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -79,7 +80,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           keyboardType: TextInputType.number,
                           maxLength: 2,
                           decoration: const InputDecoration(
-                            labelText: 'Gün',
+                            labelText: 'GÃƒÂ¼n',
                             counterText: '',
                           ),
                         ),
@@ -104,7 +105,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           keyboardType: TextInputType.number,
                           maxLength: 4,
                           decoration: const InputDecoration(
-                            labelText: 'Yıl',
+                            labelText: 'YÃ„Â±l',
                             counterText: '',
                           ),
                         ),
@@ -115,17 +116,20 @@ class _SettingsPageState extends State<SettingsPage> {
                   TextField(
                     controller: budgetController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Hedef bütçe'),
+                    decoration:
+                        const InputDecoration(labelText: 'Hedef bÃƒÂ¼tÃƒÂ§e'),
                   ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: brideNameController,
-                    decoration: const InputDecoration(labelText: 'Gelin adı'),
+                    decoration:
+                        const InputDecoration(labelText: 'Gelin adÃ„Â±'),
                   ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: groomNameController,
-                    decoration: const InputDecoration(labelText: 'Damat adı'),
+                    decoration:
+                        const InputDecoration(labelText: 'Damat adÃ„Â±'),
                   ),
                   const SizedBox(height: 14),
                   SizedBox(
@@ -137,7 +141,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text(
-                                'Düğün tarihini gün, ay, yıl olarak yaz.',
+                                'DÃƒÂ¼Ã„Å¸ÃƒÂ¼n tarihini gÃƒÂ¼n, ay, yÃ„Â±l olarak yaz.',
                               ),
                             ),
                           );
@@ -166,31 +170,32 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
           ),
-          Card(
-            child: SwitchListTile(
-              secondary: const Icon(Icons.workspace_premium_outlined),
-              title: const Text('Premium mock modu'),
-              subtitle: Text(
-                controller.settings.isPremium
-                    ? 'Premium açık: reklam ve paywall kısıtları kapalı.'
-                    : 'Premium kapalı: gelişmiş özelliklerde paywall gösterilir.',
+          if (!kReleaseMode)
+            Card(
+              child: SwitchListTile(
+                secondary: const Icon(Icons.workspace_premium_outlined),
+                title: const Text('Premium mock modu'),
+                subtitle: Text(
+                  controller.settings.isPremium
+                      ? 'Premium acik: reklam ve paywall kisitlari kapali.'
+                      : 'Premium kapali: gelismis ozelliklerde paywall gosterilir.',
+                ),
+                value: controller.settings.isPremium,
+                onChanged: (value) async {
+                  if (value) {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const PaywallPage(source: 'settings'),
+                      ),
+                    );
+                  } else {
+                    await controller.saveSettings(
+                      controller.settings.copyWith(isPremium: false),
+                    );
+                  }
+                },
               ),
-              value: controller.settings.isPremium,
-              onChanged: (value) async {
-                if (value) {
-                  await Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const PaywallPage(source: 'settings'),
-                    ),
-                  );
-                } else {
-                  await controller.saveSettings(
-                    controller.settings.copyWith(isPremium: false),
-                  );
-                }
-              },
             ),
-          ),
           Card(
             child: SwitchListTile(
               secondary: const Icon(Icons.notifications_active_outlined),
@@ -214,9 +219,9 @@ class _SettingsPageState extends State<SettingsPage> {
           Card(
             child: ListTile(
               leading: const Icon(Icons.ios_share_outlined),
-              title: const Text('Davetli listesini CSV olarak paylaş'),
-              subtitle:
-                  const Text('Premium dışa aktarma altyapısının ilk adımı.'),
+              title: const Text('Davetli listesini CSV olarak paylaÃ…Å¸'),
+              subtitle: const Text(
+                  'Premium dÃ„Â±Ã…Å¸a aktarma altyapÃ„Â±sÃ„Â±nÃ„Â±n ilk adÃ„Â±mÃ„Â±.'),
               onTap: () async {
                 if (!controller.settings.isPremium) {
                   await Navigator.of(context).push(
@@ -234,15 +239,15 @@ class _SettingsPageState extends State<SettingsPage> {
           Card(
             child: ListTile(
               leading: const Icon(Icons.auto_awesome_outlined),
-              title: const Text('Demo verileri yükle'),
+              title: const Text('Demo verileri yÃƒÂ¼kle'),
               subtitle: const Text(
-                'Mağaza öncesi sunum ve test için örnek çift, bütçe ve davetli verisi yükler.',
+                'MaÃ„Å¸aza ÃƒÂ¶ncesi sunum ve test iÃƒÂ§in ÃƒÂ¶rnek ÃƒÂ§ift, bÃƒÂ¼tÃƒÂ§e ve davetli verisi yÃƒÂ¼kler.',
               ),
               onTap: () async {
                 await controller.loadDemoData();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Demo verileri yüklendi.')),
+                    const SnackBar(content: Text('Demo verileri yÃƒÂ¼klendi.')),
                   );
                 }
               },
@@ -253,7 +258,7 @@ class _SettingsPageState extends State<SettingsPage> {
               leading: Icon(Icons.privacy_tip_outlined),
               title: Text('Gizlilik'),
               subtitle: Text(
-                'Veriler ve seçtiğin fotoğraflar cihazda saklanır. Bulut yedekleme yoktur. Fotoğraf silersen uygulama içindeki dosya da silinir.',
+                'Veriler ve seÃƒÂ§tiÃ„Å¸in fotoÃ„Å¸raflar cihazda saklanÃ„Â±r. Bulut yedekleme yoktur. FotoÃ„Å¸raf silersen uygulama iÃƒÂ§indeki dosya da silinir.',
               ),
               isThreeLine: true,
             ),
@@ -261,32 +266,32 @@ class _SettingsPageState extends State<SettingsPage> {
           const Card(
             child: ListTile(
               leading: Icon(Icons.info_outline),
-              title: Text('Uygulama hakkında'),
+              title: Text('Uygulama hakkÃ„Â±nda'),
               subtitle: Text(
-                'Çeyiz, düğün, bütçe ve davetli hazırlıklarını offline takip eder.',
+                'Ãƒâ€¡eyiz, dÃƒÂ¼Ã„Å¸ÃƒÂ¼n, bÃƒÂ¼tÃƒÂ§e ve davetli hazÃ„Â±rlÃ„Â±klarÃ„Â±nÃ„Â± offline takip eder.',
               ),
             ),
           ),
           Card(
             child: ListTile(
               leading: const Icon(Icons.delete_forever_outlined),
-              title: const Text('Verileri sıfırla'),
+              title: const Text('Verileri sÃ„Â±fÃ„Â±rla'),
               subtitle:
-                  const Text('Tüm liste, davetli ve ayar verileri silinir.'),
+                  const Text('TÃƒÂ¼m liste, davetli ve ayar verileri silinir.'),
               onTap: () async {
                 final ok = await showDialog<bool>(
                   context: context,
                   builder: (context) => AlertDialog(
-                    title: const Text('Veriler sıfırlansın mı?'),
-                    content: const Text('Bu işlem geri alınamaz.'),
+                    title: const Text('Veriler sÃ„Â±fÃ„Â±rlansÃ„Â±n mÃ„Â±?'),
+                    content: const Text('Bu iÃ…Å¸lem geri alÃ„Â±namaz.'),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context, false),
-                        child: const Text('Vazgeç'),
+                        child: const Text('VazgeÃƒÂ§'),
                       ),
                       FilledButton(
                         onPressed: () => Navigator.pop(context, true),
-                        child: const Text('Sıfırla'),
+                        child: const Text('SÃ„Â±fÃ„Â±rla'),
                       ),
                     ],
                   ),

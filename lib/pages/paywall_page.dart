@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../main.dart';
@@ -19,70 +20,83 @@ class PaywallPage extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         children: [
           Text(
-            'Hazırlığı daha sakin yönet',
+            'HazÃ„Â±rlÃ„Â±Ã„Å¸Ã„Â± daha sakin yÃƒÂ¶net',
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.w900,
             ),
           ),
           const SizedBox(height: 8),
           const Text(
-            'Temel checklist, öncelik listesi, davetli takibi ve hazırlık kartı paylaşımı ücretsiz kalır. Premium; PDF/Excel, detaylı harcama analizi, fatura/garanti fotoğraf arşivi, sınırsız fotoğraf, partnerle ortak liste, reklamsız kullanım, premium temalar ve watermark kaldırma için hazırlanır.',
+            'Temel checklist, ÃƒÂ¶ncelik listesi, davetli takibi ve hazÃ„Â±rlÃ„Â±k kartÃ„Â± paylaÃ…Å¸Ã„Â±mÃ„Â± ÃƒÂ¼cretsiz kalÃ„Â±r. Premium; PDF/Excel, detaylÃ„Â± harcama analizi, fatura/garanti fotoÃ„Å¸raf arÃ…Å¸ivi, sÃ„Â±nÃ„Â±rsÃ„Â±z fotoÃ„Å¸raf, partnerle ortak liste, reklamsÃ„Â±z kullanÃ„Â±m, premium temalar ve watermark kaldÃ„Â±rma iÃƒÂ§in hazÃ„Â±rlanÃ„Â±r.',
             style: TextStyle(color: Color(0xFF6F6470)),
           ),
           const SizedBox(height: 18),
-          const _Benefit(icon: Icons.block, text: 'Reklamsız kullanım'),
-          const _Benefit(icon: Icons.insights, text: 'Detaylı raporlar'),
+          const _Benefit(icon: Icons.block, text: 'ReklamsÃ„Â±z kullanÃ„Â±m'),
+          const _Benefit(icon: Icons.insights, text: 'DetaylÃ„Â± raporlar'),
           const _Benefit(
             icon: Icons.ios_share,
-            text: 'PDF/Excel dışa aktarma altyapısı',
+            text: 'PDF/Excel dÃ„Â±Ã…Å¸a aktarma altyapÃ„Â±sÃ„Â±',
           ),
           const _Benefit(
             icon: Icons.auto_awesome,
-            text: 'Premium özet kartları',
+            text: 'Premium ÃƒÂ¶zet kartlarÃ„Â±',
           ),
           const _Benefit(
             icon: Icons.sync_alt,
-            text: 'Partner senkronizasyonu altyapısı',
+            text: 'Partner senkronizasyonu altyapÃ„Â±sÃ„Â±',
           ),
           const _Benefit(
               icon: Icons.receipt_long_outlined,
-              text: 'Fatura / garanti arşivi'),
+              text: 'Fatura / garanti arÃ…Å¸ivi'),
           const _Benefit(
             icon: Icons.palette_outlined,
-            text: 'Premium temalar ve watermark kaldırma',
+            text: 'Premium temalar ve watermark kaldÃ„Â±rma',
           ),
           const _Benefit(
             icon: Icons.photo_library_outlined,
-            text: 'Sınırsız fotoğraf arşivi hazırlığı',
+            text:
+                'SÃ„Â±nÃ„Â±rsÃ„Â±z fotoÃ„Å¸raf arÃ…Å¸ivi hazÃ„Â±rlÃ„Â±Ã„Å¸Ã„Â±',
           ),
           const SizedBox(height: 18),
-          for (final product in PremiumProduct.values) ...[
-            Card(
+          if (kReleaseMode) ...[
+            const Card(
               child: ListTile(
-                title: Text(product.label),
-                subtitle: Text(product.id),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () async {
-                  await controller.purchaseMockPremium(product);
-                  if (context.mounted) Navigator.pop(context);
-                },
+                leading: Icon(Icons.lock_clock_outlined),
+                title: Text('Premium yakinda'),
+                subtitle: Text(
+                  'Gercek satin alma baglanana kadar premium satisi kapali tutulur.',
+                ),
               ),
             ),
+          ] else ...[
+            for (final product in PremiumProduct.values) ...[
+              Card(
+                child: ListTile(
+                  title: Text(product.label),
+                  subtitle: Text(product.id),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    await controller.purchaseMockPremium(product);
+                    if (context.mounted) Navigator.pop(context);
+                  },
+                ),
+              ),
+            ],
           ],
-          const SizedBox(height: 8),
-          OutlinedButton.icon(
-            onPressed: () async {
-              await controller.restorePurchases();
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('Satın almalar kontrol edildi.')),
-                );
-              }
-            },
-            icon: const Icon(Icons.restore),
-            label: const Text('Satın almaları geri yükle'),
-          ),
+          if (!kReleaseMode)
+            OutlinedButton.icon(
+              onPressed: () async {
+                await controller.restorePurchases();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Satin almalar kontrol edildi.')),
+                  );
+                }
+              },
+              icon: const Icon(Icons.restore),
+              label: const Text('Satin almalari geri yukle'),
+            ),
         ],
       ),
     );

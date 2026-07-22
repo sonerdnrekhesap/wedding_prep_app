@@ -4,8 +4,8 @@ enum GuestStatus { uncertain, coming, notComing }
 
 extension GuestSideText on GuestSide {
   String get label => switch (this) {
-        GuestSide.bride => 'Gelin tarafı',
-        GuestSide.groom => 'Damat tarafı',
+        GuestSide.bride => 'Gelin tarafÄ±',
+        GuestSide.groom => 'Damat tarafÄ±',
         GuestSide.common => 'Ortak',
       };
 }
@@ -90,12 +90,8 @@ class Guest {
           1,
       status: _parseStatus(json['status'] as String?),
       note: json['note'] as String? ?? '',
-      createdAt: json['createdAt'] == null
-          ? now
-          : DateTime.parse(json['createdAt'] as String),
-      updatedAt: json['updatedAt'] == null
-          ? now
-          : DateTime.parse(json['updatedAt'] as String),
+      createdAt: _parseDate(json['createdAt']) ?? now,
+      updatedAt: _parseDate(json['updatedAt']) ?? now,
     );
   }
 }
@@ -113,4 +109,9 @@ GuestStatus _parseStatus(String? value) {
     (status) => status.name == value,
     orElse: () => GuestStatus.uncertain,
   );
+}
+
+DateTime? _parseDate(Object? value) {
+  if (value is! String || value.isEmpty) return null;
+  return DateTime.tryParse(value);
 }
