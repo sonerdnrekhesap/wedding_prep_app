@@ -8,7 +8,7 @@
 - [ ] `android/key.properties` configured locally or in CI
 - [ ] Production AdMob Android app id added to `AndroidManifest.xml`
 - [ ] Production AdMob unit ids passed with `--dart-define`
-- [ ] App icon replaced
+- [x] App icon replaced
 - [ ] Splash screen replaced
 - [ ] Privacy policy hosted and URL added
 - [ ] Data Safety form completed
@@ -48,5 +48,5 @@
 - Real AdMob IDs are not in the repo.
 - Production signing key is not in the repo.
 - Premium purchase is intentionally hidden in release until real purchase integration is ready.
-- App icon and splash still use template assets.
+- Splash still uses template assets.
 - iOS build must be verified on macOS.
