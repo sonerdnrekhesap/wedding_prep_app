@@ -21,7 +21,7 @@ Production build ornegi:
 
 ```bash
 flutter build appbundle \
-  --dart-define=ADMOB_BANNER_UNIT_ID=... \
-  --dart-define=ADMOB_INTERSTITIAL_UNIT_ID=... \
-  --dart-define=ADMOB_REWARDED_UNIT_ID=...
+  --dart-define=ADMOB_ANDROID_BANNER_UNIT_ID=ca-app-pub-8162088920909843/6127783433 \
+  --dart-define=ADMOB_ANDROID_INTERSTITIAL_UNIT_ID=ca-app-pub-8162088920909843/9412422322 \
+  --dart-define=ADMOB_ANDROID_REWARDED_UNIT_ID=ca-app-pub-8162088920909843/2052807053
 ```

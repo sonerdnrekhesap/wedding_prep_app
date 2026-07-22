@@ -6,8 +6,8 @@
 - [ ] Package id final: `com.sonerdnrekhesap.hazirliktakibi`
 - [ ] Production upload key created
 - [ ] `android/key.properties` configured locally or in CI
-- [ ] Production AdMob Android app id added to `AndroidManifest.xml`
-- [ ] Production AdMob unit ids passed with `--dart-define`
+- [x] Production AdMob Android app id added to `AndroidManifest.xml`
+- [x] Production AdMob Android unit ids documented for `--dart-define`
 - [x] App icon replaced
 - [ ] Splash screen replaced
 - [ ] Privacy policy hosted and URL added
@@ -24,7 +24,8 @@
 - [ ] Bundle id final: `com.sonerdnrekhesap.hazirliktakibi`
 - [ ] Apple Developer signing configured on macOS/Xcode
 - [ ] iOS no-codesign build verified on macOS
-- [ ] Production AdMob iOS app id added to `Info.plist`
+- [x] Production AdMob iOS app id added to `Info.plist`
+- [x] Production AdMob iOS unit ids documented for `--dart-define`
 - [ ] Photo permission text reviewed
 - [ ] Camera permission text reviewed
 - [ ] App Privacy details completed
@@ -45,7 +46,7 @@
 
 ## Current Known Gaps
 
-- Real AdMob IDs are not in the repo.
+- AdMob apps are created but still require store linking/review after Play Store/App Store listings exist.
 - Production signing key is not in the repo.
 - Premium purchase is intentionally hidden in release until real purchase integration is ready.
 - Splash still uses template assets.

@@ -11,6 +11,17 @@ Yayina hazir degil. En buyuk engeller: Android/iOS platform klasorleri yok, prem
 
 ## 22 Temmuz 2026 Ilerleme Notu
 
+Ek AdMob tamamlama notu:
+
+- AdMob hesabinda iOS oncelikli olacak sekilde `Hazirlik Takibi` iOS uygulamasi olusturuldu.
+- iOS App ID `Info.plist` dosyasina islendi.
+- iOS banner, interstitial ve rewarded reklam birimleri olusturuldu.
+- Android AdMob uygulamasi ve banner/interstitial/rewarded reklam birimleri de olusturuldu.
+- Android App ID `AndroidManifest.xml` dosyasina islendi.
+- Platform bazli release reklam unit ID'leri `--dart-define` ile secilecek hale getirildi.
+- AdMob ID listesi `docs/ADMOB_RELEASE_IDS.md` dosyasina eklendi.
+- Son `flutter analyze` temiz; `flutter test` 10 testle temiz; Android AAB gercek Android AdMob unit ID'leriyle uretildi.
+
 Tamamlananlar:
 
 - Android ve iOS platform klasorleri olusturuldu.
