@@ -35,13 +35,20 @@ class AppController extends ChangeNotifier {
     items = await storage.loadItems();
     guests = await storage.loadGuests();
     ads.setPremium(settings.isPremium);
-    purchaseState = await purchaseStore.initialize(
-      onEntitlement: (_) => _activatePremiumFromStore(),
-      onState: (state) {
-        purchaseState = state;
-        notifyListeners();
-      },
-    );
+    try {
+      purchaseState = await purchaseStore.initialize(
+        onEntitlement: (_) => _activatePremiumFromStore(),
+        onState: (state) {
+          purchaseState = state;
+          notifyListeners();
+        },
+      );
+    } catch (_) {
+      purchaseState = const PurchaseStoreState(
+        status: PurchaseStoreStatus.unavailable,
+        message: 'Store satin alma servisi su an hazir degil.',
+      );
+    }
     isLoading = false;
     notifyListeners();
   }

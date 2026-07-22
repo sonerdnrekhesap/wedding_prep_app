@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
 import 'premium_service.dart';
@@ -57,6 +58,13 @@ class PurchaseStore {
     required void Function(PurchaseDetails purchase) onEntitlement,
     required void Function(PurchaseStoreState state) onState,
   }) async {
+    if (kIsWeb) {
+      return const PurchaseStoreState(
+        status: PurchaseStoreStatus.unavailable,
+        message: 'Web onizlemede store satin alma desteklenmez.',
+      );
+    }
+
     _subscription?.cancel();
     _subscription = _iap.purchaseStream.listen(
       (purchases) => _handlePurchases(
