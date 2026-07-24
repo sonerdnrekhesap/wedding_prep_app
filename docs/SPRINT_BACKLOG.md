@@ -68,4 +68,5 @@ Start with S1 item 1 and item 3:
 - Add table/group assignment field and guest CSV table export. Done.
 - Prepare Turkish store metadata and privacy/data safety drafts. Done.
 - Add rewarded ad one-time export/report unlock for free users. Done.
-- Next: premium comparison table, household grouping, reminders, screenshots and PDF rendering.
+- Add premium comparison table to clarify upgrade value. Done.
+- Next: household grouping, reminders, screenshots and PDF rendering.

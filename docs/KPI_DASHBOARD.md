@@ -8,7 +8,7 @@ Scores are 0-100. Update after each meaningful implementation batch.
 |---|---:|---|---|---|
 | Activation | 64 | Yellow | Onboarding CTA copy improved and home now surfaces one today action | Add preparation type and live setup preview |
 | Core Planning | 82 | Green | Checklist, target dates/filter, budget advisor, guest RSVP, table assignment and weekly plan exist | Add household grouping and reminders |
-| Premium Value | 64 | Yellow | Lifetime unlocks unlimited CSV/report export, ad-free use, budget advisor and archive value | Add PDF rendering later |
+| Premium Value | 66 | Yellow | Lifetime unlocks unlimited CSV/report export, ad-free use, budget advisor and archive value; paywall has comparison table | Add PDF rendering later |
 | Monetization Plumbing | 74 | Yellow | AdMob, IAP skeleton, premium gates and rewarded export unlocks exist | Create store products, test restore, validate subscriptions |
 | UX Polish | 70 | Yellow | Core onboarding/home/paywall/settings Turkish trust pass completed | Polish empty states and screenshots |
 | Technical Stability | 86 | Green | Analyze/test pass with export, report, budget advisor, RSVP, table and target date tests | Add controller/purchase tests |
@@ -17,7 +17,7 @@ Scores are 0-100. Update after each meaningful implementation batch.
 
 ## Director Gate
 
-Current overall score: 74/100
+Current overall score: 75/100
 
 Formula:
 
@@ -71,6 +71,7 @@ Implementation update:
 - Guests can store a table/group label, show it on guest cards and export it in guest CSV.
 - Turkish store metadata and privacy/data safety drafts are prepared.
 - Monetization now has free ads, rewarded one-time export unlocks and lifetime premium unlimited export/ad-free positioning.
+- Paywall now explains Free vs rewarded one-time use vs Premium unlimited value.
 
 ## KPI Definitions
 

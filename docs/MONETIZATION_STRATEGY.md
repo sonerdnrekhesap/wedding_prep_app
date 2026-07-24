@@ -42,8 +42,6 @@ Make free users valuable through respectful ads, while giving serious planners c
 ## Next Monetization Improvements
 
 - Add event counters for paywall view, rewarded attempt, rewarded success and export conversion.
-- Add a premium comparison table on paywall.
 - Add export/report preview before purchase.
 - Add lifetime price A/B copy variants in store screenshots.
 - Add purchase/restore sandbox QA proof before release.
-

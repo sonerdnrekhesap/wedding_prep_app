@@ -24,6 +24,8 @@ class PaywallPage extends StatelessWidget {
         children: [
           _PaywallHero(source: source),
           const SizedBox(height: 16),
+          const _PremiumComparison(),
+          const SizedBox(height: 16),
           Text(
             'Ücretsiz kalanlar',
             style: theme.textTheme.titleMedium?.copyWith(
@@ -196,6 +198,99 @@ class _HeroChip extends StatelessWidget {
           fontWeight: FontWeight.w800,
           fontSize: 12,
         ),
+      ),
+    );
+  }
+}
+
+class _PremiumComparison extends StatelessWidget {
+  const _PremiumComparison();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Card(
+      child: Padding(
+        padding: EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Neyi satın alıyorsun?',
+              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+            ),
+            SizedBox(height: 12),
+            _CompareRow(
+              feature: 'Reklamsız kullanım',
+              free: 'Reklamlı',
+              premium: 'Sınırsız',
+            ),
+            _CompareRow(
+              feature: 'Export ve rapor',
+              free: 'Reklamla tek sefer',
+              premium: 'Sınırsız',
+            ),
+            _CompareRow(
+              feature: 'Fotoğraf/fiş arşivi',
+              free: '10 görsel',
+              premium: 'Geniş arşiv',
+            ),
+            _CompareRow(
+              feature: 'Planlama içgörüsü',
+              free: 'Temel',
+              premium: 'Advisor + rapor',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CompareRow extends StatelessWidget {
+  const _CompareRow({
+    required this.feature,
+    required this.free,
+    required this.premium,
+  });
+
+  final String feature;
+  final String free;
+  final String premium;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: Text(
+              feature,
+              style: const TextStyle(fontWeight: FontWeight.w800),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              free,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: AppColors.muted, fontSize: 12),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              premium,
+              textAlign: TextAlign.right,
+              style: const TextStyle(
+                color: AppColors.roseDeep,
+                fontWeight: FontWeight.w900,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
