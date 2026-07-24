@@ -1,5 +1,7 @@
+import '../models/app_settings_model.dart';
 import '../models/guest_model.dart';
 import '../models/item_model.dart';
+import 'calculation_service.dart';
 import 'formatters.dart';
 
 class ExportService {
@@ -78,6 +80,70 @@ class ExportService {
         rows.map((row) => row.map(_csvCell).join(',')).join('\n');
   }
 
+  String buildPlanningReportText(
+    AppSettings settings,
+    List<PrepItem> items,
+    List<Guest> guests,
+  ) {
+    final calc = CalculationService();
+    final score = calc.weightedPreparationScore(items).round();
+    final spent = calc.totalSpent(items);
+    final remaining = calc.remainingBudget(settings, items);
+    final advice = calc.budgetAdvice(settings, items);
+    final guestStats = calc.guestStats(guests);
+    final stats = calc.categoryStats(items);
+    final names = settings.coupleNames.trim().isEmpty
+        ? 'Hazırlık Takibi'
+        : settings.coupleNames;
+
+    final buffer = StringBuffer()
+      ..writeln('Hazırlık Raporu')
+      ..writeln(names)
+      ..writeln(_reportDateLine(settings))
+      ..writeln()
+      ..writeln('Genel Durum')
+      ..writeln('- Hazırlık skoru: %$score')
+      ..writeln('- Tamamlanan ürün: ${calc.completedItems(items)}')
+      ..writeln('- Eksik ürün: ${calc.missingItems(items)}')
+      ..writeln()
+      ..writeln('Bütçe Advisor')
+      ..writeln('- ${advice.title}')
+      ..writeln('- ${advice.message}')
+      ..writeln('- Toplam harcama: ${money(spent)}')
+      ..writeln('- Kalan bütçe: ${money(remaining)}')
+      ..writeln()
+      ..writeln('Davetli Özeti')
+      ..writeln('- Toplam kişi: ${guestStats.totalPeople}')
+      ..writeln('- Gelecek: ${guestStats.comingPeople}')
+      ..writeln('- Belirsiz: ${guestStats.unsurePeople}')
+      ..writeln('- Gelmeyecek: ${guestStats.notComingPeople}')
+      ..writeln()
+      ..writeln('Kategori Özeti');
+
+    for (final category in MainCategory.values) {
+      final stat = stats[category]!;
+      if (stat.total == 0) continue;
+      buffer.writeln(
+        '- ${category.label}: ${stat.completed}/${stat.total} tamam, '
+        'harcama ${money(stat.spent)}, eksik tahmin ${money(stat.estimatedRemaining)}',
+      );
+    }
+
+    final nextItems = calc.nextActionItems(items, limit: 5);
+    if (nextItems.isNotEmpty) {
+      buffer
+        ..writeln()
+        ..writeln('Sıradaki Öncelikler');
+      for (final item in nextItems) {
+        buffer.writeln(
+          '- ${item.title} / ${item.mainCategory.label} / ${money(item.estimatedPrice)}',
+        );
+      }
+    }
+
+    return buffer.toString();
+  }
+
   String buildPrepListText(List<PrepItem> items) {
     final buffer = StringBuffer('Hazirlik listesi\n\n');
     for (final category in MainCategory.values) {
@@ -130,5 +196,11 @@ class ExportService {
     return '${date.year.toString().padLeft(4, '0')}-'
         '${date.month.toString().padLeft(2, '0')}-'
         '${date.day.toString().padLeft(2, '0')}';
+  }
+
+  String _reportDateLine(AppSettings settings) {
+    final date = settings.weddingDate;
+    if (date == null) return 'Düğün tarihi: Henüz eklenmedi';
+    return 'Düğün tarihi: ${_dateCell(date)}';
   }
 }

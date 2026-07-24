@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../main.dart';
+import '../models/app_settings_model.dart';
 import '../models/guest_model.dart';
 import '../models/item_model.dart';
 import '../services/export_service.dart';
@@ -291,6 +292,33 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           Card(
             child: ListTile(
+              leading: const Icon(Icons.description_outlined),
+              title: const Text('Hazırlık raporunu paylaş'),
+              subtitle: const Text(
+                'Skor, bütçe advisor, davetli özeti ve sıradaki öncelikleri tek dosyada çıkar.',
+              ),
+              trailing: controller.settings.isPremium
+                  ? null
+                  : const Icon(Icons.workspace_premium_outlined),
+              onTap: () {
+                if (!controller.settings.isPremium) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const PaywallPage(source: 'report'),
+                    ),
+                  );
+                  return;
+                }
+                _sharePlanningReport(
+                  controller.settings,
+                  controller.items,
+                  controller.guests,
+                );
+              },
+            ),
+          ),
+          Card(
+            child: ListTile(
               leading: const Icon(Icons.auto_awesome_outlined),
               title: const Text('Örnek planı yükle'),
               subtitle: const Text(
@@ -405,6 +433,30 @@ class _SettingsPageState extends State<SettingsPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Bütçe özeti paylaşılamadı.')),
+      );
+    }
+  }
+
+  Future<void> _sharePlanningReport(
+    AppSettings settings,
+    List<PrepItem> items,
+    List<Guest> guests,
+  ) async {
+    try {
+      final report = ExportService().buildPlanningReportText(
+        settings,
+        items,
+        guests,
+      );
+      await const ShareFileService().shareTextFile(
+        fileName: 'hazirlik-raporu.txt',
+        content: report,
+        subject: 'Hazırlık raporu',
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Hazırlık raporu paylaşılamadı.')),
       );
     }
   }

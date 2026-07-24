@@ -43,6 +43,7 @@
 - [ ] CSV guest export
 - [ ] Premium checklist CSV export
 - [ ] Premium budget CSV export
+- [ ] Premium preparation report export
 - [ ] Reset all data
 - [ ] Offline usage
 - [ ] Release AAB installed on a real Android device

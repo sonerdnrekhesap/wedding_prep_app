@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wedding_prep_app/models/app_settings_model.dart';
+import 'package:wedding_prep_app/models/guest_model.dart';
 import 'package:wedding_prep_app/models/item_model.dart';
 import 'package:wedding_prep_app/services/export_service.dart';
 
@@ -60,6 +62,48 @@ void main() {
 
       expect(csv.startsWith('\uFEFF'), isTrue);
       expect(csv, contains('"Ceyiz","2","1","1","18000.00","5000.00"'));
+    });
+
+    test('buildPlanningReportText includes planning summary', () {
+      final report = ExportService().buildPlanningReportText(
+        AppSettings(
+          weddingDate: DateTime(2026, 8, 30),
+          targetBudget: 1000,
+          brideName: 'Ayşe',
+          groomName: 'Can',
+        ),
+        [
+          PrepItem(
+            id: 'item-1',
+            title: 'Salon kapora',
+            mainCategory: MainCategory.dugun,
+            subCategory: 'Mekan',
+            priority: ItemPriority.mustHave,
+            estimatedPrice: 900,
+            actualPrice: 200,
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+          ),
+        ],
+        [
+          Guest(
+            id: 'guest-1',
+            name: 'Deniz',
+            side: GuestSide.bride,
+            status: GuestStatus.coming,
+            guestCount: 2,
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+          ),
+        ],
+      );
+
+      expect(report, contains('Hazırlık Raporu'));
+      expect(report, contains('Ayşe & Can'));
+      expect(report, contains('Düğün tarihi: 2026-08-30'));
+      expect(report, contains('Bütçe Advisor'));
+      expect(report, contains('Toplam kişi: 2'));
+      expect(report, contains('Salon kapora'));
     });
   });
 }

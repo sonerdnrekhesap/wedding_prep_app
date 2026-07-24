@@ -61,4 +61,5 @@ Start with S1 item 1 and item 3:
 - Put a single "Bugunun onerisi" action on the home screen. Done.
 - Add working premium CSV export for checklist and budget summary. Done.
 - Add budget advisor v1 for overrun, near-limit and next expensive missing item. Done.
-- Next: PDF/report export and deadline/custom task controls.
+- Add working premium text report export. Done.
+- Next: PDF rendering and deadline/custom task controls.
