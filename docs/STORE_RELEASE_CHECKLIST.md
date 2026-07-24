@@ -11,9 +11,11 @@
 - [x] App icon replaced
 - [x] Splash screen replaced
 - [ ] Privacy policy hosted and URL added
-- [ ] Data Safety form completed
+- [x] Data Safety draft prepared
+- [ ] Data Safety form completed in Play Console
 - [ ] Content rating completed
 - [ ] Support email added
+- [x] Store metadata draft prepared
 - [ ] At least 5 portrait screenshots prepared
 - [ ] 1024x500 feature graphic prepared
 - [ ] Closed testing track created
@@ -30,6 +32,7 @@
 - [ ] Photo permission text reviewed
 - [ ] Camera permission text reviewed
 - [ ] App Privacy details completed
+- [x] App Privacy draft prepared
 - [ ] App screenshots prepared
 
 ## In-App QA

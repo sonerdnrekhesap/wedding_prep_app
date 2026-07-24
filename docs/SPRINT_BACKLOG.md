@@ -66,4 +66,5 @@ Start with S1 item 1 and item 3:
 - Add target-date filter and item date visibility. Done.
 - Add RSVP reminder share flow for uncertain guests. Done.
 - Add table/group assignment field and guest CSV table export. Done.
-- Next: household grouping, reminders and PDF rendering.
+- Prepare Turkish store metadata and privacy/data safety drafts. Done.
+- Next: household grouping, reminders, screenshots and PDF rendering.

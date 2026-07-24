@@ -12,12 +12,12 @@ Scores are 0-100. Update after each meaningful implementation batch.
 | Monetization Plumbing | 68 | Yellow | AdMob live IDs and IAP skeleton exist | Create store products, test restore, validate subscriptions |
 | UX Polish | 70 | Yellow | Core onboarding/home/paywall/settings Turkish trust pass completed | Polish empty states and screenshots |
 | Technical Stability | 86 | Green | Analyze/test pass with export, report, budget advisor, RSVP, table and target date tests | Add controller/purchase tests |
-| Store Readiness | 43 | Red | Docs/checklists exist; external store assets missing | Privacy URL, screenshots, signing, store forms |
+| Store Readiness | 50 | Yellow | Store metadata and privacy/data safety drafts exist; external assets still missing | Privacy URL, screenshots, signing, store forms |
 | Release Confidence | 62 | Yellow | Web build passes; Android release now blocks missing production keystore | Real device QA and TestFlight |
 
 ## Director Gate
 
-Current overall score: 72/100
+Current overall score: 73/100
 
 Formula:
 
@@ -69,6 +69,7 @@ Implementation update:
 - Checklist now has a due-soon filter and item tiles show target purchase dates.
 - Guest screen can share RSVP reminder text for all uncertain guests or a single guest; message service is tested.
 - Guests can store a table/group label, show it on guest cards and export it in guest CSV.
+- Turkish store metadata and privacy/data safety drafts are prepared.
 
 ## KPI Definitions
 
