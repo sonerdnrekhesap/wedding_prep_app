@@ -14,5 +14,9 @@ double parseMoney(String value) {
       .replaceAll('.', '')
       .replaceAll(',', '.')
       .trim();
-  return double.tryParse(normalized) ?? 0;
+  final parsed = double.tryParse(normalized);
+  if (parsed == null || parsed.isNaN || parsed.isInfinite || parsed < 0) {
+    return 0;
+  }
+  return parsed.clamp(0, 999999999).toDouble();
 }

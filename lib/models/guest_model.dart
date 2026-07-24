@@ -4,8 +4,8 @@ enum GuestStatus { uncertain, coming, notComing }
 
 extension GuestSideText on GuestSide {
   String get label => switch (this) {
-        GuestSide.bride => 'Gelin tarafı',
-        GuestSide.groom => 'Damat tarafı',
+        GuestSide.bride => 'Gelin tarafi',
+        GuestSide.groom => 'Damat tarafi',
         GuestSide.common => 'Ortak',
       };
 }
@@ -27,6 +27,7 @@ class Guest {
     this.guestCount = 1,
     this.status = GuestStatus.uncertain,
     this.note = '',
+    this.tableName = '',
     required this.createdAt,
     required this.updatedAt,
   });
@@ -38,6 +39,7 @@ class Guest {
   final int guestCount;
   final GuestStatus status;
   final String note;
+  final String tableName;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -51,6 +53,7 @@ class Guest {
     int? personCount,
     GuestStatus? status,
     String? note,
+    String? tableName,
   }) {
     return Guest(
       id: id,
@@ -60,6 +63,7 @@ class Guest {
       guestCount: guestCount ?? personCount ?? this.guestCount,
       status: status ?? this.status,
       note: note ?? this.note,
+      tableName: tableName ?? this.tableName,
       createdAt: createdAt,
       updatedAt: DateTime.now(),
     );
@@ -74,6 +78,7 @@ class Guest {
         'personCount': guestCount,
         'status': status.name,
         'note': note,
+        'tableName': tableName,
         'createdAt': createdAt.toIso8601String(),
         'updatedAt': updatedAt.toIso8601String(),
       };
@@ -90,12 +95,9 @@ class Guest {
           1,
       status: _parseStatus(json['status'] as String?),
       note: json['note'] as String? ?? '',
-      createdAt: json['createdAt'] == null
-          ? now
-          : DateTime.parse(json['createdAt'] as String),
-      updatedAt: json['updatedAt'] == null
-          ? now
-          : DateTime.parse(json['updatedAt'] as String),
+      tableName: json['tableName'] as String? ?? '',
+      createdAt: _parseDate(json['createdAt']) ?? now,
+      updatedAt: _parseDate(json['updatedAt']) ?? now,
     );
   }
 }
@@ -113,4 +115,9 @@ GuestStatus _parseStatus(String? value) {
     (status) => status.name == value,
     orElse: () => GuestStatus.uncertain,
   );
+}
+
+DateTime? _parseDate(Object? value) {
+  if (value is! String || value.isEmpty) return null;
+  return DateTime.tryParse(value);
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/item_model.dart';
+import '../widgets/ad_banner_widget.dart';
 import 'guest_list_page.dart';
 import 'item_list_page.dart';
 
@@ -11,6 +12,7 @@ class ListModulesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Listeler')),
+      bottomNavigationBar: const AdBannerWidget(),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

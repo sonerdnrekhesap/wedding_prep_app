@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import '../main.dart';
 import '../models/item_model.dart';
 import '../services/formatters.dart';
+import '../services/monetization_metrics_service.dart';
 import '../services/photo_storage_models.dart';
 import '../theme/app_colors.dart';
 import '../widgets/ad_banner_widget.dart';
@@ -12,7 +13,16 @@ import '../widgets/item_tile.dart';
 import '../widgets/visual_cards.dart';
 import 'paywall_page.dart';
 
-enum ItemFilter { all, missing, completed, mustHave, necessary, later, luxury }
+enum ItemFilter {
+  all,
+  missing,
+  completed,
+  dueSoon,
+  mustHave,
+  necessary,
+  later,
+  luxury,
+}
 
 Iterable<String?> _pathsFor(PrepItem item, ItemPhotoType type) =>
     switch (type) {
@@ -55,11 +65,28 @@ PrepItem _withPhoto(
   };
 }
 
+DateTime? _parseDateInput(String value) {
+  final text = value.trim();
+  if (text.isEmpty) return null;
+  final parts = text.split(RegExp(r'[./-]'));
+  if (parts.length != 3) return null;
+  final day = int.tryParse(parts[0]);
+  final month = int.tryParse(parts[1]);
+  final year = int.tryParse(parts[2]);
+  if (day == null || month == null || year == null) return null;
+  final date = DateTime(year, month, day);
+  if (date.day != day || date.month != month || date.year != year) {
+    return null;
+  }
+  return date;
+}
+
 extension ItemFilterText on ItemFilter {
   String get label => switch (this) {
         ItemFilter.all => 'Tümü',
         ItemFilter.missing => 'Alınmadı',
         ItemFilter.completed => 'Alındı',
+        ItemFilter.dueSoon => 'Hedefi Yakın',
         ItemFilter.mustHave => 'Olmazsa Olmaz',
         ItemFilter.necessary => 'Gerekli',
         ItemFilter.later => 'Sonra Alınabilir',
@@ -205,11 +232,21 @@ class _ItemListPageState extends State<ItemListPage> {
         ItemFilter.all => true,
         ItemFilter.missing => !item.isCompleted,
         ItemFilter.completed => item.isCompleted,
+        ItemFilter.dueSoon => _isDueSoon(item),
         ItemFilter.mustHave => item.priority == ItemPriority.mustHave,
         ItemFilter.necessary => item.priority == ItemPriority.necessary,
         ItemFilter.later => item.priority == ItemPriority.later,
         ItemFilter.luxury => item.priority == ItemPriority.luxury,
       };
+
+  bool _isDueSoon(PrepItem item) {
+    final due = item.purchaseDate;
+    if (item.isCompleted || due == null) return false;
+    final today = DateTime.now();
+    final start = DateTime(today.year, today.month, today.day);
+    final target = DateTime(due.year, due.month, due.day);
+    return !target.isAfter(start.add(const Duration(days: 7)));
+  }
 
   bool _matchesSearch(PrepItem item) {
     final query = searchController.text.trim().toLowerCase();
@@ -345,6 +382,10 @@ class _ItemListPageState extends State<ItemListPage> {
   }
 
   Future<void> _openPhotoPaywall() async {
+    await AppScope.of(context).recordMonetization(
+      MonetizationEvent.premiumGateView,
+    );
+    if (!mounted) return;
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => const PaywallPage(source: 'photo_archive'),
@@ -475,6 +516,7 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
   late final TextEditingController quantityController;
   late final TextEditingController brandModelController;
   late final TextEditingController shopController;
+  late final TextEditingController targetDateController;
   late final TextEditingController noteController;
 
   @override
@@ -501,6 +543,9 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
       text: widget.item.brandModel ?? '',
     );
     shopController = TextEditingController(text: widget.item.shopName);
+    targetDateController = TextEditingController(
+      text: _dateText(widget.item.purchaseDate),
+    );
     noteController = TextEditingController(text: widget.item.note);
   }
 
@@ -511,6 +556,7 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
     quantityController.dispose();
     brandModelController.dispose();
     shopController.dispose();
+    targetDateController.dispose();
     noteController.dispose();
     super.dispose();
   }
@@ -636,6 +682,16 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
                       labelText: 'Mağaza / nereden alındı?',
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: targetDateController,
+                    keyboardType: TextInputType.datetime,
+                    decoration: const InputDecoration(
+                      labelText: 'Hedef alış tarihi',
+                      hintText: 'GG.AA.YYYY',
+                      prefixIcon: Icon(Icons.event_available_outlined),
+                    ),
+                  ),
                 ],
               ),
               _SectionTile(
@@ -718,6 +774,12 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
 
   String _moneyText(double value) => value == 0 ? '' : value.toStringAsFixed(0);
 
+  String _dateText(DateTime? date) {
+    if (date == null) return '';
+    return '${date.day.toString().padLeft(2, '0')}.'
+        '${date.month.toString().padLeft(2, '0')}.${date.year}';
+  }
+
   Future<void> _pickImage(ItemPhotoType type) async {
     final controller = AppScope.of(context);
     final replacingExisting = _pathsFor(widget.item, type)
@@ -726,6 +788,8 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
     if (!replacingExisting &&
         !controller.premium
             .canAddPhoto(controller.settings, controller.items)) {
+      await controller.recordMonetization(MonetizationEvent.premiumGateView);
+      if (!mounted) return;
       await Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => const PaywallPage(source: 'photo_archive'),
@@ -814,6 +878,8 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
       quantity: quantity == null || quantity < 1 ? 1 : quantity,
       brandModel: brandModelController.text.trim(),
       shopName: shopController.text.trim(),
+      purchaseDate: _parseDateInput(targetDateController.text),
+      clearPurchaseDate: targetDateController.text.trim().isEmpty,
       note: noteController.text.trim(),
       inspirationImagePath: inspirationImagePath,
       inspirationThumbPath: inspirationThumbPath,
@@ -974,6 +1040,7 @@ class _AddItemSheetState extends State<_AddItemSheet> {
   final titleController = TextEditingController();
   final subCategoryController = TextEditingController();
   final priceController = TextEditingController();
+  final targetDateController = TextEditingController();
   ItemPriority priority = ItemPriority.necessary;
 
   @override
@@ -987,6 +1054,7 @@ class _AddItemSheetState extends State<_AddItemSheet> {
     titleController.dispose();
     subCategoryController.dispose();
     priceController.dispose();
+    targetDateController.dispose();
     super.dispose();
   }
 
@@ -1038,6 +1106,15 @@ class _AddItemSheetState extends State<_AddItemSheet> {
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(labelText: 'Tahmini fiyat'),
             ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: targetDateController,
+              keyboardType: TextInputType.datetime,
+              decoration: const InputDecoration(
+                labelText: 'Hedef alış tarihi',
+                hintText: 'GG.AA.YYYY',
+              ),
+            ),
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
@@ -1063,6 +1140,7 @@ class _AddItemSheetState extends State<_AddItemSheet> {
           : subCategoryController.text.trim(),
       priority: priority,
       estimatedPrice: parseMoney(priceController.text),
+      targetPurchaseDate: _parseDateInput(targetDateController.text),
     );
     if (mounted) Navigator.pop(context);
   }

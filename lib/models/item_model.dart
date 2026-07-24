@@ -17,13 +17,13 @@ enum ItemPriority {
 
 extension MainCategoryText on MainCategory {
   String get label => switch (this) {
-        MainCategory.ceyiz => 'Çeyiz',
-        MainCategory.bohca => 'Bohça',
-        MainCategory.soz => 'Söz',
-        MainCategory.nisan => 'Nişan',
-        MainCategory.kina => 'Kına',
-        MainCategory.dugun => 'Düğün',
-        MainCategory.balayi => 'Balayı',
+        MainCategory.ceyiz => 'Ceyiz',
+        MainCategory.bohca => 'Bohca',
+        MainCategory.soz => 'Soz',
+        MainCategory.nisan => 'Nisan',
+        MainCategory.kina => 'Kina',
+        MainCategory.dugun => 'Dugun',
+        MainCategory.balayi => 'Balayi',
       };
 }
 
@@ -31,8 +31,8 @@ extension ItemPriorityText on ItemPriority {
   String get label => switch (this) {
         ItemPriority.mustHave => 'Olmazsa Olmaz',
         ItemPriority.necessary => 'Gerekli',
-        ItemPriority.later => 'Sonra Alınabilir',
-        ItemPriority.luxury => 'Lüks',
+        ItemPriority.later => 'Sonra Alinabilir',
+        ItemPriority.luxury => 'Luks',
       };
 
   double get weight => switch (this) {
@@ -199,14 +199,15 @@ class PrepItem {
       };
 
   factory PrepItem.fromJson(Map<String, dynamic> json) {
+    final now = DateTime.now();
     return PrepItem(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      mainCategory: MainCategory.values.byName(json['mainCategory'] as String),
-      subCategory: json['subCategory'] as String,
-      priority: ItemPriority.values.byName(json['priority'] as String),
-      estimatedPrice: (json['estimatedPrice'] as num?)?.toDouble() ?? 0,
-      actualPrice: (json['actualPrice'] as num?)?.toDouble() ?? 0,
+      id: _stringOrDefault(json['id'], now.microsecondsSinceEpoch.toString()),
+      title: _stringOrDefault(json['title'], 'Isimsiz kalem'),
+      mainCategory: _parseMainCategory(json['mainCategory'] as String?),
+      subCategory: _stringOrDefault(json['subCategory'], 'Genel'),
+      priority: _parsePriority(json['priority'] as String?),
+      estimatedPrice: _safeMoney(json['estimatedPrice']),
+      actualPrice: _safeMoney(json['actualPrice']),
       isCompleted: json['isCompleted'] as bool? ?? false,
       note: json['note'] as String? ?? '',
       shopName: json['shopName'] as String? ?? '',
@@ -217,18 +218,50 @@ class PrepItem {
       receiptImagePath: json['receiptImagePath'] as String?,
       receiptThumbPath: json['receiptThumbPath'] as String?,
       brandModel: json['brandModel'] as String?,
-      quantity: (json['quantity'] as num?)?.toInt() ?? 1,
-      purchaseDate: json['purchaseDate'] == null
-          ? null
-          : DateTime.parse(json['purchaseDate'] as String),
-      warrantyEndDate: json['warrantyEndDate'] == null
-          ? null
-          : DateTime.parse(json['warrantyEndDate'] as String),
-      completedDate: json['completedDate'] == null
-          ? null
-          : DateTime.parse(json['completedDate'] as String),
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      quantity: _positiveInt(json['quantity']),
+      purchaseDate: _parseDate(json['purchaseDate']),
+      warrantyEndDate: _parseDate(json['warrantyEndDate']),
+      completedDate: _parseDate(json['completedDate']),
+      createdAt: _parseDate(json['createdAt']) ?? now,
+      updatedAt: _parseDate(json['updatedAt']) ?? now,
     );
   }
+}
+
+MainCategory _parseMainCategory(String? value) {
+  return MainCategory.values.firstWhere(
+    (category) => category.name == value,
+    orElse: () => MainCategory.ceyiz,
+  );
+}
+
+ItemPriority _parsePriority(String? value) {
+  return ItemPriority.values.firstWhere(
+    (priority) => priority.name == value,
+    orElse: () => ItemPriority.necessary,
+  );
+}
+
+String _stringOrDefault(Object? value, String fallback) {
+  if (value is! String || value.trim().isEmpty) return fallback;
+  return value;
+}
+
+int _positiveInt(Object? value) {
+  final parsed = value is num ? value.toInt() : null;
+  if (parsed == null || parsed < 1) return 1;
+  return parsed;
+}
+
+double _safeMoney(Object? value) {
+  final parsed = value is num ? value.toDouble() : null;
+  if (parsed == null || parsed.isNaN || parsed.isInfinite || parsed < 0) {
+    return 0;
+  }
+  return parsed;
+}
+
+DateTime? _parseDate(Object? value) {
+  if (value is! String || value.isEmpty) return null;
+  return DateTime.tryParse(value);
 }

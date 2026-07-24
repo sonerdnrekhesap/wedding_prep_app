@@ -18,6 +18,7 @@ class BudgetPage extends StatelessWidget {
     final stats = calc.categoryStats(controller.items);
     final topItems = calc.topExpensiveItems(controller.items);
     final missingHigh = calc.missingHighEstimateItems(controller.items);
+    final advice = calc.budgetAdvice(controller.settings, controller.items);
     final topCategories = stats.entries.toList()
       ..sort((a, b) => b.value.spent.compareTo(a.value.spent));
 
@@ -27,6 +28,8 @@ class BudgetPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          _BudgetAdviceCard(advice: advice),
+          const SizedBox(height: 14),
           GridView(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -102,6 +105,80 @@ class BudgetPage extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _BudgetAdviceCard extends StatelessWidget {
+  const _BudgetAdviceCard({required this.advice});
+
+  final BudgetAdvice advice;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = switch (advice.level) {
+      BudgetAdviceLevel.danger => const Color(0xFFB42318),
+      BudgetAdviceLevel.watch => const Color(0xFFB7791F),
+      BudgetAdviceLevel.setup => const Color(0xFF5F6FD9),
+      BudgetAdviceLevel.calm => const Color(0xFF0D9488),
+    };
+    final icon = switch (advice.level) {
+      BudgetAdviceLevel.danger => Icons.warning_amber_rounded,
+      BudgetAdviceLevel.watch => Icons.trending_up,
+      BudgetAdviceLevel.setup => Icons.flag_outlined,
+      BudgetAdviceLevel.calm => Icons.verified_outlined,
+    };
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: color),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    advice.title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    advice.message,
+                    style: const TextStyle(
+                      color: Color(0xFF7B6B72),
+                      fontWeight: FontWeight.w600,
+                      height: 1.35,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    advice.actionLabel,
+                    style: TextStyle(
+                      color: color,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

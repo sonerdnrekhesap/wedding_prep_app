@@ -8,6 +8,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
 
     await tester.pumpWidget(const WeddingPrepApp());
+    await tester.pumpAndSettle();
 
     expect(find.byType(MaterialApp), findsOneWidget);
   });

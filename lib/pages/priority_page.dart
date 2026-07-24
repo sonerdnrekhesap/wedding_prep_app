@@ -37,7 +37,7 @@ class PriorityPage extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               children: [
                 const Text(
-                  'Panik yok. Önce olmazsa olmazları, sonra gerekli parçaları toparlayalım.',
+                  'Önce olmazsa olmazları, sonra pahalı ve gerekli parçaları kapat. Bu sıralama bütçeyi ve zamanı daha rahat yönetir.',
                   style: TextStyle(color: Color(0xFF7B6B72)),
                 ),
                 const SizedBox(height: 14),
@@ -74,7 +74,7 @@ class _PrioritySection extends StatelessWidget {
             if (items.isEmpty)
               Text(
                 priority == ItemPriority.mustHave
-                    ? 'Olmazsa olmazların tamam.'
+                    ? 'Olmazsa olmazlar tamam.'
                     : 'Bu bölümde eksik yok.',
               )
             else
@@ -87,7 +87,7 @@ class _PrioritySection extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   subtitle: Text(
-                    '${item.subCategory} · ${money(item.estimatedPrice)}',
+                    '${item.subCategory} / ${money(item.estimatedPrice)}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
