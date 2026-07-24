@@ -12,7 +12,16 @@ import '../widgets/item_tile.dart';
 import '../widgets/visual_cards.dart';
 import 'paywall_page.dart';
 
-enum ItemFilter { all, missing, completed, mustHave, necessary, later, luxury }
+enum ItemFilter {
+  all,
+  missing,
+  completed,
+  dueSoon,
+  mustHave,
+  necessary,
+  later,
+  luxury,
+}
 
 Iterable<String?> _pathsFor(PrepItem item, ItemPhotoType type) =>
     switch (type) {
@@ -76,6 +85,7 @@ extension ItemFilterText on ItemFilter {
         ItemFilter.all => 'Tümü',
         ItemFilter.missing => 'Alınmadı',
         ItemFilter.completed => 'Alındı',
+        ItemFilter.dueSoon => 'Hedefi Yakın',
         ItemFilter.mustHave => 'Olmazsa Olmaz',
         ItemFilter.necessary => 'Gerekli',
         ItemFilter.later => 'Sonra Alınabilir',
@@ -221,11 +231,21 @@ class _ItemListPageState extends State<ItemListPage> {
         ItemFilter.all => true,
         ItemFilter.missing => !item.isCompleted,
         ItemFilter.completed => item.isCompleted,
+        ItemFilter.dueSoon => _isDueSoon(item),
         ItemFilter.mustHave => item.priority == ItemPriority.mustHave,
         ItemFilter.necessary => item.priority == ItemPriority.necessary,
         ItemFilter.later => item.priority == ItemPriority.later,
         ItemFilter.luxury => item.priority == ItemPriority.luxury,
       };
+
+  bool _isDueSoon(PrepItem item) {
+    final due = item.purchaseDate;
+    if (item.isCompleted || due == null) return false;
+    final today = DateTime.now();
+    final start = DateTime(today.year, today.month, today.day);
+    final target = DateTime(due.year, due.month, due.day);
+    return !target.isAfter(start.add(const Duration(days: 7)));
+  }
 
   bool _matchesSearch(PrepItem item) {
     final query = searchController.text.trim().toLowerCase();

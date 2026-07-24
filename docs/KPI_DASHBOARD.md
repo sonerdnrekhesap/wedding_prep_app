@@ -7,7 +7,7 @@ Scores are 0-100. Update after each meaningful implementation batch.
 | Area | Score | Status | Evidence | Next Move |
 |---|---:|---|---|---|
 | Activation | 64 | Yellow | Onboarding CTA copy improved and home now surfaces one today action | Add preparation type and live setup preview |
-| Core Planning | 77 | Yellow | Checklist, target dates, budget advisor, guest and weekly plan exist | Add filters for target dates and reminders |
+| Core Planning | 78 | Yellow | Checklist, target dates/filter, budget advisor, guest and weekly plan exist | Add reminders and RSVP flows |
 | Premium Value | 62 | Yellow | Lifetime is the launch product; premium CSV exports, budget advisor and text report export now work | Add PDF rendering later |
 | Monetization Plumbing | 68 | Yellow | AdMob live IDs and IAP skeleton exist | Create store products, test restore, validate subscriptions |
 | UX Polish | 70 | Yellow | Core onboarding/home/paywall/settings Turkish trust pass completed | Polish empty states and screenshots |
@@ -17,7 +17,7 @@ Scores are 0-100. Update after each meaningful implementation batch.
 
 ## Director Gate
 
-Current overall score: 69/100
+Current overall score: 70/100
 
 Formula:
 
@@ -66,6 +66,7 @@ Implementation update:
 - CalculationService now has tests for budget advisor states.
 - Premium users can export a text preparation report with score, date, budget advisor, guest summary, category summary and next priorities.
 - Items can carry a target purchase date from detail and custom item forms; weekly plan prioritizes due-soon unfinished items.
+- Checklist now has a due-soon filter and item tiles show target purchase dates.
 
 ## KPI Definitions
 

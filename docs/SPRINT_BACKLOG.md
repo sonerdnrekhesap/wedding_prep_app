@@ -63,4 +63,5 @@ Start with S1 item 1 and item 3:
 - Add budget advisor v1 for overrun, near-limit and next expensive missing item. Done.
 - Add working premium text report export. Done.
 - Add item target purchase dates and weekly plan due-soon prioritization. Done.
-- Next: target-date filters/reminders and PDF rendering.
+- Add target-date filter and item date visibility. Done.
+- Next: reminders, RSVP flow and PDF rendering.

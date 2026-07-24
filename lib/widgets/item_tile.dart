@@ -105,6 +105,11 @@ class ItemTile extends StatelessWidget {
                             color: AppColors.muted,
                           ),
                         ),
+                        if (item.purchaseDate != null && !item.isCompleted)
+                          _MetaChip(
+                            icon: Icons.event_available_outlined,
+                            label: _dateLabel(item.purchaseDate!),
+                          ),
                         if (item.inspirationImagePath != null)
                           const Icon(
                             Icons.lightbulb_outline,
@@ -156,5 +161,36 @@ class ItemTile extends StatelessWidget {
         ),
       ),
     ).animate().fadeIn(duration: 260.ms).slideX(begin: 0.03, end: 0);
+  }
+
+  String _dateLabel(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}.'
+        '${date.month.toString().padLeft(2, '0')}.${date.year}';
+  }
+}
+
+class _MetaChip extends StatelessWidget {
+  const _MetaChip({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 15, color: AppColors.roseDeep),
+        const SizedBox(width: 3),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            color: AppColors.muted,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
   }
 }
