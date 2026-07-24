@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../main.dart';
 import '../models/guest_model.dart';
 import '../services/calculation_service.dart';
+import '../services/rsvp_message_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/summary_card.dart';
 import '../widgets/visual_cards.dart';
@@ -89,6 +91,17 @@ class _GuestListPageState extends State<GuestListPage> {
             ),
           ),
           const SizedBox(height: 8),
+          if (stats.unsurePeople > 0) ...[
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _shareRsvpReminder(),
+                icon: const Icon(Icons.chat_outlined),
+                label: Text('${stats.unsurePeople} belirsiz davetliye mesaj'),
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
           if (controller.guests.isEmpty)
             const EmptyStateCard(
               icon: Icons.groups_outlined,
@@ -112,6 +125,7 @@ class _GuestListPageState extends State<GuestListPage> {
                   onTap: () => _showGuestSheet(guest: guest),
                   onStatusTap: () => _showStatusSelector(guest),
                   onSwipeStatus: (status) => _setGuestStatus(guest, status),
+                  onShareRsvp: () => _shareRsvpReminder(guest: guest),
                   onDelete: () => _deleteGuest(guest),
                 ),
               ),
@@ -190,6 +204,15 @@ class _GuestListPageState extends State<GuestListPage> {
     }
   }
 
+  Future<void> _shareRsvpReminder({Guest? guest}) async {
+    final controller = AppScope.of(context);
+    final message = const RsvpMessageService().buildReminder(
+      coupleNames: controller.settings.coupleNames,
+      guest: guest,
+    );
+    await Share.share(message, subject: 'Davetli dönüş mesajı');
+  }
+
   Future<void> _showGuestSheet({Guest? guest}) async {
     await showModalBottomSheet<void>(
       context: context,
@@ -264,6 +287,7 @@ class _GuestRow extends StatelessWidget {
     required this.onTap,
     required this.onStatusTap,
     required this.onSwipeStatus,
+    required this.onShareRsvp,
     required this.onDelete,
   });
 
@@ -271,6 +295,7 @@ class _GuestRow extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onStatusTap;
   final ValueChanged<GuestStatus> onSwipeStatus;
+  final VoidCallback onShareRsvp;
   final VoidCallback onDelete;
 
   @override
@@ -351,9 +376,20 @@ class _GuestRow extends StatelessWidget {
                 PopupMenuButton<String>(
                   tooltip: 'Davetli aksiyonları',
                   onSelected: (value) {
+                    if (value == 'rsvp') onShareRsvp();
                     if (value == 'delete') onDelete();
                   },
                   itemBuilder: (context) => const [
+                    PopupMenuItem(
+                      value: 'rsvp',
+                      child: Row(
+                        children: [
+                          Icon(Icons.chat_outlined, size: 18),
+                          SizedBox(width: 10),
+                          Text('Mesaj metni paylaş'),
+                        ],
+                      ),
+                    ),
                     PopupMenuItem(
                       value: 'delete',
                       child: Row(

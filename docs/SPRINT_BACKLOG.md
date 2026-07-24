@@ -64,4 +64,5 @@ Start with S1 item 1 and item 3:
 - Add working premium text report export. Done.
 - Add item target purchase dates and weekly plan due-soon prioritization. Done.
 - Add target-date filter and item date visibility. Done.
-- Next: reminders, RSVP flow and PDF rendering.
+- Add RSVP reminder share flow for uncertain guests. Done.
+- Next: household/table plan, reminders and PDF rendering.
