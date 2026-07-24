@@ -72,4 +72,5 @@ Start with S1 item 1 and item 3:
 - Add local monetization funnel counters for paywall, premium gates, rewarded unlocks and feature unlocks. Done.
 - Add export/report preview in the premium gate before Premium or rewarded ad choice. Done.
 - Add first working PDF preparation report sharing behind Premium/rewarded unlock. Done.
+- Tighten photo archive monetization with tested 10-photo free quota, source-aware paywall copy and funnel counting. Done.
 - Next: PDF visual polish/Turkish font, household grouping, reminders and screenshots.

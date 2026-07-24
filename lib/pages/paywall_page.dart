@@ -146,6 +146,8 @@ class _PaywallHero extends StatelessWidget {
         return 'Hazırlık raporunu sınırsız paylaş; skor, bütçe uyarısı ve sıradaki öncelikler tek yerde.';
       case 'report_pdf':
         return 'PDF raporu premium dosya gibi paylaş; planı daha ciddi ve düzenli göster.';
+      case 'photo_archive':
+        return 'Fiş, garanti, ürün ve ilham görsellerini 10 fotoğraf sınırına takılmadan arşivle.';
       case 'settings':
         return 'Reklamları kaldır, premium export ve rapor kilitlerini tek seferde aç.';
       default:
@@ -163,6 +165,8 @@ class _PaywallHero extends StatelessWidget {
         return 'Bütçe export';
       case 'export':
         return 'Liste export';
+      case 'photo_archive':
+        return 'Sınırsız arşiv';
       default:
         return 'Premium';
     }

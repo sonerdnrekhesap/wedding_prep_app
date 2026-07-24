@@ -21,7 +21,7 @@ Make free users valuable through respectful ads, while giving serious planners c
    - Unlocks unlimited budget CSV export.
    - Unlocks unlimited preparation report export.
    - Unlocks PDF preparation report sharing.
-   - Keeps photo/archive expansion as premium value.
+   - Keeps photo/archive expansion as premium value: free users get 10 photo slots, premium unlocks unlimited item photos/receipts.
 
 3. Deferred subscriptions
    - `premium_monthly` and `premium_6months` stay disabled until entitlement expiry validation exists.
@@ -44,6 +44,7 @@ Make free users valuable through respectful ads, while giving serious planners c
 - Premium export gates now show a contextual preview before the user chooses Premium or rewarded ad: checklist count/missing items, budget totals, or report value depending on the locked action.
 - PDF preparation report sharing is available through the same Premium or rewarded-ad unlock path.
 - Paywall hero copy changes by source, so users arriving from checklist export, budget export, text report or PDF report see a matching upgrade promise.
+- Photo archive quota hits open a source-aware paywall and are counted as premium gate views.
 
 ## Measurement Logic
 

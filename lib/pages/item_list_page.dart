@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import '../main.dart';
 import '../models/item_model.dart';
 import '../services/formatters.dart';
+import '../services/monetization_metrics_service.dart';
 import '../services/photo_storage_models.dart';
 import '../theme/app_colors.dart';
 import '../widgets/ad_banner_widget.dart';
@@ -381,6 +382,10 @@ class _ItemListPageState extends State<ItemListPage> {
   }
 
   Future<void> _openPhotoPaywall() async {
+    await AppScope.of(context).recordMonetization(
+      MonetizationEvent.premiumGateView,
+    );
+    if (!mounted) return;
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => const PaywallPage(source: 'photo_archive'),
@@ -783,6 +788,8 @@ class _ItemDetailSheetState extends State<_ItemDetailSheet> {
     if (!replacingExisting &&
         !controller.premium
             .canAddPhoto(controller.settings, controller.items)) {
+      await controller.recordMonetization(MonetizationEvent.premiumGateView);
+      if (!mounted) return;
       await Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => const PaywallPage(source: 'photo_archive'),
