@@ -10,6 +10,7 @@ Make free users valuable through respectful ads, while giving serious planners c
 
 1. Free + ads
    - Banner ads on planning screens.
+   - Banner ad on the main list hub, where free users repeatedly choose preparation modules.
    - Interstitial ads only after repeated category browsing, with cooldown.
    - Rewarded ads for one-time premium export/report unlocks.
 
