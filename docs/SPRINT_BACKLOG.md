@@ -57,6 +57,7 @@ Local product decision:
 
 Start with S1 item 1 and item 3:
 
-- Fix visible Turkish copy and release-safe premium language.
-- Put a single "Bugunun onerisi" action on the home screen.
-- Then rerun analyze/test/build and update KPI scores.
+- Fix visible Turkish copy and release-safe premium language. Done.
+- Put a single "Bugunun onerisi" action on the home screen. Done.
+- Add working premium CSV export for checklist and budget summary. Done.
+- Next: budget advisor v1 and PDF/report export.

@@ -41,6 +41,8 @@
 - [ ] Item complete/uncomplete and price entry
 - [ ] Guest add/edit/delete/status changes
 - [ ] CSV guest export
+- [ ] Premium checklist CSV export
+- [ ] Premium budget CSV export
 - [ ] Reset all data
 - [ ] Offline usage
 - [ ] Release AAB installed on a real Android device

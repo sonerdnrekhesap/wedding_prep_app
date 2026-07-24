@@ -67,10 +67,11 @@ class PremiumCatalog {
 
   static const premiumBenefits = [
     'Reklamsız planlama',
+    'Hazırlık listesi ve bütçe özeti CSV export',
     'Premium hazırlık özeti ve paylaşım kartları',
     'Daha derin bütçe ve eksik analizleri',
     '10 fotoğraf sınırı olmadan arşiv alanı',
-    'Yeni export ve aile paylaşımı özelliklerine erken erişim',
+    'Yeni aile paylaşımı özelliklerine erken erişim',
   ];
 
   static PremiumProduct get recommended => PremiumProduct.values.firstWhere(

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../main.dart';
 import '../models/guest_model.dart';
+import '../models/item_model.dart';
 import '../services/export_service.dart';
 import '../services/formatters.dart';
 import '../services/notification_service.dart';
@@ -243,6 +244,53 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           Card(
             child: ListTile(
+              leading: const Icon(Icons.table_chart_outlined),
+              title: const Text('Hazırlık listesini CSV olarak paylaş'),
+              subtitle: const Text(
+                'Kategori, öncelik, fiyat, mağaza ve not alanlarıyla dışa aktar.',
+              ),
+              trailing: controller.settings.isPremium
+                  ? null
+                  : const Icon(Icons.workspace_premium_outlined),
+              onTap: () {
+                if (!controller.settings.isPremium) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const PaywallPage(source: 'export'),
+                    ),
+                  );
+                  return;
+                }
+                _shareChecklistCsv(controller.items);
+              },
+            ),
+          ),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.account_balance_wallet_outlined),
+              title: const Text('Bütçe özetini CSV olarak paylaş'),
+              subtitle: const Text(
+                'Kategori bazlı harcama, eksik ve tahmini ihtiyaç özetini çıkar.',
+              ),
+              trailing: controller.settings.isPremium
+                  ? null
+                  : const Icon(Icons.workspace_premium_outlined),
+              onTap: () {
+                if (!controller.settings.isPremium) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          const PaywallPage(source: 'budget_export'),
+                    ),
+                  );
+                  return;
+                }
+                _shareBudgetCsv(controller.items);
+              },
+            ),
+          ),
+          Card(
+            child: ListTile(
               leading: const Icon(Icons.auto_awesome_outlined),
               title: const Text('Örnek planı yükle'),
               subtitle: const Text(
@@ -323,6 +371,40 @@ class _SettingsPageState extends State<SettingsPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Davetli listesi paylaşılamadı.')),
+      );
+    }
+  }
+
+  Future<void> _shareChecklistCsv(List<PrepItem> items) async {
+    try {
+      final csv = ExportService().buildChecklistCsv(items);
+      await const ShareFileService().shareTextFile(
+        fileName: 'hazirlik-listesi.csv',
+        content: csv,
+        subject: 'Hazırlık listesi',
+        mimeType: 'text/csv',
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Hazırlık listesi paylaşılamadı.')),
+      );
+    }
+  }
+
+  Future<void> _shareBudgetCsv(List<PrepItem> items) async {
+    try {
+      final csv = ExportService().buildBudgetCsv(items);
+      await const ShareFileService().shareTextFile(
+        fileName: 'butce-ozeti.csv',
+        content: csv,
+        subject: 'Bütçe özeti',
+        mimeType: 'text/csv',
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bütçe özeti paylaşılamadı.')),
       );
     }
   }
