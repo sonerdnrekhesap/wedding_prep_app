@@ -9,6 +9,7 @@ import '../services/export_service.dart';
 import '../services/formatters.dart';
 import '../services/monetization_metrics_service.dart';
 import '../services/notification_service.dart';
+import '../services/pdf_report_service.dart';
 import '../services/share_file_service.dart';
 import 'paywall_page.dart';
 
@@ -298,6 +299,26 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           Card(
             child: ListTile(
+              leading: const Icon(Icons.picture_as_pdf_outlined),
+              title: const Text('Hazırlık raporunu PDF olarak paylaş'),
+              subtitle: const Text(
+                'Aile, partner veya alışveriş görüşmesi için daha resmi premium rapor.',
+              ),
+              trailing: controller.settings.isPremium
+                  ? null
+                  : const Icon(Icons.workspace_premium_outlined),
+              onTap: () => _runPremiumOrRewarded(
+                source: 'report_pdf',
+                onUnlocked: () => _sharePlanningPdf(
+                  controller.settings,
+                  controller.items,
+                  controller.guests,
+                ),
+              ),
+            ),
+          ),
+          Card(
+            child: ListTile(
               leading: const Icon(Icons.auto_awesome_outlined),
               title: const Text('Örnek planı yükle'),
               subtitle: const Text(
@@ -496,6 +517,31 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
+  Future<void> _sharePlanningPdf(
+    AppSettings settings,
+    List<PrepItem> items,
+    List<Guest> guests,
+  ) async {
+    try {
+      final pdf = const PdfReportService().buildPlanningReportPdf(
+        settings,
+        items,
+        guests,
+      );
+      await const ShareFileService().shareBytesFile(
+        fileName: 'hazirlik-raporu.pdf',
+        bytes: pdf,
+        subject: 'Hazırlık raporu PDF',
+        mimeType: 'application/pdf',
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('PDF rapor paylaşılamadı.')),
+      );
+    }
+  }
+
   DateTime? _readDate() {
     final day = int.tryParse(dayController.text.trim());
     final month = int.tryParse(monthController.text.trim());
@@ -555,11 +601,14 @@ class _PremiumGatePreview {
           ],
         );
       case 'report':
+      case 'report_pdf':
         return _PremiumGatePreview(
-          title: 'Hazırlık raporunu paylaş',
+          title: source == 'report_pdf'
+              ? 'PDF hazırlık raporunu paylaş'
+              : 'Hazırlık raporunu paylaş',
           subtitle:
               'Tek dosyada skor, bütçe uyarısı, davetli özeti ve sıradaki öncelikler.',
-          badge: 'Premium rapor',
+          badge: source == 'report_pdf' ? 'PDF rapor' : 'Premium rapor',
           bullets: [
             '${settings.coupleNames.isEmpty ? 'Çift bilgisi' : settings.coupleNames} için özet',
             '$comingGuests kesin davetli kişi ve ${guests.length} davetli kaydı',

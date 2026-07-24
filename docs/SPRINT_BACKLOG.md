@@ -71,4 +71,5 @@ Start with S1 item 1 and item 3:
 - Add premium comparison table to clarify upgrade value. Done.
 - Add local monetization funnel counters for paywall, premium gates, rewarded unlocks and feature unlocks. Done.
 - Add export/report preview in the premium gate before Premium or rewarded ad choice. Done.
-- Next: household grouping, reminders, screenshots and PDF rendering.
+- Add first working PDF preparation report sharing behind Premium/rewarded unlock. Done.
+- Next: PDF visual polish/Turkish font, household grouping, reminders and screenshots.

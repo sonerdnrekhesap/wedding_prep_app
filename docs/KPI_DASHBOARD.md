@@ -8,10 +8,10 @@ Scores are 0-100. Update after each meaningful implementation batch.
 |---|---:|---|---|---|
 | Activation | 64 | Yellow | Onboarding CTA copy improved and home now surfaces one today action | Add preparation type and live setup preview |
 | Core Planning | 82 | Green | Checklist, target dates/filter, budget advisor, guest RSVP, table assignment and weekly plan exist | Add household grouping and reminders |
-| Premium Value | 69 | Yellow | Lifetime unlocks unlimited CSV/report export, ad-free use, budget advisor and archive value; paywall has comparison table and gate previews | Add PDF rendering later |
+| Premium Value | 71 | Yellow | Lifetime unlocks unlimited CSV/report/text PDF export, ad-free use, budget advisor and archive value; paywall has comparison table and gate previews | Polish PDF visual design and font handling |
 | Monetization Plumbing | 78 | Yellow | AdMob, IAP skeleton, premium gates, rewarded export unlocks and local funnel counters exist | Create store products, test restore, validate subscriptions |
 | UX Polish | 70 | Yellow | Core onboarding/home/paywall/settings Turkish trust pass completed | Polish empty states and screenshots |
-| Technical Stability | 86 | Green | Analyze/test pass with export, report, budget advisor, RSVP, table and target date tests | Add controller/purchase tests |
+| Technical Stability | 86 | Green | Analyze/test pass with export, PDF report, budget advisor, RSVP, table and target date tests | Add controller/purchase tests |
 | Store Readiness | 50 | Yellow | Store metadata and privacy/data safety drafts exist; external assets still missing | Privacy URL, screenshots, signing, store forms |
 | Release Confidence | 62 | Yellow | Web build passes; Android release now blocks missing production keystore | Real device QA and TestFlight |
 
@@ -74,6 +74,7 @@ Implementation update:
 - Paywall now explains Free vs rewarded one-time use vs Premium unlimited value.
 - Monetization funnel is now locally measurable: paywall views, premium gate views, premium CTA taps, restore taps, rewarded attempts, rewarded successes, rewarded unavailable cases and feature unlocks are counted on device.
 - Premium export/report gates now preview the value of the locked action before the Premium or rewarded-ad choice.
+- Premium users and rewarded-ad unlock users can share a PDF preparation report; the first PDF engine is dependency-free and covered by tests.
 
 ## KPI Definitions
 
