@@ -39,6 +39,7 @@ Make free users valuable through respectful ads, while giving serious planners c
 - Store product query exposes only launch-ready product IDs.
 - Debug purchase is not presented in release paywall copy.
 - Local funnel counters record paywall views, premium gate views, premium CTA taps, restore taps, rewarded attempts, rewarded successes, rewarded unavailable cases and unlocked premium features.
+- Premium export gates now show a contextual preview before the user chooses Premium or rewarded ad: checklist count/missing items, budget totals, or report value depending on the locked action.
 
 ## Measurement Logic
 
@@ -50,6 +51,5 @@ Make free users valuable through respectful ads, while giving serious planners c
 
 ## Next Monetization Improvements
 
-- Add export/report preview before purchase.
 - Add lifetime price A/B copy variants in store screenshots.
 - Add purchase/restore sandbox QA proof before release.

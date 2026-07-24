@@ -70,4 +70,5 @@ Start with S1 item 1 and item 3:
 - Add rewarded ad one-time export/report unlock for free users. Done.
 - Add premium comparison table to clarify upgrade value. Done.
 - Add local monetization funnel counters for paywall, premium gates, rewarded unlocks and feature unlocks. Done.
-- Next: export/report preview, household grouping, reminders, screenshots and PDF rendering.
+- Add export/report preview in the premium gate before Premium or rewarded ad choice. Done.
+- Next: household grouping, reminders, screenshots and PDF rendering.

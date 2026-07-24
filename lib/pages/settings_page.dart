@@ -395,10 +395,17 @@ class _SettingsPageState extends State<SettingsPage> {
 
     await controller.recordMonetization(MonetizationEvent.premiumGateView);
     if (!mounted) return;
+    final preview = _PremiumGatePreview.fromSource(
+      source: source,
+      settings: controller.settings,
+      items: controller.items,
+      guests: controller.guests,
+    );
     final choice = await showModalBottomSheet<_UnlockChoice>(
       context: context,
       builder: (context) => _PremiumOrRewardedSheet(
         canOfferRewarded: controller.ads.canOfferRewardedUnlock,
+        preview: preview,
       ),
     );
     if (!mounted || choice == null) return;
@@ -505,13 +512,88 @@ class _SettingsPageState extends State<SettingsPage> {
 
 enum _UnlockChoice { premium, rewarded }
 
+class _PremiumGatePreview {
+  const _PremiumGatePreview({
+    required this.title,
+    required this.subtitle,
+    required this.badge,
+    required this.bullets,
+  });
+
+  final String title;
+  final String subtitle;
+  final String badge;
+  final List<String> bullets;
+
+  factory _PremiumGatePreview.fromSource({
+    required String source,
+    required AppSettings settings,
+    required List<PrepItem> items,
+    required List<Guest> guests,
+  }) {
+    final completed = items.where((item) => item.isCompleted).length;
+    final missing = items.length - completed;
+    final spent = items.fold<double>(0, (sum, item) => sum + item.actualPrice);
+    final missingEstimate = items
+        .where((item) => !item.isCompleted)
+        .fold<double>(0, (sum, item) => sum + item.estimatedPrice);
+    final comingGuests = guests
+        .where((guest) => guest.status == GuestStatus.coming)
+        .fold<int>(0, (sum, guest) => sum + guest.personCount);
+
+    switch (source) {
+      case 'budget_export':
+        return _PremiumGatePreview(
+          title: 'Bütçe özetini dışa aktar',
+          subtitle:
+              'Kategori bazlı bütçe tablosu aileyle konuşurken en hızlı karar aracın olur.',
+          badge: 'Excel uyumlu CSV',
+          bullets: [
+            'Toplam harcama: ${money(spent)}',
+            'Eksik tahmin: ${money(missingEstimate)}',
+            'Kategori bazlı tamamlanan, eksik ve kalan ihtiyaç',
+          ],
+        );
+      case 'report':
+        return _PremiumGatePreview(
+          title: 'Hazırlık raporunu paylaş',
+          subtitle:
+              'Tek dosyada skor, bütçe uyarısı, davetli özeti ve sıradaki öncelikler.',
+          badge: 'Premium rapor',
+          bullets: [
+            '${settings.coupleNames.isEmpty ? 'Çift bilgisi' : settings.coupleNames} için özet',
+            '$comingGuests kesin davetli kişi ve ${guests.length} davetli kaydı',
+            '$missing eksik kalemden en önemli 5 sıradaki aksiyon',
+          ],
+        );
+      default:
+        return _PremiumGatePreview(
+          title: 'Hazırlık listesini dışa aktar',
+          subtitle:
+              'Çeyiz, düğün ve alışveriş listesini düzenli bir tablo olarak paylaş.',
+          badge: 'Excel uyumlu CSV',
+          bullets: [
+            '${items.length} ürün, $missing eksik kalem',
+            'Kategori, öncelik, adet, mağaza, marka/model ve not alanları',
+            'Tamamlanan ürünler ve gerçek harcama takibi',
+          ],
+        );
+    }
+  }
+}
+
 class _PremiumOrRewardedSheet extends StatelessWidget {
-  const _PremiumOrRewardedSheet({required this.canOfferRewarded});
+  const _PremiumOrRewardedSheet({
+    required this.canOfferRewarded,
+    required this.preview,
+  });
 
   final bool canOfferRewarded;
+  final _PremiumGatePreview preview;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(18),
@@ -520,14 +602,64 @@ class _PremiumOrRewardedSheet extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Premium export',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
+              preview.title,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w900,
+              ),
             ),
             const SizedBox(height: 8),
+            Text(preview.subtitle),
+            const SizedBox(height: 14),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.visibility_outlined, size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Önizleme',
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        preview.badge,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  for (final bullet in preview.bullets) ...[
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.only(top: 2),
+                          child: Icon(Icons.check_circle_outline, size: 17),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text(bullet)),
+                      ],
+                    ),
+                    const SizedBox(height: 7),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
             const Text(
-              'Sınırsız export ve reklamsız kullanım Premium ile açılır. Reklam uygunsa bu dosya için tek seferlik paylaşım da açabilirsin.',
+              'Premium sınırsız export ve reklamsız kullanım açar. Reklam uygunsa bu dosya için tek seferlik paylaşım da açabilirsin.',
             ),
             const SizedBox(height: 16),
             SizedBox(
