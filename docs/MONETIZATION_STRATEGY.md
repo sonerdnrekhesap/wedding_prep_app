@@ -45,6 +45,7 @@ Make free users valuable through respectful ads, while giving serious planners c
 - PDF preparation report sharing is available through the same Premium or rewarded-ad unlock path.
 - Paywall hero copy changes by source, so users arriving from checklist export, budget export, text report or PDF report see a matching upgrade promise.
 - Photo archive quota hits open a source-aware paywall and are counted as premium gate views.
+- Settings shows current photo slot usage, creating a softer upgrade path before the user hits the quota wall.
 
 ## Measurement Logic
 

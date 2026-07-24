@@ -8,7 +8,7 @@ Scores are 0-100. Update after each meaningful implementation batch.
 |---|---:|---|---|---|
 | Activation | 64 | Yellow | Onboarding CTA copy improved and home now surfaces one today action | Add preparation type and live setup preview |
 | Core Planning | 82 | Green | Checklist, target dates/filter, budget advisor, guest RSVP, table assignment and weekly plan exist | Add household grouping and reminders |
-| Premium Value | 73 | Yellow | Lifetime unlocks unlimited CSV/report/text PDF export, ad-free use, budget advisor and tested photo archive quota; paywall has comparison table, gate previews and source-aware copy | Polish PDF visual design and font handling |
+| Premium Value | 74 | Yellow | Lifetime unlocks unlimited CSV/report/text PDF export, ad-free use, budget advisor and visible/tested photo archive quota; paywall has comparison table, gate previews and source-aware copy | Polish PDF visual design and font handling |
 | Monetization Plumbing | 79 | Yellow | AdMob, IAP skeleton, premium gates, rewarded export unlocks, hub banners and local funnel counters exist | Create store products, test restore, validate subscriptions |
 | UX Polish | 70 | Yellow | Core onboarding/home/paywall/settings Turkish trust pass completed | Polish empty states and screenshots |
 | Technical Stability | 87 | Green | Analyze/test pass with export, PDF report, budget advisor, RSVP, table, target date and photo quota tests | Add controller/purchase tests |
@@ -78,6 +78,7 @@ Implementation update:
 - Paywall hero copy now changes by entry source, so export, budget, text report and PDF report users see the value tied to the action they just tried.
 - Free users now see a banner on the main list hub in addition to home, budget and item list screens; premium users still hide ads.
 - Photo archive monetization is now tighter: the 10-photo free quota is tested, premium remains unlimited and photo quota paywall hits are counted in the monetization funnel.
+- Settings now surfaces photo/archive quota usage, making the premium unlimited archive value visible before users hit the hard limit.
 
 ## KPI Definitions
 

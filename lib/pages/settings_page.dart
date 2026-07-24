@@ -66,6 +66,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final controller = AppScope.of(context);
+    final usedPhotoSlots = controller.premium.usedPhotoSlots(controller.items);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Ayarlar')),
@@ -187,6 +188,34 @@ class _SettingsPageState extends State<SettingsPage> {
                   builder: (_) => const PaywallPage(source: 'settings'),
                 ),
               ),
+            ),
+          ),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Fotoğraf ve fiş arşivi'),
+              subtitle: Text(
+                controller.settings.isPremium
+                    ? '$usedPhotoSlots görsel arşivde. Premium ile kota sınırı yok.'
+                    : '$usedPhotoSlots/10 ücretsiz görsel kullanıldı. Premium sınırsız ürün, fiş ve ilham fotoğrafı açar.',
+              ),
+              trailing: controller.settings.isPremium
+                  ? const Icon(Icons.verified_outlined)
+                  : const Icon(Icons.chevron_right),
+              onTap: controller.settings.isPremium
+                  ? null
+                  : () async {
+                      await controller.recordMonetization(
+                        MonetizationEvent.premiumGateView,
+                      );
+                      if (!context.mounted) return;
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              const PaywallPage(source: 'photo_archive'),
+                        ),
+                      );
+                    },
             ),
           ),
           if (!kReleaseMode)
