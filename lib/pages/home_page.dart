@@ -47,7 +47,7 @@ class HomePage extends StatelessWidget {
       ),
       const SizedBox(height: 14),
       ProgressCard(
-        title: 'Hazirlik durumun',
+        title: 'Hazırlık durumun',
         subtitle: calc.scoreMessage(score),
         progress: score / 100,
         trailing: '%${score.round()} tamam',
@@ -56,6 +56,9 @@ class HomePage extends StatelessWidget {
           MaterialPageRoute(builder: (_) => const WrappedSummaryPage()),
         ),
       ),
+      const SizedBox(height: 14),
+      _TodayActionCard(
+          action: weeklyActions.isEmpty ? null : weeklyActions.first),
       const SizedBox(height: 14),
       GridView(
         shrinkWrap: true,
@@ -79,7 +82,7 @@ class HomePage extends StatelessWidget {
             icon: Icons.payments_outlined,
           ),
           SummaryCard(
-            title: 'Kalan butce',
+            title: 'Kalan bütçe',
             value: money(remainingBudget),
             icon: Icons.savings_outlined,
             tint: AppColors.mint,
@@ -96,8 +99,8 @@ class HomePage extends StatelessWidget {
       _WeeklyPlanPreview(actions: weeklyActions),
       const SizedBox(height: 10),
       PriorityActionCard(
-        title: 'Once ne almaliyim?',
-        subtitle: 'Olmazsa olmazlar ve yuksek maliyetli eksikler sirada.',
+        title: 'Önce ne almalıyım?',
+        subtitle: 'Olmazsa olmazlar ve yüksek maliyetli eksikler sırada.',
         icon: Icons.route_outlined,
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => const PriorityPage()),
@@ -105,8 +108,8 @@ class HomePage extends StatelessWidget {
       ),
       const SizedBox(height: 10),
       PriorityActionCard(
-        title: 'Listeyi paylas',
-        subtitle: 'Ailene veya nisanlina hazirlik ozetini gonder.',
+        title: 'Listeyi paylaş',
+        subtitle: 'Ailene veya nişanlına hazırlık özetini gönder.',
         icon: Icons.ios_share,
         onTap: () => Share.share(_shareHomeText(days, score, totalSpent)),
       ),
@@ -120,10 +123,10 @@ class HomePage extends StatelessWidget {
       ),
       const SizedBox(height: 10),
       ProgressCard(
-        title: 'Butce ve harcama',
+        title: 'Bütçe ve harcama',
         subtitle: remainingBudget < 0
-            ? 'Hedef butce asildi. Pahali kalemleri kontrol et.'
-            : 'Ne kadar harcadigini ve kalan butceni gor.',
+            ? 'Hedef bütçe aşıldı. Pahalı kalemleri kontrol et.'
+            : 'Ne kadar harcadığını ve kalan bütçeni gör.',
         progress:
             calc.budgetUsagePercent(controller.settings, controller.items),
         icon: Icons.account_balance_wallet_outlined,
@@ -160,7 +163,7 @@ class HomePage extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Hazirlik Asistani')),
+      appBar: AppBar(title: const Text('Hazırlık Asistanı')),
       bottomNavigationBar: const AdBannerWidget(),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -176,19 +179,19 @@ class HomePage extends StatelessWidget {
   }
 
   String _heroMessage(int? days) {
-    if (days == null) return 'Tarihi ekleyelim, plani sakin sakin kuralim';
-    if (days < 0) return 'Dugun tarihi gecti, anilari toparlama zamani';
-    if (days == 0) return 'Bugun buyuk gun. Her sey yolunda.';
-    return 'Dugune $days gun kaldi';
+    if (days == null) return 'Tarihi ekleyelim, planı sakin sakin kuralım';
+    if (days < 0) return 'Düğün tarihi geçti, anıları toparlama zamanı';
+    if (days == 0) return 'Bugün büyük gün. Her şey yolunda.';
+    return 'Düğüne $days gün kaldı';
   }
 
   String _shareHomeText(int? days, double score, double spent) {
     return [
-      if (days != null) 'Dugunume $days gun kaldi.',
-      'Hazirligim %${score.round()} tamamlandi.',
+      if (days != null) 'Düğünüme $days gün kaldı.',
+      'Hazırlığım %${score.round()} tamamlandı.',
       'Toplam harcama: ${money(spent)}',
       'Panik yok, listeyi birlikte toparliyoruz.',
-      'Hazirlik kartim - Hazirlik Takibi',
+      'Hazırlık kartım - Hazırlık Takibi',
     ].join('\n');
   }
 
@@ -201,6 +204,28 @@ class HomePage extends StatelessWidget {
         MainCategory.dugun => Icons.favorite_border,
         MainCategory.balayi => Icons.flight_takeoff_outlined,
       };
+}
+
+class _TodayActionCard extends StatelessWidget {
+  const _TodayActionCard({required this.action});
+
+  final WeeklyPlanAction? action;
+
+  @override
+  Widget build(BuildContext context) {
+    final title = action?.title ?? 'Bugün rahat nefes al';
+    final subtitle = action?.subtitle ??
+        'Kritik bir eksik görünmüyor. Haftalık planı hızlıca kontrol edebilirsin.';
+
+    return PriorityActionCard(
+      title: 'Bugünün önerisi: $title',
+      subtitle: subtitle,
+      icon: Icons.tips_and_updates_outlined,
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const WeeklyPlanPage()),
+      ),
+    );
+  }
 }
 
 class _WeeklyPlanPreview extends StatelessWidget {

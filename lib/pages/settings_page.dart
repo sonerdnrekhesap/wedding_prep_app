@@ -81,7 +81,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           keyboardType: TextInputType.number,
                           maxLength: 2,
                           decoration: const InputDecoration(
-                            labelText: 'Gun',
+                            labelText: 'Gün',
                             counterText: '',
                           ),
                         ),
@@ -106,7 +106,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           keyboardType: TextInputType.number,
                           maxLength: 4,
                           decoration: const InputDecoration(
-                            labelText: 'Yil',
+                            labelText: 'Yıl',
                             counterText: '',
                           ),
                         ),
@@ -117,17 +117,17 @@ class _SettingsPageState extends State<SettingsPage> {
                   TextField(
                     controller: budgetController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Hedef butce'),
+                    decoration: const InputDecoration(labelText: 'Hedef bütçe'),
                   ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: brideNameController,
-                    decoration: const InputDecoration(labelText: 'Gelin adi'),
+                    decoration: const InputDecoration(labelText: 'Gelin adı'),
                   ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: groomNameController,
-                    decoration: const InputDecoration(labelText: 'Damat adi'),
+                    decoration: const InputDecoration(labelText: 'Damat adı'),
                   ),
                   const SizedBox(height: 14),
                   SizedBox(
@@ -139,7 +139,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text(
-                                'Dugun tarihini gun, ay, yil olarak yaz.',
+                                'Düğün tarihini gün, ay, yıl olarak yaz.',
                               ),
                             ),
                           );
@@ -174,8 +174,8 @@ class _SettingsPageState extends State<SettingsPage> {
               title: const Text('Premium plan'),
               subtitle: Text(
                 controller.settings.isPremium
-                    ? 'Premium aktif: reklamlar kapali ve premium kilitleri acik.'
-                    : 'Reklamsiz kullanim, akilli plan ve export paketlerini incele.',
+                    ? 'Premium aktif: reklamlar kapalı ve premium kilitler açık.'
+                    : 'Reklamsız kullanım, akıllı plan ve premium özetleri incele.',
               ),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.of(context).push(
@@ -192,8 +192,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 title: const Text('Premium mock modu'),
                 subtitle: Text(
                   controller.settings.isPremium
-                      ? 'Premium acik: reklam ve paywall kisitlari kapali.'
-                      : 'Premium kapali: gelismis ozelliklerde paywall gosterilir.',
+                      ? 'Premium açık: reklam ve paywall kısıtları kapalı.'
+                      : 'Premium kapalı: gelişmiş özelliklerde paywall gösterilir.',
                 ),
                 value: controller.settings.isPremium,
                 onChanged: (value) async {
@@ -234,9 +234,9 @@ class _SettingsPageState extends State<SettingsPage> {
           Card(
             child: ListTile(
               leading: const Icon(Icons.ios_share_outlined),
-              title: const Text('Davetli listesini CSV olarak paylas'),
+              title: const Text('Davetli listesini CSV olarak paylaş'),
               subtitle: const Text(
-                'Davetli listesini Excel uyumlu CSV dosyasi olarak disa aktar.',
+                'Davetli listesini Excel uyumlu CSV dosyası olarak dışa aktar.',
               ),
               onTap: () => _shareGuestCsv(controller.guests),
             ),
@@ -244,15 +244,15 @@ class _SettingsPageState extends State<SettingsPage> {
           Card(
             child: ListTile(
               leading: const Icon(Icons.auto_awesome_outlined),
-              title: const Text('Demo verileri yukle'),
+              title: const Text('Örnek planı yükle'),
               subtitle: const Text(
-                'Magaza oncesi sunum ve test icin ornek cift, butce ve davetli verisi yukler.',
+                'Sunum ve hızlı deneme için örnek çift, bütçe ve davetli verisi ekler.',
               ),
               onTap: () async {
                 await controller.loadDemoData();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Demo verileri yuklendi.')),
+                    const SnackBar(content: Text('Örnek plan yüklendi.')),
                   );
                 }
               },
@@ -263,7 +263,7 @@ class _SettingsPageState extends State<SettingsPage> {
               leading: Icon(Icons.privacy_tip_outlined),
               title: Text('Gizlilik'),
               subtitle: Text(
-                'Veriler ve sectigin fotograflar cihazda saklanir. Bulut yedekleme yoktur. Fotograf silersen uygulama icindeki dosya da silinir.',
+                'Veriler ve seçtiğin fotoğraflar cihazda saklanır. Bulut yedekleme yoktur. Fotoğraf silersen uygulama içindeki dosya da silinir.',
               ),
               isThreeLine: true,
             ),
@@ -271,32 +271,32 @@ class _SettingsPageState extends State<SettingsPage> {
           const Card(
             child: ListTile(
               leading: Icon(Icons.info_outline),
-              title: Text('Uygulama hakkinda'),
+              title: Text('Uygulama hakkında'),
               subtitle: Text(
-                'Ceyiz, dugun, butce ve davetli hazirliklarini offline takip eder.',
+                'Çeyiz, düğün, bütçe ve davetli hazırlıklarını offline takip eder.',
               ),
             ),
           ),
           Card(
             child: ListTile(
               leading: const Icon(Icons.delete_forever_outlined),
-              title: const Text('Verileri sifirla'),
+              title: const Text('Verileri sıfırla'),
               subtitle:
-                  const Text('Tum liste, davetli ve ayar verileri silinir.'),
+                  const Text('Tüm liste, davetli ve ayar verileri silinir.'),
               onTap: () async {
                 final ok = await showDialog<bool>(
                   context: context,
                   builder: (context) => AlertDialog(
-                    title: const Text('Veriler sifirlansin mi?'),
-                    content: const Text('Bu islem geri alinamaz.'),
+                    title: const Text('Veriler sıfırlansın mı?'),
+                    content: const Text('Bu işlem geri alınamaz.'),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context, false),
-                        child: const Text('Vazgec'),
+                        child: const Text('Vazgeç'),
                       ),
                       FilledButton(
                         onPressed: () => Navigator.pop(context, true),
-                        child: const Text('Sifirla'),
+                        child: const Text('Sıfırla'),
                       ),
                     ],
                   ),
@@ -322,7 +322,7 @@ class _SettingsPageState extends State<SettingsPage> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Davetli listesi paylasilamadi.')),
+        const SnackBar(content: Text('Davetli listesi paylaşılamadı.')),
       );
     }
   }

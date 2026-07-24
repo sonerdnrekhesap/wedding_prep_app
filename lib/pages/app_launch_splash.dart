@@ -45,7 +45,7 @@ class AppLaunchSplash extends StatelessWidget {
                       ),
                   const SizedBox(height: 22),
                   Text(
-                    'Hazirlik Takibi',
+                    'Hazırlık Takibi',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.w900,
@@ -57,7 +57,7 @@ class AppLaunchSplash extends StatelessWidget {
                       .slideY(begin: 0.18, end: 0),
                   const SizedBox(height: 8),
                   const Text(
-                    'Dugun, butce ve davetliler tek sakin planda',
+                    'Düğün, bütçe ve davetliler tek sakin planda',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,

@@ -5,28 +5,31 @@ import 'storage_service.dart';
 enum PremiumProduct {
   monthly(
     id: 'premium_monthly',
-    label: 'Aylik Premium',
+    label: 'Aylık Premium',
     priceLabel: 'TRY 49,99',
-    cadenceLabel: 'aylik',
-    badge: 'Esnek',
-    pitch: 'Kisa sureli planlayanlar icin.',
+    cadenceLabel: 'aylık',
+    badge: 'Planlı',
+    pitch: 'Abonelik doğrulaması tamamlanınca açılacak esnek plan.',
+    isLaunchReady: false,
   ),
   sixMonths(
     id: 'premium_6months',
-    label: '6 Aylik Hazirlik Paketi',
+    label: '6 Aylık Hazırlık Paketi',
     priceLabel: 'TRY 199,99',
-    cadenceLabel: 'tek odeme',
-    badge: 'En mantikli',
-    pitch: 'Nisan-dugun arasi tum hazirlik donemi icin.',
-    isRecommended: true,
+    cadenceLabel: 'tek ödeme',
+    badge: 'Planlı',
+    pitch: 'Nişan-düğün arası hazırlık dönemi için planlanan paket.',
+    isLaunchReady: false,
   ),
   lifetime(
     id: 'premium_lifetime',
-    label: 'Omur Boyu Premium',
+    label: 'Ömür Boyu Premium',
     priceLabel: 'TRY 349,99',
-    cadenceLabel: 'tek odeme',
-    badge: 'En iyi deger',
-    pitch: 'Kardes, aile ve sonraki etkinliklerde de kullan.',
+    cadenceLabel: 'tek ödeme',
+    badge: 'İlk release',
+    pitch:
+        'Tek ödeme ile reklamsız planlama, premium özetler ve arşiv kotasını aç.',
+    isRecommended: true,
   );
 
   const PremiumProduct({
@@ -37,6 +40,7 @@ enum PremiumProduct {
     required this.badge,
     required this.pitch,
     this.isRecommended = false,
+    this.isLaunchReady = true,
   });
 
   final String id;
@@ -46,27 +50,27 @@ enum PremiumProduct {
   final String badge;
   final String pitch;
   final bool isRecommended;
+  final bool isLaunchReady;
 }
 
 class PremiumCatalog {
   const PremiumCatalog._();
 
   static const heroPromise =
-      'Daha az panik, daha net plan: reklamsiz takip, akilli haftalik plan ve profesyonel export iskeleti.';
+      'Daha az panik, daha net plan: reklamsız takip, akıllı haftalık öncelikler ve premium hazırlık özeti.';
 
   static const freeKeeps = [
-    'Checklist ve temel butce takibi',
-    'Davetli listesi ve CSV paylasimi',
-    'Haftalik oncelik onerileri',
+    'Checklist ve temel bütçe takibi',
+    'Davetli listesi ve CSV paylaşımı',
+    'Haftalık öncelik önerileri',
   ];
 
   static const premiumBenefits = [
-    'Reklamsiz planlama',
-    'PDF/Excel export iskeleti',
-    'Detayli butce ve eksik analizleri',
-    'Sinirsiz fotograf/fis arsivi',
-    'Premium ozet kartlari',
-    'Partner senkronizasyonu icin hazir altyapi',
+    'Reklamsız planlama',
+    'Premium hazırlık özeti ve paylaşım kartları',
+    'Daha derin bütçe ve eksik analizleri',
+    '10 fotoğraf sınırı olmadan arşiv alanı',
+    'Yeni export ve aile paylaşımı özelliklerine erken erişim',
   ];
 
   static PremiumProduct get recommended => PremiumProduct.values.firstWhere(
@@ -75,8 +79,13 @@ class PremiumCatalog {
       );
 
   static Set<String> get productIds => {
-        for (final product in PremiumProduct.values) product.id,
+        for (final product in PremiumProduct.values)
+          if (product.isLaunchReady) product.id,
       };
+
+  static List<PremiumProduct> get launchProducts => PremiumProduct.values
+      .where((product) => product.isLaunchReady)
+      .toList(growable: false);
 }
 
 class PremiumService {

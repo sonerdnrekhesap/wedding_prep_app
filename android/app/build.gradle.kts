@@ -17,6 +17,9 @@ val hasReleaseKeystore = listOf(
     "keyAlias",
     "keyPassword",
 ).all { !keystoreProperties.getProperty(it).isNullOrBlank() }
+val allowDebugReleaseSigning = providers.gradleProperty("allowDebugReleaseSigning")
+    .map(String::toBoolean)
+    .getOrElse(false)
 
 android {
     namespace = "com.sonerdnrekhesap.hazirliktakibi"
@@ -59,6 +62,18 @@ android {
                 signingConfigs.getByName("debug")
             }
         }
+    }
+}
+
+gradle.taskGraph.whenReady {
+    val isReleaseTask = allTasks.any { task ->
+        task.name.contains("Release", ignoreCase = true)
+    }
+    if (isReleaseTask && !hasReleaseKeystore && !allowDebugReleaseSigning) {
+        throw GradleException(
+            "Release keystore is missing. Configure android/key.properties " +
+                "or pass -PallowDebugReleaseSigning=true only for local test builds."
+        )
     }
 }
 

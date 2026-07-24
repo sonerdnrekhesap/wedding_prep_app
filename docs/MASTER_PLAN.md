@@ -1,5 +1,8 @@
 # Wedding Prep App Master Plan
 
+> Director source of truth: `docs/DIRECTOR_MASTER_PLAN.md`, `docs/SPRINT_BACKLOG.md` and `docs/KPI_DASHBOARD.md`.
+> The older sections below are historical notes from the first release-readiness pass and may mention gaps that are now closed.
+
 Tarih: 22 Temmuz 2026
 Proje: `C:\Users\soner\Documents\Codex\2026-07-07\bir-p\wedding_prep_app`
 

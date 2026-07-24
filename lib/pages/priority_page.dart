@@ -22,22 +22,22 @@ class PriorityPage extends StatelessWidget {
       });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Once Ne Almaliyim?')),
+      appBar: AppBar(title: const Text('Önce Ne Almalıyım?')),
       body: items.isEmpty
           ? const Padding(
               padding: EdgeInsets.all(16),
               child: EmptyStateCard(
                 icon: Icons.check_circle_outline,
-                title: 'Kritik eksik gorunmuyor',
+                title: 'Kritik eksik görünmüyor',
                 message:
-                    'Guzel gidiyorsun. Istersen detay listelerini kontrol et.',
+                    'Güzel gidiyorsun. İstersen detay listelerini kontrol et.',
               ),
             )
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
                 const Text(
-                  'Once olmazsa olmazlari, sonra pahali ve gerekli parcalari kapat. Bu siralama butceyi ve zamani daha rahat yonetir.',
+                  'Önce olmazsa olmazları, sonra pahalı ve gerekli parçaları kapat. Bu sıralama bütçeyi ve zamanı daha rahat yönetir.',
                   style: TextStyle(color: Color(0xFF7B6B72)),
                 ),
                 const SizedBox(height: 14),
@@ -75,7 +75,7 @@ class _PrioritySection extends StatelessWidget {
               Text(
                 priority == ItemPriority.mustHave
                     ? 'Olmazsa olmazlar tamam.'
-                    : 'Bu bolumde eksik yok.',
+                    : 'Bu bölümde eksik yok.',
               )
             else
               for (final item in items)

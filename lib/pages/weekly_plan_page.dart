@@ -39,7 +39,7 @@ class WeeklyPlanPage extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               children: [
                 const Text(
-                  'En acil ve en etkili adimlar burada. Once ilk uc maddeyi kapat, sonra liste kendini toparlar.',
+                  'En acil ve en etkili adımlar burada. Önce ilk üç maddeyi kapat, sonra liste kendini toparlar.',
                   style: TextStyle(color: AppColors.muted),
                 ),
                 const SizedBox(height: 14),

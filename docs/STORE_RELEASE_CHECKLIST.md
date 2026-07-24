@@ -9,7 +9,7 @@
 - [x] Production AdMob Android app id added to `AndroidManifest.xml`
 - [x] Production AdMob Android unit ids documented for `--dart-define`
 - [x] App icon replaced
-- [ ] Splash screen replaced
+- [x] Splash screen replaced
 - [ ] Privacy policy hosted and URL added
 - [ ] Data Safety form completed
 - [ ] Content rating completed
@@ -52,5 +52,7 @@
 - AdMob apps are created but still require store linking/review after Play Store/App Store listings exist.
 - Production signing key is not in the repo.
 - Premium purchase skeleton is implemented; real store products and subscription validation are still pending.
-- Splash still uses template assets.
+- Android release builds now fail without production keystore unless `-PallowDebugReleaseSigning=true` is passed for a local test build.
+- Debug APK build remains available for local QA.
+- Splash is branded; final store screenshot polish remains.
 - iOS build must be verified on macOS.

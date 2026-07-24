@@ -6,10 +6,14 @@ The app now includes an `in_app_purchase` based purchase skeleton.
 
 ## Product IDs
 
-Create these products with the exact IDs in App Store Connect and Google Play Console:
+Create these products with the exact IDs in App Store Connect and Google Play Console when their release gates are ready:
 
-- `premium_monthly`
-- `premium_6months`
+- `premium_lifetime` - launch-ready non-consumable
+- `premium_monthly` - draft only until subscription validation is ready
+- `premium_6months` - draft only until entitlement expiry validation is ready
+
+Current code queries only launch-ready product IDs:
+
 - `premium_lifetime`
 
 ## Recommended Launch Strategy
@@ -35,25 +39,26 @@ Reason:
 - Activates the local premium flag after a purchased/restored event.
 - Disables ads when premium is active.
 - Keeps debug mock purchase available outside release builds.
+- Does not expose subscription product IDs to the store layer yet.
 
 ## Store Metadata Draft
 
 ### premium_monthly
 
 - Type: Subscription after validation is ready
-- Display name: Aylik Premium
+- Display name: Aylık Premium
 - Positioning: flexible access for short planning windows
 
 ### premium_6months
 
 - Type: Subscription or non-renewing entitlement after validation is ready
-- Display name: 6 Aylik Hazirlik Paketi
+- Display name: 6 Aylık Hazırlık Paketi
 - Positioning: recommended planning-period offer
 
 ### premium_lifetime
 
 - Type: Non-consumable
-- Display name: Omur Boyu Premium
+- Display name: Ömür Boyu Premium
 - Positioning: simplest first monetization product
 
 ## Before Enabling Real Sales

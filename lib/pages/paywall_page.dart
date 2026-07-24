@@ -25,7 +25,7 @@ class PaywallPage extends StatelessWidget {
           _PaywallHero(source: source),
           const SizedBox(height: 16),
           Text(
-            'Ucretsiz kalanlar',
+            'Ücretsiz kalanlar',
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w900,
             ),
@@ -35,7 +35,7 @@ class PaywallPage extends StatelessWidget {
             _Benefit(icon: Icons.check_circle_outline, text: text),
           const SizedBox(height: 14),
           Text(
-            'Premium ile acilan deger',
+            'Premium ile açılan değer',
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w900,
             ),
@@ -44,7 +44,7 @@ class PaywallPage extends StatelessWidget {
           for (final text in PremiumCatalog.premiumBenefits)
             _Benefit(icon: Icons.auto_awesome, text: text),
           const SizedBox(height: 18),
-          for (final product in PremiumProduct.values) ...[
+          for (final product in PremiumCatalog.launchProducts) ...[
             _PlanCard(
               product: product,
               priceLabel: purchaseState.detailsFor(product)?.price ??
@@ -65,7 +65,7 @@ class PaywallPage extends StatelessWidget {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text(
-                        'Satin alma altyapisi store onayi sonrasi acilacak.',
+                        'Satın alma şu an mağaza bağlantısı bekliyor. Lütfen biraz sonra tekrar dene.',
                       ),
                     ),
                   );
@@ -88,13 +88,13 @@ class PaywallPage extends StatelessWidget {
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Satin almalar kontrol edildi.'),
+                    content: Text('Satın almalar kontrol edildi.'),
                   ),
                 );
               }
             },
             icon: const Icon(Icons.restore),
-            label: const Text('Satin almalari geri yukle'),
+            label: const Text('Satın almaları geri yükle'),
           ),
         ]
             .animate(interval: 45.ms)
@@ -140,7 +140,7 @@ class _PaywallHero extends StatelessWidget {
               const SizedBox(width: 12),
               const Expanded(
                 child: Text(
-                  'Hazirlik Takibi Premium',
+                  'Hazırlık Takibi Premium',
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w900,
@@ -164,8 +164,8 @@ class _PaywallHero extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _HeroChip(label: 'Reklamsiz'),
-              _HeroChip(label: 'Akilli plan'),
+              _HeroChip(label: 'Reklamsız'),
+              _HeroChip(label: 'Akıllı plan'),
               _HeroChip(label: 'Export'),
             ],
           ),
@@ -295,8 +295,8 @@ class _PlanCard extends StatelessWidget {
                 icon: Icon(enabled ? Icons.lock_open : Icons.lock_clock),
                 label: Text(
                   enabled
-                      ? (kReleaseMode ? 'Premium al' : 'Debug satin al')
-                      : 'Store onayi sonrasi acilacak',
+                      ? (isActive ? 'Premium aktif' : 'Premium al')
+                      : 'Mağaza bağlantısı bekleniyor',
                 ),
               ),
             ),
@@ -356,8 +356,8 @@ class _TrustStrip extends StatelessWidget {
                 message.isNotEmpty
                     ? message
                     : isRelease
-                        ? 'Gercek satin alma, App Store ve Play Store urunleri baglandiktan sonra acilacak.'
-                        : 'Debug modda satin alma mock calisir; release modda sahte satis yapilmaz.',
+                        ? 'Satın alma ve geri yükleme işlemleri App Store ve Play Store güvenli ödeme sistemiyle yönetilir.'
+                        : 'Test modunda satın alma simülasyonu yalnızca geliştirici doğrulaması için kullanılır.',
                 style: const TextStyle(
                   color: AppColors.muted,
                   fontWeight: FontWeight.w700,
