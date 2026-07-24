@@ -65,6 +65,27 @@ class GuestStats {
   final int groomPeople;
 }
 
+enum BudgetAdviceLevel {
+  calm,
+  setup,
+  watch,
+  danger,
+}
+
+class BudgetAdvice {
+  const BudgetAdvice({
+    required this.level,
+    required this.title,
+    required this.message,
+    required this.actionLabel,
+  });
+
+  final BudgetAdviceLevel level;
+  final String title;
+  final String message;
+  final String actionLabel;
+}
+
 class CalculationService {
   int? daysUntilWedding(AppSettings settings) {
     final date = settings.weddingDate;
@@ -93,6 +114,64 @@ class CalculationService {
   double budgetUsagePercent(AppSettings settings, List<PrepItem> items) {
     if (settings.targetBudget <= 0) return 0;
     return (totalSpent(items) / settings.targetBudget).clamp(0, 1);
+  }
+
+  BudgetAdvice budgetAdvice(AppSettings settings, List<PrepItem> items) {
+    final spent = totalSpent(items);
+    final remaining = remainingBudget(settings, items);
+    final highMissing = missingHighEstimateItems(items, limit: 1)
+        .where((item) => item.estimatedPrice > 0)
+        .toList(growable: false);
+
+    if (settings.targetBudget <= 0) {
+      return const BudgetAdvice(
+        level: BudgetAdviceLevel.setup,
+        title: 'Hedef bütçe eksik',
+        message:
+            'Bütçe riskini takip etmek için önce toplam üst limitini ekle.',
+        actionLabel: 'Hedef bütçe ekle',
+      );
+    }
+
+    if (remaining < 0) {
+      return BudgetAdvice(
+        level: BudgetAdviceLevel.danger,
+        title: 'Bütçe aşıldı',
+        message:
+            '${money(spent)} harcandı. En pahalı kalemleri ve lüks öncelikleri kontrol et.',
+        actionLabel: 'Aşımı azalt',
+      );
+    }
+
+    final usage = budgetUsagePercent(settings, items);
+    if (usage >= 0.85) {
+      return BudgetAdvice(
+        level: BudgetAdviceLevel.watch,
+        title: 'Bütçe sınırına yaklaştın',
+        message:
+            '${money(remaining)} kaldı. Yeni alışverişten önce eksik tahminleri gözden geçir.',
+        actionLabel: 'Riskli kalemlere bak',
+      );
+    }
+
+    if (highMissing.isNotEmpty &&
+        highMissing.first.estimatedPrice > remaining) {
+      return BudgetAdvice(
+        level: BudgetAdviceLevel.watch,
+        title: 'Sıradaki büyük kalem bütçeyi zorlayabilir',
+        message:
+            '${highMissing.first.title} için ${money(highMissing.first.estimatedPrice)} tahmin var; kalan bütçe ${money(remaining)}.',
+        actionLabel: 'Önceliği yeniden sırala',
+      );
+    }
+
+    return BudgetAdvice(
+      level: BudgetAdviceLevel.calm,
+      title: 'Bütçe dengede',
+      message:
+          '${money(remaining)} alan kaldı. Büyük alımları yine de sırayla kapat.',
+      actionLabel: 'Planı koru',
+    );
   }
 
   double weightedPreparationScore(List<PrepItem> items) {

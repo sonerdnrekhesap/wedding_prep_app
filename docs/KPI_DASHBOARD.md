@@ -7,17 +7,17 @@ Scores are 0-100. Update after each meaningful implementation batch.
 | Area | Score | Status | Evidence | Next Move |
 |---|---:|---|---|---|
 | Activation | 63 | Yellow | Onboarding CTA copy improved and home now surfaces one today action | Add preparation type and live setup preview |
-| Core Planning | 72 | Yellow | Checklist, budget, guest and weekly plan exist | Reframe home around next action |
-| Premium Value | 57 | Yellow | Lifetime is the launch product; premium checklist and budget CSV exports now work | Build PDF/report and deeper budget analysis |
+| Core Planning | 74 | Yellow | Checklist, budget advisor, guest and weekly plan exist | Add deadline/custom task controls |
+| Premium Value | 59 | Yellow | Lifetime is the launch product; premium CSV exports and budget advisor now work | Build PDF/report export |
 | Monetization Plumbing | 68 | Yellow | AdMob live IDs and IAP skeleton exist | Create store products, test restore, validate subscriptions |
 | UX Polish | 70 | Yellow | Core onboarding/home/paywall/settings Turkish trust pass completed | Polish empty states and screenshots |
-| Technical Stability | 81 | Green | Analyze/test pass with export tests; web build/debug APK previously passed | Add controller/purchase tests |
+| Technical Stability | 82 | Green | Analyze/test pass with export and budget advisor tests; web build/debug APK previously passed | Add controller/purchase tests |
 | Store Readiness | 43 | Red | Docs/checklists exist; external store assets missing | Privacy URL, screenshots, signing, store forms |
 | Release Confidence | 62 | Yellow | Web build passes; Android release now blocks missing production keystore | Real device QA and TestFlight |
 
 ## Director Gate
 
-Current overall score: 66/100
+Current overall score: 67/100
 
 Formula:
 
@@ -35,7 +35,7 @@ Formula:
 Raise overall score from 61 to 75 by completing:
 
 - Sprint 1 activation improvements: Turkish trust copy, home next action and onboarding outcome copy.
-- Sprint 2 export/report premium value MVP: CSV export started; PDF/report still pending.
+- Sprint 2 export/report premium value MVP: CSV export and budget advisor started; PDF/report still pending.
 - QA tests for new flows.
 - Store metadata pack draft.
 
@@ -62,6 +62,8 @@ Implementation update:
 
 - Premium users can export the preparation checklist and budget summary as Excel-friendly CSV from Settings.
 - ExportService now has tests for checklist and budget CSV output.
+- Budget page now shows a budget advisor card for missing target, overrun, near-limit risk, next expensive missing item, or calm state.
+- CalculationService now has tests for budget advisor states.
 
 ## KPI Definitions
 
