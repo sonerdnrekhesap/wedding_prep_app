@@ -107,6 +107,7 @@ class AppController extends ChangeNotifier {
     required String subCategory,
     required ItemPriority priority,
     double estimatedPrice = 0,
+    DateTime? targetPurchaseDate,
   }) async {
     final now = DateTime.now();
     items = [
@@ -118,6 +119,7 @@ class AppController extends ChangeNotifier {
         subCategory: subCategory,
         priority: priority,
         estimatedPrice: estimatedPrice,
+        purchaseDate: targetPurchaseDate,
         createdAt: now,
         updatedAt: now,
       ),

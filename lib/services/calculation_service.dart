@@ -256,6 +256,7 @@ class CalculationService {
     final actions = <WeeklyPlanAction>[];
     final missingCritical = missingMustHaveItems(items);
     final missingHighEstimate = missingHighEstimateItems(items, limit: 2);
+    final dueSoon = dueSoonItems(items, limit: 3);
     final guestSummary = guestStats(guests);
     final budgetUsage = budgetUsagePercent(settings, items);
     final spent = totalSpent(items);
@@ -275,6 +276,16 @@ class CalculationService {
         subtitle: '${missingCritical.length} olmazsa olmaz kalem bekliyor.',
         urgency: 96,
         item: missingCritical.first,
+      ));
+    }
+
+    for (final item in dueSoon) {
+      actions.add(WeeklyPlanAction(
+        type: WeeklyPlanActionType.completeItem,
+        title: item.title,
+        subtitle: _dueDateSubtitle(item.purchaseDate),
+        urgency: _isOverdue(item.purchaseDate) ? 94 : 84,
+        item: item,
       ));
     }
 
@@ -352,6 +363,20 @@ class CalculationService {
         : entries.first.key;
   }
 
+  List<PrepItem> dueSoonItems(List<PrepItem> items, {int limit = 5}) {
+    final today = _dateOnly(DateTime.now());
+    final nextWeek = today.add(const Duration(days: 7));
+    final sorted = [
+      ...items.where((item) {
+        final due = item.purchaseDate;
+        if (item.isCompleted || due == null) return false;
+        final date = _dateOnly(due);
+        return !date.isAfter(nextWeek);
+      }),
+    ]..sort((a, b) => a.purchaseDate!.compareTo(b.purchaseDate!));
+    return sorted.take(limit).toList();
+  }
+
   MainCategory? mostMissingCategory(List<PrepItem> items) {
     final stats = categoryStats(items);
     final entries = stats.entries
@@ -376,4 +401,19 @@ class CalculationService {
       groomPeople: sum(guests.where((guest) => guest.side == GuestSide.groom)),
     );
   }
+
+  bool _isOverdue(DateTime? date) {
+    if (date == null) return false;
+    return _dateOnly(date).isBefore(_dateOnly(DateTime.now()));
+  }
+
+  String _dueDateSubtitle(DateTime? date) {
+    if (date == null) return 'Hedef alış tarihi yaklaşıyor.';
+    if (_isOverdue(date)) return 'Hedef tarih geçti; bu kalemi öne al.';
+    return 'Hedef alış tarihi: ${date.day.toString().padLeft(2, '0')}.'
+        '${date.month.toString().padLeft(2, '0')}.${date.year}';
+  }
+
+  DateTime _dateOnly(DateTime date) =>
+      DateTime(date.year, date.month, date.day);
 }

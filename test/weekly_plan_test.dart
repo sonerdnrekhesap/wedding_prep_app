@@ -60,4 +60,48 @@ void main() {
       isTrue,
     );
   });
+
+  test('weekly plan prioritizes items with upcoming target date', () {
+    final item = PrepItem(
+      id: 'item-due',
+      title: 'Nikah şekeri',
+      mainCategory: MainCategory.dugun,
+      subCategory: 'Hediye',
+      priority: ItemPriority.later,
+      purchaseDate: DateTime.now().add(const Duration(days: 2)),
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    final actions = CalculationService().weeklyPlanActions(
+      AppSettings(weddingDate: DateTime.now().add(const Duration(days: 90))),
+      [item],
+      const [],
+    );
+
+    expect(actions.first.item, item);
+    expect(actions.first.subtitle, contains('Hedef alış tarihi'));
+  });
+
+  test('weekly plan ignores completed items with target date', () {
+    final item = PrepItem(
+      id: 'item-done',
+      title: 'Kına tepsisi',
+      mainCategory: MainCategory.kina,
+      subCategory: 'Aksesuar',
+      priority: ItemPriority.mustHave,
+      isCompleted: true,
+      purchaseDate: DateTime.now().add(const Duration(days: 2)),
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    final actions = CalculationService().weeklyPlanActions(
+      AppSettings(weddingDate: DateTime.now().add(const Duration(days: 90))),
+      [item],
+      const [],
+    );
+
+    expect(actions.any((action) => action.item == item), isFalse);
+  });
 }

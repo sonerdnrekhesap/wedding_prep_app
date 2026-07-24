@@ -39,6 +39,7 @@
 - [ ] Weekly plan recommendations
 - [ ] Item add/edit/delete
 - [ ] Item complete/uncomplete and price entry
+- [ ] Item target purchase date and weekly plan priority
 - [ ] Guest add/edit/delete/status changes
 - [ ] CSV guest export
 - [ ] Premium checklist CSV export
