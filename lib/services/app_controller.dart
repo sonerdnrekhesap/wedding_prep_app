@@ -142,6 +142,7 @@ class AppController extends ChangeNotifier {
     int personCount = 1,
     GuestStatus status = GuestStatus.uncertain,
     String note = '',
+    String tableName = '',
   }) {
     final now = DateTime.now();
     return Guest(
@@ -152,6 +153,7 @@ class AppController extends ChangeNotifier {
       guestCount: personCount,
       status: status,
       note: note,
+      tableName: tableName,
       createdAt: now,
       updatedAt: now,
     );

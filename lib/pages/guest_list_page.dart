@@ -368,6 +368,8 @@ class _GuestRow extends StatelessWidget {
                             style: const TextStyle(color: AppColors.muted),
                           ),
                           _StatusChip(status: guest.status, onTap: onStatusTap),
+                          if (guest.tableName.trim().isNotEmpty)
+                            _TableChip(label: guest.tableName.trim()),
                         ],
                       ),
                     ],
@@ -491,6 +493,23 @@ class _SideChip extends StatelessWidget {
   }
 }
 
+class _TableChip extends StatelessWidget {
+  const _TableChip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Chip(
+      avatar: const Icon(Icons.table_restaurant_outlined, size: 16),
+      label: Text(label),
+      backgroundColor: AppColors.creamDeep,
+      labelStyle: const TextStyle(fontWeight: FontWeight.w700),
+      side: BorderSide(color: AppColors.gold.withValues(alpha: 0.18)),
+    );
+  }
+}
+
 class _GuestSheet extends StatefulWidget {
   const _GuestSheet({this.guest});
 
@@ -504,6 +523,7 @@ class _GuestSheetState extends State<_GuestSheet> {
   late final TextEditingController nameController;
   late final TextEditingController phoneController;
   late final TextEditingController countController;
+  late final TextEditingController tableController;
   late final TextEditingController noteController;
   late GuestSide side;
 
@@ -515,6 +535,7 @@ class _GuestSheetState extends State<_GuestSheet> {
     phoneController = TextEditingController(text: guest?.phone ?? '');
     countController =
         TextEditingController(text: (guest?.guestCount ?? 1).toString());
+    tableController = TextEditingController(text: guest?.tableName ?? '');
     noteController = TextEditingController(text: guest?.note ?? '');
     side = guest?.side ?? GuestSide.common;
   }
@@ -524,6 +545,7 @@ class _GuestSheetState extends State<_GuestSheet> {
     nameController.dispose();
     phoneController.dispose();
     countController.dispose();
+    tableController.dispose();
     noteController.dispose();
     super.dispose();
   }
@@ -586,6 +608,14 @@ class _GuestSheetState extends State<_GuestSheet> {
                 ),
                 const SizedBox(height: 12),
                 TextField(
+                  controller: tableController,
+                  decoration: const InputDecoration(
+                    labelText: 'Masa / grup',
+                    hintText: 'Örn. Masa 5 veya Aile',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
                   controller: noteController,
                   maxLines: 2,
                   decoration: const InputDecoration(labelText: 'Not'),
@@ -615,6 +645,7 @@ class _GuestSheetState extends State<_GuestSheet> {
           phone: phoneController.text.trim(),
           guestCount: count < 1 ? 1 : count,
           side: side,
+          tableName: tableController.text.trim(),
           note: noteController.text.trim(),
         ) ??
         controller.newGuest(
@@ -623,6 +654,7 @@ class _GuestSheetState extends State<_GuestSheet> {
           personCount: count < 1 ? 1 : count,
           side: side,
           status: GuestStatus.uncertain,
+          tableName: tableController.text.trim(),
           note: noteController.text.trim(),
         );
     await controller.addOrUpdateGuest(guest);

@@ -7,17 +7,17 @@ Scores are 0-100. Update after each meaningful implementation batch.
 | Area | Score | Status | Evidence | Next Move |
 |---|---:|---|---|---|
 | Activation | 64 | Yellow | Onboarding CTA copy improved and home now surfaces one today action | Add preparation type and live setup preview |
-| Core Planning | 80 | Green | Checklist, target dates/filter, budget advisor, guest RSVP message and weekly plan exist | Add household/table plan |
+| Core Planning | 82 | Green | Checklist, target dates/filter, budget advisor, guest RSVP, table assignment and weekly plan exist | Add household grouping and reminders |
 | Premium Value | 62 | Yellow | Lifetime is the launch product; premium CSV exports, budget advisor and text report export now work | Add PDF rendering later |
 | Monetization Plumbing | 68 | Yellow | AdMob live IDs and IAP skeleton exist | Create store products, test restore, validate subscriptions |
 | UX Polish | 70 | Yellow | Core onboarding/home/paywall/settings Turkish trust pass completed | Polish empty states and screenshots |
-| Technical Stability | 85 | Green | Analyze/test pass with export, report, budget advisor, RSVP and target date tests | Add controller/purchase tests |
+| Technical Stability | 86 | Green | Analyze/test pass with export, report, budget advisor, RSVP, table and target date tests | Add controller/purchase tests |
 | Store Readiness | 43 | Red | Docs/checklists exist; external store assets missing | Privacy URL, screenshots, signing, store forms |
 | Release Confidence | 62 | Yellow | Web build passes; Android release now blocks missing production keystore | Real device QA and TestFlight |
 
 ## Director Gate
 
-Current overall score: 71/100
+Current overall score: 72/100
 
 Formula:
 
@@ -68,6 +68,7 @@ Implementation update:
 - Items can carry a target purchase date from detail and custom item forms; weekly plan prioritizes due-soon unfinished items.
 - Checklist now has a due-soon filter and item tiles show target purchase dates.
 - Guest screen can share RSVP reminder text for all uncertain guests or a single guest; message service is tested.
+- Guests can store a table/group label, show it on guest cards and export it in guest CSV.
 
 ## KPI Definitions
 

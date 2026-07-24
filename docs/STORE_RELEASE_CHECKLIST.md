@@ -42,6 +42,7 @@
 - [ ] Item target purchase date and weekly plan priority
 - [ ] Guest add/edit/delete/status changes
 - [ ] RSVP reminder share flow
+- [ ] Guest table/group assignment and CSV export
 - [ ] CSV guest export
 - [ ] Premium checklist CSV export
 - [ ] Premium budget CSV export

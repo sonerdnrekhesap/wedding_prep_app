@@ -9,7 +9,7 @@ class ExportService {
 
   String buildGuestCsv(List<Guest> guests) {
     final rows = [
-      ['Ad', 'Telefon', 'Taraf', 'Kisi', 'Durum', 'Not'],
+      ['Ad', 'Telefon', 'Taraf', 'Kisi', 'Durum', 'Masa', 'Not'],
       for (final guest in guests)
         [
           guest.name,
@@ -17,6 +17,7 @@ class ExportService {
           guest.side.label,
           guest.personCount.toString(),
           guest.status.label,
+          guest.tableName,
           guest.note,
         ],
     ];

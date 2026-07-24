@@ -65,4 +65,5 @@ Start with S1 item 1 and item 3:
 - Add item target purchase dates and weekly plan due-soon prioritization. Done.
 - Add target-date filter and item date visibility. Done.
 - Add RSVP reminder share flow for uncertain guests. Done.
-- Next: household/table plan, reminders and PDF rendering.
+- Add table/group assignment field and guest CSV table export. Done.
+- Next: household grouping, reminders and PDF rendering.

@@ -64,6 +64,24 @@ void main() {
       expect(csv, contains('"Ceyiz","2","1","1","18000.00","5000.00"'));
     });
 
+    test('buildGuestCsv includes table assignment', () {
+      final csv = ExportService().buildGuestCsv([
+        Guest(
+          id: 'guest-1',
+          name: 'Deniz',
+          side: GuestSide.common,
+          status: GuestStatus.coming,
+          guestCount: 2,
+          tableName: 'Masa 5',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      ]);
+
+      expect(csv, contains('"Durum","Masa","Not"'));
+      expect(csv, contains('"Masa 5"'));
+    });
+
     test('buildPlanningReportText includes planning summary', () {
       final report = ExportService().buildPlanningReportText(
         AppSettings(

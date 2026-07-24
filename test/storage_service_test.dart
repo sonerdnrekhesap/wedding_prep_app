@@ -72,6 +72,7 @@ void main() {
         'name': 'Ayse',
         'side': 'unknown',
         'status': 'unknown',
+        'tableName': 'Masa 4',
         'createdAt': 'bad-date',
         'updatedAt': 'bad-date',
       });
@@ -82,6 +83,7 @@ void main() {
 
       expect(guest.side, GuestSide.common);
       expect(guest.status, GuestStatus.uncertain);
+      expect(guest.tableName, 'Masa 4');
       expect(settings.weddingDate, isNull);
       expect(settings.targetBudget, 0);
     });
