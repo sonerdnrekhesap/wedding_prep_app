@@ -136,6 +136,38 @@ class _PaywallHero extends StatelessWidget {
 
   final String source;
 
+  String get _sourcePromise {
+    switch (source) {
+      case 'export':
+        return 'Hazırlık listesini her seferinde reklamsız, sınırsız ve düzenli tablo olarak paylaş.';
+      case 'budget_export':
+        return 'Bütçe kararlarını aileyle konuşurken sınırsız özet çıkar, reklam bekleme.';
+      case 'report':
+        return 'Hazırlık raporunu sınırsız paylaş; skor, bütçe uyarısı ve sıradaki öncelikler tek yerde.';
+      case 'report_pdf':
+        return 'PDF raporu premium dosya gibi paylaş; planı daha ciddi ve düzenli göster.';
+      case 'settings':
+        return 'Reklamları kaldır, premium export ve rapor kilitlerini tek seferde aç.';
+      default:
+        return PremiumCatalog.heroPromise;
+    }
+  }
+
+  String get _sourceChip {
+    switch (source) {
+      case 'report_pdf':
+        return 'PDF rapor';
+      case 'report':
+        return 'Rapor';
+      case 'budget_export':
+        return 'Bütçe export';
+      case 'export':
+        return 'Liste export';
+      default:
+        return 'Premium';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -177,22 +209,22 @@ class _PaywallHero extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          const Text(
-            PremiumCatalog.heroPromise,
-            style: TextStyle(
+          Text(
+            _sourcePromise,
+            style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w700,
               height: 1.35,
             ),
           ),
           const SizedBox(height: 14),
-          const Wrap(
+          Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
-              _HeroChip(label: 'Reklamsız'),
-              _HeroChip(label: 'Akıllı plan'),
-              _HeroChip(label: 'Export'),
+              _HeroChip(label: _sourceChip),
+              const _HeroChip(label: 'Reklamsız'),
+              const _HeroChip(label: 'Sınırsız'),
             ],
           ),
         ],

@@ -42,6 +42,7 @@ Make free users valuable through respectful ads, while giving serious planners c
 - Local funnel counters record paywall views, premium gate views, premium CTA taps, restore taps, rewarded attempts, rewarded successes, rewarded unavailable cases and unlocked premium features.
 - Premium export gates now show a contextual preview before the user chooses Premium or rewarded ad: checklist count/missing items, budget totals, or report value depending on the locked action.
 - PDF preparation report sharing is available through the same Premium or rewarded-ad unlock path.
+- Paywall hero copy changes by source, so users arriving from checklist export, budget export, text report or PDF report see a matching upgrade promise.
 
 ## Measurement Logic
 
