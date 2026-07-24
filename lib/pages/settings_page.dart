@@ -253,17 +253,10 @@ class _SettingsPageState extends State<SettingsPage> {
               trailing: controller.settings.isPremium
                   ? null
                   : const Icon(Icons.workspace_premium_outlined),
-              onTap: () {
-                if (!controller.settings.isPremium) {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const PaywallPage(source: 'export'),
-                    ),
-                  );
-                  return;
-                }
-                _shareChecklistCsv(controller.items);
-              },
+              onTap: () => _runPremiumOrRewarded(
+                source: 'export',
+                onUnlocked: () => _shareChecklistCsv(controller.items),
+              ),
             ),
           ),
           Card(
@@ -276,18 +269,10 @@ class _SettingsPageState extends State<SettingsPage> {
               trailing: controller.settings.isPremium
                   ? null
                   : const Icon(Icons.workspace_premium_outlined),
-              onTap: () {
-                if (!controller.settings.isPremium) {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          const PaywallPage(source: 'budget_export'),
-                    ),
-                  );
-                  return;
-                }
-                _shareBudgetCsv(controller.items);
-              },
+              onTap: () => _runPremiumOrRewarded(
+                source: 'budget_export',
+                onUnlocked: () => _shareBudgetCsv(controller.items),
+              ),
             ),
           ),
           Card(
@@ -300,21 +285,14 @@ class _SettingsPageState extends State<SettingsPage> {
               trailing: controller.settings.isPremium
                   ? null
                   : const Icon(Icons.workspace_premium_outlined),
-              onTap: () {
-                if (!controller.settings.isPremium) {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const PaywallPage(source: 'report'),
-                    ),
-                  );
-                  return;
-                }
-                _sharePlanningReport(
+              onTap: () => _runPremiumOrRewarded(
+                source: 'report',
+                onUnlocked: () => _sharePlanningReport(
                   controller.settings,
                   controller.items,
                   controller.guests,
-                );
-              },
+                ),
+              ),
             ),
           ),
           Card(
@@ -403,6 +381,45 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
+  Future<void> _runPremiumOrRewarded({
+    required String source,
+    required Future<void> Function() onUnlocked,
+  }) async {
+    final controller = AppScope.of(context);
+    if (controller.settings.isPremium) {
+      await onUnlocked();
+      return;
+    }
+
+    final choice = await showModalBottomSheet<_UnlockChoice>(
+      context: context,
+      builder: (context) => _PremiumOrRewardedSheet(
+        canOfferRewarded: controller.ads.canOfferRewardedUnlock,
+      ),
+    );
+    if (!mounted || choice == null) return;
+
+    if (choice == _UnlockChoice.premium) {
+      await Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => PaywallPage(source: source)),
+      );
+      return;
+    }
+
+    final rewarded = await controller.ads.showRewardedForFeature();
+    if (!mounted) return;
+    if (rewarded) {
+      await onUnlocked();
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Reklam hazır değil. Premium ile sınırsız açabilirsin.'),
+      ),
+    );
+  }
+
   Future<void> _shareChecklistCsv(List<PrepItem> items) async {
     try {
       final csv = ExportService().buildChecklistCsv(items);
@@ -472,5 +489,58 @@ class _SettingsPageState extends State<SettingsPage> {
       return null;
     }
     return date;
+  }
+}
+
+enum _UnlockChoice { premium, rewarded }
+
+class _PremiumOrRewardedSheet extends StatelessWidget {
+  const _PremiumOrRewardedSheet({required this.canOfferRewarded});
+
+  final bool canOfferRewarded;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Premium export',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Sınırsız export ve reklamsız kullanım Premium ile açılır. Reklam uygunsa bu dosya için tek seferlik paylaşım da açabilirsin.',
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () => Navigator.pop(context, _UnlockChoice.premium),
+                icon: const Icon(Icons.workspace_premium_outlined),
+                label: const Text('Premium al'),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: canOfferRewarded
+                    ? () => Navigator.pop(context, _UnlockChoice.rewarded)
+                    : null,
+                icon: const Icon(Icons.play_circle_outline),
+                label: const Text('Reklam izle, bir kez paylaş'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

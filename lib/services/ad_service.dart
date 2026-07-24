@@ -11,6 +11,8 @@ class AdService {
   RewardedAd? _rewardedAd;
 
   bool get canShowAds => !_isPremium;
+  bool get canOfferRewardedUnlock =>
+      !kIsWeb && !_isPremium && AdConfig.canRequestAds;
 
   void setPremium(bool isPremium) {
     _isPremium = isPremium;
@@ -81,7 +83,7 @@ class AdService {
   }
 
   Future<bool> showRewardedForFeature() async {
-    if (kIsWeb || _isPremium || !AdConfig.canRequestAds) return false;
+    if (!canOfferRewardedUnlock) return false;
     final ad = _rewardedAd;
     if (ad == null) {
       _loadRewarded();

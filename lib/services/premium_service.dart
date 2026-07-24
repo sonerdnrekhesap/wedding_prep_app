@@ -57,7 +57,7 @@ class PremiumCatalog {
   const PremiumCatalog._();
 
   static const heroPromise =
-      'Daha az panik, daha net plan: reklamsız takip, akıllı haftalık öncelikler ve premium hazırlık özeti.';
+      'Daha az panik, daha net plan: reklamsız takip, sınırsız export ve premium hazırlık özeti.';
 
   static const freeKeeps = [
     'Checklist ve temel bütçe takibi',
@@ -69,6 +69,7 @@ class PremiumCatalog {
     'Reklamsız planlama',
     'Hazırlık listesi ve bütçe özeti CSV export',
     'Premium hazırlık özeti ve paylaşım kartları',
+    'Reklam izlemeden sınırsız rapor/export',
     'Daha derin bütçe ve eksik analizleri',
     '10 fotoğraf sınırı olmadan arşiv alanı',
     'Yeni aile paylaşımı özelliklerine erken erişim',

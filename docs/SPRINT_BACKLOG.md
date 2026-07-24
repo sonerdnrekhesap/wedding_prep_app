@@ -67,4 +67,5 @@ Start with S1 item 1 and item 3:
 - Add RSVP reminder share flow for uncertain guests. Done.
 - Add table/group assignment field and guest CSV table export. Done.
 - Prepare Turkish store metadata and privacy/data safety drafts. Done.
-- Next: household grouping, reminders, screenshots and PDF rendering.
+- Add rewarded ad one-time export/report unlock for free users. Done.
+- Next: premium comparison table, household grouping, reminders, screenshots and PDF rendering.

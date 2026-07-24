@@ -50,6 +50,7 @@
 - [ ] Premium checklist CSV export
 - [ ] Premium budget CSV export
 - [ ] Premium preparation report export
+- [ ] Rewarded ad one-time export/report unlock
 - [ ] Reset all data
 - [ ] Offline usage
 - [ ] Release AAB installed on a real Android device
