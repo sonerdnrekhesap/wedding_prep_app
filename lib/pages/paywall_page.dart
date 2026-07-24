@@ -3,13 +3,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../main.dart';
+import '../services/monetization_metrics_service.dart';
 import '../services/premium_service.dart';
 import '../theme/app_colors.dart';
 
-class PaywallPage extends StatelessWidget {
+class PaywallPage extends StatefulWidget {
   const PaywallPage({super.key, this.source = 'premium'});
 
   final String source;
+
+  @override
+  State<PaywallPage> createState() => _PaywallPageState();
+}
+
+class _PaywallPageState extends State<PaywallPage> {
+  bool _recordedView = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_recordedView) return;
+    _recordedView = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      AppScope.of(context).recordMonetization(MonetizationEvent.paywallView);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +41,7 @@ class PaywallPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
-          _PaywallHero(source: source),
+          _PaywallHero(source: widget.source),
           const SizedBox(height: 16),
           const _PremiumComparison(),
           const SizedBox(height: 16),
@@ -56,6 +75,10 @@ class PaywallPage extends StatelessWidget {
                       purchaseState.detailsFor(product) != null),
               isActive: controller.settings.isPremium && !kReleaseMode,
               onTap: () async {
+                await controller.recordMonetization(
+                  MonetizationEvent.premiumCtaTap,
+                );
+                if (!context.mounted) return;
                 if (!kReleaseMode) {
                   await controller.purchaseMockPremium(product);
                   if (context.mounted) Navigator.pop(context);
@@ -86,6 +109,7 @@ class PaywallPage extends StatelessWidget {
           const SizedBox(height: 12),
           OutlinedButton.icon(
             onPressed: () async {
+              await controller.recordMonetization(MonetizationEvent.restoreTap);
               await controller.restorePurchases();
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(

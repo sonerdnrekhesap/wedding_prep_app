@@ -5,6 +5,7 @@ import '../models/app_settings_model.dart';
 import '../models/guest_model.dart';
 import '../models/item_model.dart';
 import 'ad_service.dart';
+import 'monetization_metrics_service.dart';
 import 'photo_storage_service.dart';
 import 'premium_service.dart';
 import 'purchase_store.dart';
@@ -19,12 +20,16 @@ class AppController extends ChangeNotifier {
   final StorageService storage;
   final AdService ads;
   final PhotoStorageService photoStorage = const PhotoStorageService();
+  final MonetizationMetricsService monetizationMetrics =
+      const MonetizationMetricsService();
   final _uuid = const Uuid();
   late final PremiumService premium = PremiumService(storage: storage);
   final PurchaseStore purchaseStore = PurchaseStore();
 
   bool isLoading = true;
   PurchaseStoreState purchaseState = PurchaseStoreState.initial;
+  MonetizationSnapshot monetizationSnapshot =
+      const MonetizationSnapshot.empty();
   AppSettings settings = const AppSettings();
   List<PrepItem> items = [];
   List<Guest> guests = [];
@@ -34,6 +39,7 @@ class AppController extends ChangeNotifier {
     settings = await storage.loadSettings();
     items = await storage.loadItems();
     guests = await storage.loadGuests();
+    monetizationSnapshot = await monetizationMetrics.load();
     ads.setPremium(settings.isPremium);
     try {
       purchaseState = await purchaseStore.initialize(
@@ -168,9 +174,11 @@ class AppController extends ChangeNotifier {
   Future<void> resetAll() async {
     await photoStorage.deleteAllItemPhotos();
     await storage.resetAll();
+    await monetizationMetrics.reset();
     settings = await storage.loadSettings();
     items = await storage.loadItems();
     guests = await storage.loadGuests();
+    monetizationSnapshot = const MonetizationSnapshot.empty();
     ads.setPremium(settings.isPremium);
     notifyListeners();
   }
@@ -187,6 +195,11 @@ class AppController extends ChangeNotifier {
   Future<void> purchaseMockPremium(PremiumProduct product) async {
     settings = await premium.purchaseMock(settings, product);
     ads.setPremium(settings.isPremium);
+    notifyListeners();
+  }
+
+  Future<void> recordMonetization(MonetizationEvent event) async {
+    monetizationSnapshot = await monetizationMetrics.record(event);
     notifyListeners();
   }
 

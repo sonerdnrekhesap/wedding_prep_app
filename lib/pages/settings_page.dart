@@ -7,6 +7,7 @@ import '../models/guest_model.dart';
 import '../models/item_model.dart';
 import '../services/export_service.dart';
 import '../services/formatters.dart';
+import '../services/monetization_metrics_service.dart';
 import '../services/notification_service.dart';
 import '../services/share_file_service.dart';
 import 'paywall_page.dart';
@@ -388,9 +389,12 @@ class _SettingsPageState extends State<SettingsPage> {
     final controller = AppScope.of(context);
     if (controller.settings.isPremium) {
       await onUnlocked();
+      await controller.recordMonetization(MonetizationEvent.featureUnlocked);
       return;
     }
 
+    await controller.recordMonetization(MonetizationEvent.premiumGateView);
+    if (!mounted) return;
     final choice = await showModalBottomSheet<_UnlockChoice>(
       context: context,
       builder: (context) => _PremiumOrRewardedSheet(
@@ -400,19 +404,26 @@ class _SettingsPageState extends State<SettingsPage> {
     if (!mounted || choice == null) return;
 
     if (choice == _UnlockChoice.premium) {
+      await controller.recordMonetization(MonetizationEvent.premiumCtaTap);
+      if (!mounted) return;
       await Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => PaywallPage(source: source)),
       );
       return;
     }
 
+    await controller.recordMonetization(MonetizationEvent.rewardedAttempt);
     final rewarded = await controller.ads.showRewardedForFeature();
     if (!mounted) return;
     if (rewarded) {
+      await controller.recordMonetization(MonetizationEvent.rewardedSuccess);
       await onUnlocked();
+      await controller.recordMonetization(MonetizationEvent.featureUnlocked);
       return;
     }
 
+    await controller.recordMonetization(MonetizationEvent.rewardedUnavailable);
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Reklam hazır değil. Premium ile sınırsız açabilirsin.'),
